@@ -1,0 +1,135 @@
+[debug] [2025-12-23T14:38:02.087Z] ----------------------------------------------------------------------
+[debug] [2025-12-23T14:38:02.088Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\luqma\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2025-12-23T14:38:02.088Z] CLI Version:   14.12.0
+[debug] [2025-12-23T14:38:02.088Z] Platform:      win32
+[debug] [2025-12-23T14:38:02.089Z] Node Version:  v24.11.0
+[debug] [2025-12-23T14:38:02.089Z] Time:          Tue Dec 23 2025 22:38:02 GMT+0800 (Malaysia Time)
+[debug] [2025-12-23T14:38:02.089Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-23T14:38:02.090Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-12-23T14:38:02.228Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-23T14:38:02.228Z] > authorizing via signed-in user (luqmanbahrin2004@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\luqma
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[debug] [2025-12-23T14:38:02.699Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-12-23T14:38:02.700Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-12-23T14:38:40.644Z] Using project from CLI flag: sup-daging-selambak
+[debug] [2025-12-23T14:38:40.645Z] Checked if tokens are valid: false, expires at: 1763633141295
+[debug] [2025-12-23T14:38:40.645Z] Checked if tokens are valid: false, expires at: 1763633141295
+[debug] [2025-12-23T14:38:40.645Z] > refreshing access token with scopes: []
+[debug] [2025-12-23T14:38:40.646Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-12-23T14:38:40.646Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-23T14:38:40.726Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-12-23T14:38:40.726Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-23T14:38:40.736Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/sup-daging-selambak [none]
+[debug] [2025-12-23T14:38:41.301Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/sup-daging-selambak 200
+[debug] [2025-12-23T14:38:41.301Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/sup-daging-selambak {"projectId":"sup-daging-selambak","projectNumber":"546359545825","displayName":"sup-daging-selambak","name":"projects/sup-daging-selambak","resources":{"hostingSite":"sup-daging-selambak"},"state":"ACTIVE","etag":"1_2b6cd2aa-e1f0-4483-800b-e19c326391d7"}
+[info] i  Using project sup-daging-selambak (sup-daging-selambak) 
+[info] 
+=== App Hosting Setup
+[debug] [2025-12-23T14:38:41.353Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:41.353Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:41.353Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/sup-daging-selambak/billingInfo [none]
+[debug] [2025-12-23T14:38:41.904Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/sup-daging-selambak/billingInfo 200
+[debug] [2025-12-23T14:38:41.904Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/sup-daging-selambak/billingInfo {"name":"projects/sup-daging-selambak/billingInfo","projectId":"sup-daging-selambak","billingAccountName":"billingAccounts/01557F-783963-5AB26E","billingEnabled":true}
+[debug] [2025-12-23T14:38:41.904Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:41.904Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:41.904Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com [none]
+[debug] [2025-12-23T14:38:41.904Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:43.392Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com 200
+[debug] [2025-12-23T14:38:43.392Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2025-12-23T14:38:43.392Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:43.392Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:43.392Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com:enable [none]
+[debug] [2025-12-23T14:38:43.392Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com:enable x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:44.919Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com:enable 200
+[debug] [2025-12-23T14:38:44.919Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/firebaseapphosting.googleapis.com:enable [omitted]
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:54.929Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com [none]
+[debug] [2025-12-23T14:38:54.930Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:54.930Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/secretmanager.googleapis.com [none]
+[debug] [2025-12-23T14:38:54.930Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/secretmanager.googleapis.com x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:54.931Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/run.googleapis.com [none]
+[debug] [2025-12-23T14:38:54.931Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/run.googleapis.com x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:54.932Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/iam.googleapis.com [none]
+[debug] [2025-12-23T14:38:54.932Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/iam.googleapis.com x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:56.351Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/secretmanager.googleapis.com 200
+[debug] [2025-12-23T14:38:56.352Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/secretmanager.googleapis.com [omitted]
+[debug] [2025-12-23T14:38:56.364Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com 200
+[debug] [2025-12-23T14:38:56.364Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com [omitted]
+[debug] [2025-12-23T14:38:56.364Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:56.364Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:38:56.364Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com:enable [none]
+[debug] [2025-12-23T14:38:56.364Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com:enable x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:38:56.365Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/iam.googleapis.com 200
+[debug] [2025-12-23T14:38:56.365Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/iam.googleapis.com [omitted]
+[debug] [2025-12-23T14:38:56.368Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/run.googleapis.com 200
+[debug] [2025-12-23T14:38:56.368Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/run.googleapis.com [omitted]
+[debug] [2025-12-23T14:38:57.861Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com:enable 200
+[debug] [2025-12-23T14:38:57.861Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/sup-daging-selambak/services/developerconnect.googleapis.com:enable [omitted]
+[debug] [2025-12-23T14:39:07.888Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:07.888Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:07.889Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts/firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-12-23T14:39:07.889Z] >>> [apiv2][(partial)header] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts/firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com:testIamPermissions x-goog-quota-user=projects/sup-daging-selambak
+[debug] [2025-12-23T14:39:07.889Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts/firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-12-23T14:39:09.220Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts/firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com:testIamPermissions 404
+[debug] [2025-12-23T14:39:09.220Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts/firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2025-12-23T14:39:09.221Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:09.221Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:09.221Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts [none]
+[debug] [2025-12-23T14:39:09.221Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts {"accountId":"firebase-app-hosting-compute","serviceAccount":{"displayName":"Firebase App Hosting compute service account","description":"Default service account used to run builds and deploys for Firebase App Hosting"}}
+[debug] [2025-12-23T14:39:09.989Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts 200
+[debug] [2025-12-23T14:39:09.990Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/sup-daging-selambak/serviceAccounts [omitted]
+[debug] [2025-12-23T14:39:09.990Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:09.990Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:09.990Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:getIamPolicy [none]
+[debug] [2025-12-23T14:39:11.247Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:getIamPolicy 200
+[debug] [2025-12-23T14:39:11.247Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:getIamPolicy {"version":1,"etag":"BwZB+sQRIFc=","bindings":[{"role":"roles/artifactregistry.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-artifactregistry.iam.gserviceaccount.com"]},{"role":"roles/cloudaicompanion.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-cloudaicompanion.iam.gserviceaccount.com"]},{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:546359545825@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.serviceAgent","members":["serviceAccount:service-546359545825@gcf-admin-robot.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-546359545825@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:546359545825-compute@developer.gserviceaccount.com","serviceAccount:546359545825@cloudservices.gserviceaccount.com","serviceAccount:sup-daging-selambak@appspot.gserviceaccount.com","user:afnanfreelance2u@gmail.com"]},{"role":"roles/eventarc.eventReceiver","members":["serviceAccount:546359545825-compute@developer.gserviceaccount.com"]},{"role":"roles/eventarc.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-eventarc.iam.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-546359545825@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@sup-daging-selambak.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@sup-daging-selambak.iam.gserviceaccount.com"]},{"role":"roles/firebasemods.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-firebasemods.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-546359545825@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:firebase-adminsdk-fbsvc@sup-daging-selambak.iam.gserviceaccount.com","serviceAccount:service-546359545825@gcp-sa-pubsub.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:luqmanbahrin2004@gmail.com","user:nhvelosyncventures@gmail.com"]},{"role":"roles/run.invoker","members":["serviceAccount:546359545825-compute@developer.gserviceaccount.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-546359545825@serverless-robot-prod.iam.gserviceaccount.com"]}]}
+[debug] [2025-12-23T14:39:11.247Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:11.247Z] Checked if tokens are valid: true, expires at: 1766504319726
+[debug] [2025-12-23T14:39:11.247Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:setIamPolicy [none]
+[debug] [2025-12-23T14:39:11.247Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:setIamPolicy {"policy":{"version":1,"etag":"BwZB+sQRIFc=","bindings":[{"role":"roles/artifactregistry.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-artifactregistry.iam.gserviceaccount.com"]},{"role":"roles/cloudaicompanion.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-cloudaicompanion.iam.gserviceaccount.com"]},{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:546359545825@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.serviceAgent","members":["serviceAccount:service-546359545825@gcf-admin-robot.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-546359545825@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:546359545825-compute@developer.gserviceaccount.com","serviceAccount:546359545825@cloudservices.gserviceaccount.com","serviceAccount:sup-daging-selambak@appspot.gserviceaccount.com","user:afnanfreelance2u@gmail.com"]},{"role":"roles/eventarc.eventReceiver","members":["serviceAccount:546359545825-compute@developer.gserviceaccount.com"]},{"role":"roles/eventarc.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-eventarc.iam.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-546359545825@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@sup-daging-selambak.iam.gserviceaccount.com","serviceAccount:firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@sup-daging-selambak.iam.gserviceaccount.com"]},{"role":"roles/firebasemods.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-firebasemods.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-546359545825@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-546359545825@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:firebase-adminsdk-fbsvc@sup-daging-selambak.iam.gserviceaccount.com","serviceAccount:service-546359545825@gcp-sa-pubsub.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:luqmanbahrin2004@gmail.com","user:nhvelosyncventures@gmail.com"]},{"role":"roles/run.invoker","members":["serviceAccount:546359545825-compute@developer.gserviceaccount.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-546359545825@serverless-robot-prod.iam.gserviceaccount.com"]},{"role":"roles/firebaseapphosting.computeRunner","members":["serviceAccount:firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com"]},{"role":"roles/developerconnect.readTokenAccessor","members":["serviceAccount:firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com"]},{"role":"roles/storage.objectViewer","members":["serviceAccount:firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com"]}]},"updateMask":"bindings"}
+[debug] [2025-12-23T14:39:12.079Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:setIamPolicy 400
+[debug] [2025-12-23T14:39:12.079Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sup-daging-selambak:setIamPolicy {"error":{"code":400,"message":"Service account firebase-app-hosting-compute@sup-daging-selambak.iam.gserviceaccount.com does not exist.","status":"INVALID_ARGUMENT"}}
+[warn] !  Your App Hosting compute service account is still being provisioned in the background. If you encounter an error, please try again after a few moments. 
+[info] i  This command links your local project to Firebase App Hosting. You will be able to deploy your web app with `firebase deploy` after setup. 
+[debug] [2025-12-23T14:39:31.274Z] ExitPromptError: User force closed the prompt with SIGINT
+    at Interface.sigint (C:\Users\luqma\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\@inquirer\core\dist\commonjs\lib\create-prompt.js:101:37)
+    at Interface.emit (node:events:508:28)
+    at Interface.emit (node:domain:489:12)
+    at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1317:18)
+    at ReadStream.onkeypress (node:internal/readline/interface:284:20)
+    at ReadStream.emit (node:events:520:35)
+    at ReadStream.emit (node:domain:489:12)
+    at emitKeys (node:internal/readline/utils:371:14)
+    at emitKeys.next (<anonymous>)
+    at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+[error] 
+[error] Error: An unexpected error has occurred.
