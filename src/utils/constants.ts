@@ -1,9 +1,6 @@
 export const LIVESTOCK_TYPES = [
   { value: 'cattle', label: 'Cattle' },
   { value: 'goat', label: 'Goat' },
-  { value: 'sheep', label: 'Sheep' },
-  { value: 'poultry', label: 'Poultry' },
-  { value: 'other', label: 'Other' },
 ] as const;
 
 export const LIVESTOCK_STATUS = [

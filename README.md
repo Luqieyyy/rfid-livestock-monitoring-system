@@ -216,7 +216,7 @@ The application expects the following Firestore collections:
 {
   id: string;
   tagId: string;
-  type: 'cattle' | 'goat' | 'sheep' | 'poultry' | 'other';
+  type: 'cattle' | 'goat';
   breed: string;
   dateOfBirth: Timestamp;
   gender: 'male' | 'female';

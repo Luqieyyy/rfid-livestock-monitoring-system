@@ -24,16 +24,18 @@ export default function LoginPage() {
 
     try {
       if (isRegister) {
-        await register({ email, password, displayName: displayName || email.split('@')[0], role });
+        // Force registration as buyer only
+        await register({ email, password, displayName: displayName || email.split('@')[0], role: 'buyer' });
+        // Redirect to buyer portal after registration
+        router.push('/buyer');
       } else {
         await login({ email, password }, role);
-      }
-      
-      // Redirect based on role
-      if (role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/buyer');
+        // Redirect based on role
+        if (role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/buyer');
+        }
       }
     } catch (err: any) {
       setError(err.message);
@@ -111,59 +113,61 @@ export default function LoginPage() {
               {isRegister ? 'Create Account' : 'Welcome Back'}
             </h2>
             <p className="text-gray-600">
-              {isRegister ? 'Join FarmSense today' : 'Sign in to your FarmSense account'}
+              {isRegister ? 'Register as a buyer to browse livestock' : 'Sign in to your FarmSense account'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Account Type
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className={`flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
-                  role === 'admin' 
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700' 
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                }`}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value="admin"
-                    checked={role === 'admin'}
-                    onChange={(e) => setRole(e.target.value as 'admin')}
-                    className="sr-only"
-                  />
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-medium">Admin</span>
-                  </div>
+            {!isRegister && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Account Type
                 </label>
-                <label className={`flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
-                  role === 'buyer' 
-                    ? 'border-cyan-500 bg-cyan-50 text-cyan-700' 
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                }`}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value="buyer"
-                    checked={role === 'buyer'}
-                    onChange={(e) => setRole(e.target.value as 'buyer')}
-                    className="sr-only"
-                  />
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    <span className="font-medium">Buyer</span>
-                  </div>
-                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className={`flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                    role === 'admin' 
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700' 
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="role"
+                      value="admin"
+                      checked={role === 'admin'}
+                      onChange={(e) => setRole(e.target.value as 'admin')}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">Admin</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                    role === 'buyer' 
+                      ? 'border-cyan-500 bg-cyan-50 text-cyan-700' 
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="role"
+                      value="buyer"
+                      checked={role === 'buyer'}
+                      onChange={(e) => setRole(e.target.value as 'buyer')}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      <span className="font-medium">Buyer</span>
+                    </div>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Display Name - Only for registration */}
             {isRegister && (

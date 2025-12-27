@@ -84,9 +84,14 @@ export const authService = {
     return profile;
   },
 
-  // Register new user
+  // Register new user - Only buyers can register
   async register(credentials: RegisterCredentials): Promise<AuthUser> {
     const { email, password, displayName, role } = credentials;
+    
+    // Only allow buyer registration
+    if (role !== 'buyer') {
+      throw new Error('Only buyers can register. Admin accounts must be created by existing admins.');
+    }
     
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;

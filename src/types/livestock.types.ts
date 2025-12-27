@@ -4,7 +4,7 @@
 export interface Livestock {
   id: string;
   tagId: string;
-  type: 'cattle' | 'goat' | 'sheep' | 'poultry' | 'chicken' | 'buffalo' | 'other';
+  type: 'cattle' | 'goat';
   breed: string;
   dateOfBirth: Date;
   gender: 'male' | 'female';
