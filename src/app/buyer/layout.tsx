@@ -104,12 +104,6 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
               >
                 Goats
               </Link>
-              <Link
-                href="/buyer?type=sheep"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
-              >
-                Sheep
-              </Link>
             </div>
 
             {/* Right Side */}
@@ -151,7 +145,6 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
                 <Link href="/buyer" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Browse All</Link>
                 <Link href="/buyer?type=cattle" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cattle</Link>
                 <Link href="/buyer?type=goat" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Goats</Link>
-                <Link href="/buyer?type=sheep" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Sheep</Link>
                 <Link href="/admin" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Admin Portal</Link>
               </div>
             </div>

@@ -70,9 +70,6 @@ export default function LivestockPage() {
     const emojis: Record<string, string> = {
       cattle: '🐄',
       goat: '🐐',
-      sheep: '🐑',
-      chicken: '🐔',
-      buffalo: '🦬',
     };
     return emojis[type] || '🐄';
   };
@@ -181,7 +178,7 @@ export default function LivestockPage() {
 
           {/* Type Filter */}
           <div className="flex gap-2 flex-wrap">
-            {['all', 'cattle', 'goat', 'sheep', 'chicken'].map((type) => (
+            {['all', 'cattle', 'goat'].map((type) => (
               <button
                 key={type}
                 onClick={() => setTypeFilter(type)}

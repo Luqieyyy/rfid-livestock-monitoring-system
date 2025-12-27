@@ -49,7 +49,7 @@ export const GENDER_OPTIONS = [
 
 // Firestore collection names
 export const COLLECTIONS = {
-  LIVESTOCK: 'livestock',
+  LIVESTOCK: 'animals',
   HEALTH_RECORDS: 'health_records',
   BREEDING_RECORDS: 'breeding_records',
   SALES: 'sales',

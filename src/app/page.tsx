@@ -39,18 +39,18 @@ export default function HomePage() {
             <div className="animate-fade-in">
               <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                Modern Farm Management Solution
+                Premium Livestock Marketplace
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                Smart <span className="gradient-text">Farm Management</span> with FarmSense
+                Find Premium <span className="gradient-text">Cattle & Goats</span> for Your Investment
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Revolutionize your livestock farming with intelligent insights. Track health records, 
-                manage breeding cycles, monitor sales, and make data-driven decisions for sustainable growth.
+                Looking for high-quality, well-maintained livestock? Discover the finest cattle and goats, 
+                all health-certified and ready for purchase. Connect directly with trusted farms and make smart investments.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/login" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-semibold transition-all hover:shadow-xl hover:shadow-emerald-500/30">
-                  Get Started
+                  Browse Livestock
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -62,68 +62,79 @@ export default function HomePage() {
               <div className="flex items-center gap-8 mt-10 pt-10 border-t border-gray-200">
                 <div>
                   <p className="text-3xl font-bold text-gray-900">500+</p>
-                  <p className="text-gray-500 text-sm">Livestock Tracked</p>
+                  <p className="text-gray-500 text-sm">Quality Livestock</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-900">98%</p>
-                  <p className="text-gray-500 text-sm">Health Compliance</p>
+                  <p className="text-3xl font-bold text-gray-900">100%</p>
+                  <p className="text-gray-500 text-sm">Health Certified</p>
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-gray-900">24/7</p>
-                  <p className="text-gray-500 text-sm">Real-time Monitoring</p>
+                  <p className="text-gray-500 text-sm">Support Available</p>
                 </div>
               </div>
             </div>
             <div className="relative animate-fade-in lg:pl-8">
+              {/* 3D Livestock Models */}
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl opacity-20 blur-2xl"></div>
+                
+                {/* 3D Cattle Model */}
+                <div className="relative bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 mb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-gray-900">Premium Cattle</h3>
+                    <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">Available</span>
+                  </div>
+                  <div className="relative h-48 flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-orange-100">
+                    {/* 3D CSS Cattle */}
+                    <div className="cattle-3d transform-gpu">
+                      <div className="cattle-body bg-gradient-to-br from-amber-600 to-amber-800 rounded-full shadow-lg"></div>
+                      <div className="cattle-head bg-gradient-to-br from-amber-500 to-amber-700 rounded-full"></div>
+                      <div className="cattle-legs">
+                        <div className="leg bg-amber-900 rounded-full"></div>
+                        <div className="leg bg-amber-900 rounded-full"></div>
+                        <div className="leg bg-amber-900 rounded-full"></div>
+                        <div className="leg bg-amber-900 rounded-full"></div>
+                      </div>
+                      <div className="cattle-spots">
+                        <div className="spot bg-amber-900 rounded-full"></div>
+                        <div className="spot bg-amber-900 rounded-full"></div>
+                        <div className="spot bg-amber-900 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="font-semibold text-gray-900">Grade A Holstein</p>
+                    <p className="text-sm text-gray-600">Health Score: 98/100</p>
+                  </div>
+                </div>
+                
+                {/* 3D Goat Model */}
                 <div className="relative bg-white rounded-2xl shadow-2xl p-6 border border-gray-100">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-semibold text-gray-900">Farm Overview</h3>
-                    <span className="text-xs text-gray-500">Live Data</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-gray-900">Quality Goats</h3>
+                    <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">Available</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-emerald-50 rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                          <span className="text-xl">🐄</span>
-                        </div>
-                        <span className="text-2xl font-bold text-gray-900">247</span>
+                  <div className="relative h-48 flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 to-teal-100">
+                    {/* 3D CSS Goat */}
+                    <div className="goat-3d transform-gpu">
+                      <div className="goat-body bg-gradient-to-br from-slate-400 to-slate-600 rounded-full shadow-lg"></div>
+                      <div className="goat-head bg-gradient-to-br from-slate-300 to-slate-500 rounded-full"></div>
+                      <div className="goat-legs">
+                        <div className="leg bg-slate-700 rounded-full"></div>
+                        <div className="leg bg-slate-700 rounded-full"></div>
+                        <div className="leg bg-slate-700 rounded-full"></div>
+                        <div className="leg bg-slate-700 rounded-full"></div>
                       </div>
-                      <p className="text-sm text-gray-600">Total Cattle</p>
-                    </div>
-                    <div className="bg-teal-50 rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
-                          <span className="text-xl">🐐</span>
-                        </div>
-                        <span className="text-2xl font-bold text-gray-900">89</span>
+                      <div className="goat-horns">
+                        <div className="horn bg-gray-800 rounded-full"></div>
+                        <div className="horn bg-gray-800 rounded-full"></div>
                       </div>
-                      <p className="text-sm text-gray-600">Total Goats</p>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                        <span className="text-sm text-gray-700">Healthy</span>
-                      </div>
-                      <span className="font-semibold text-gray-900">312</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                        <span className="text-sm text-gray-700">Under Treatment</span>
-                      </div>
-                      <span className="font-semibold text-gray-900">18</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
-                        <span className="text-sm text-gray-700">Pregnant</span>
-                      </div>
-                      <span className="font-semibold text-gray-900">6</span>
-                    </div>
+                  <div className="mt-4 text-center">
+                    <p className="font-semibold text-gray-900">Pure Breed Boer</p>
+                    <p className="text-sm text-gray-600">Health Score: 96/100</p>
                   </div>
                 </div>
               </div>
@@ -136,42 +147,42 @@ export default function HomePage() {
       <section id="features" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Manage Your Farm</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Our Marketplace?</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Comprehensive tools designed for modern livestock farming operations
+              Your trusted partner for finding premium cattle and goats with complete transparency
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: "📊",
-                title: "Real-time Dashboard",
-                desc: "Monitor your entire farm operation at a glance with live statistics, health metrics, and financial summaries."
+                icon: "🏆",
+                title: "Premium Quality",
+                desc: "Every animal is carefully selected and health-certified. Only the finest cattle and goats make it to our marketplace."
               },
               {
-                icon: "💊",
-                title: "Health Management",
-                desc: "Track vaccinations, treatments, and medical history. Get alerts for upcoming checkups and health concerns."
-              },
-              {
-                icon: "🧬",
-                title: "Breeding Records",
-                desc: "Manage breeding cycles, track pregnancies, and maintain complete lineage records for genetic improvement."
-              },
-              {
-                icon: "💰",
-                title: "Sales Tracking",
-                desc: "Record transactions, track payments, manage deliveries, and analyze revenue trends over time."
-              },
-              {
-                icon: "📱",
-                title: "Mobile Integration",
-                desc: "Sync with mobile app for field data collection. Your team can update records from anywhere on the farm."
+                icon: "📋",
+                title: "Complete Health Records",
+                desc: "View detailed health histories, vaccination records, and medical checkups. Make informed purchasing decisions."
               },
               {
                 icon: "🔍",
-                title: "Full Traceability",
-                desc: "Complete audit trail from birth to sale. Meet compliance requirements and build buyer confidence."
+                title: "Detailed Profiles",
+                desc: "Get complete information about breed, age, weight, lineage, and breeding history before you buy."
+              },
+              {
+                icon: "💳",
+                title: "Secure Transactions",
+                desc: "Safe and transparent payment processing. Track your purchase from order to delivery with confidence."
+              },
+              {
+                icon: "🚚",
+                title: "Reliable Delivery",
+                desc: "Professional livestock transportation services. Your animals arrive safely and stress-free at your location."
+              },
+              {
+                icon: "🤝",
+                title: "Expert Support",
+                desc: "Get guidance from livestock experts. We help you choose the right animals for your specific needs."
               }
             ].map((feature, i) => (
               <div key={i} className="group bg-white rounded-2xl p-8 border border-gray-100 card-shadow-hover">

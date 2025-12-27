@@ -15,8 +15,10 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { COLLECTIONS } from '@/utils/constants';
 import type {
   Livestock,
+  FirebaseLivestock,
   HealthRecord,
   BreedingRecord,
   SalesRecord,
@@ -34,19 +36,58 @@ const convertTimestamp = (data: DocumentData): any => {
   return converted;
 };
 
+// Data adapter to convert Firebase data to app format
+const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
+  const now = new Date();
+  
+  return {
+    id: firebaseData.id || '',
+    tagId: firebaseData.tagId || firebaseData.rfid || 'N/A',
+    type: firebaseData.type || 'goat',
+    breed: firebaseData.breed || 'Unknown',
+    dateOfBirth: firebaseData.age ? new Date(now.getFullYear() - parseInt(firebaseData.age), 0, 1) : now,
+    gender: 'male', // Default since not in Firebase data
+    status: (firebaseData.status || 'healthy').toLowerCase() as any,
+    weight: 0, // Default since not in Firebase data
+    location: 'Farm', // Default since not in Firebase data
+    createdAt: firebaseData.lastScan ? (firebaseData.lastScan instanceof Timestamp ? firebaseData.lastScan.toDate() : new Date(firebaseData.lastScan)) : now,
+    updatedAt: now,
+    // Additional fields from Firebase
+    name: firebaseData.name,
+    photoUrl: firebaseData.photoUrl,
+    rfid: firebaseData.rfid,
+    age: firebaseData.age,
+  };
+};
+
 export const livestockService = {
   async getAll(): Promise<Livestock[]> {
-    const livestockRef = collection(db, 'livestock');
-    const q = query(livestockRef, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as Livestock[];
+    try {
+      const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
+      const snapshot = await getDocs(livestockRef);
+      
+      console.log(`🔍 Found ${snapshot.docs.length} documents in ${COLLECTIONS.LIVESTOCK} collection`);
+      
+      const livestock = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        console.log(`📄 Document ${doc.id}:`, data);
+        
+        return adaptFirebaseToLivestock({
+          id: doc.id,
+          ...data
+        });
+      });
+      
+      console.log('🐄 Adapted livestock data:', livestock);
+      return livestock;
+    } catch (error) {
+      console.error('❌ Error fetching livestock:', error);
+      return [];
+    }
   },
 
   async create(data: Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    const livestockRef = collection(db, 'livestock');
+    const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
     const docRef = await addDoc(livestockRef, {
       ...data,
       createdAt: serverTimestamp(),
@@ -57,7 +98,7 @@ export const livestockService = {
 
   // Update livestock
   async update(id: string, data: Partial<Livestock>): Promise<void> {
-    const docRef = doc(db, 'livestock', id);
+    const docRef = doc(db, COLLECTIONS.LIVESTOCK, id);
     await updateDoc(docRef, {
       ...data,
       updatedAt: serverTimestamp(),
@@ -66,58 +107,77 @@ export const livestockService = {
 
   // Delete livestock
   async delete(id: string): Promise<void> {
-    const docRef = doc(db, 'livestock', id);
+    const docRef = doc(db, COLLECTIONS.LIVESTOCK, id);
     await deleteDoc(docRef);
   },
 
   // Get livestock by ID
   async getById(id: string): Promise<Livestock | null> {
-    const docRef = doc(db, 'livestock', id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return {
-        id: docSnap.id,
-        ...convertTimestamp(docSnap.data()),
-      } as Livestock;
+    try {
+      const docRef = doc(db, COLLECTIONS.LIVESTOCK, id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return adaptFirebaseToLivestock({
+          id: docSnap.id,
+          ...docSnap.data(),
+        });
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error fetching livestock by ID:', error);
+      return null;
     }
-    return null;
   },
 
   // Get livestock by status
   async getByStatus(status: string): Promise<Livestock[]> {
-    const livestockRef = collection(db, 'livestock');
-    const q = query(livestockRef, where('status', '==', status));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as Livestock[];
+    try {
+      const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
+      const q = query(livestockRef, where('status', '==', status));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => adaptFirebaseToLivestock({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error('❌ Error fetching livestock by status:', error);
+      return [];
+    }
   },
 
   // Get livestock by type
   async getByType(type: string): Promise<Livestock[]> {
-    const livestockRef = collection(db, 'livestock');
-    const q = query(livestockRef, where('type', '==', type));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as Livestock[];
+    try {
+      const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
+      const q = query(livestockRef, where('type', '==', type));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => adaptFirebaseToLivestock({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error('❌ Error fetching livestock by type:', error);
+      return [];
+    }
   },
 
   // Get available livestock for sale
   async getAvailableForSale(): Promise<Livestock[]> {
-    const livestockRef = collection(db, 'livestock');
-    const q = query(
-      livestockRef,
-      where('status', 'in', ['healthy', 'quarantine']),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as Livestock[];
+    try {
+      const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
+      const q = query(
+        livestockRef,
+        where('status', 'in', ['healthy', 'Healthy'])
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => adaptFirebaseToLivestock({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error('❌ Error fetching available livestock:', error);
+      return [];
+    }
   },
 };
 

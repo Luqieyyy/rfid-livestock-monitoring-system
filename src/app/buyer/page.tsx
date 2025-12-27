@@ -83,9 +83,6 @@ function BuyerPortalContent() {
     const emojis: Record<string, string> = {
       cattle: '🐄',
       goat: '🐐',
-      sheep: '🐑',
-      chicken: '🐔',
-      buffalo: '🦬',
     };
     return emojis[type] || '🐄';
   };
@@ -94,7 +91,6 @@ function BuyerPortalContent() {
     all: livestock.length,
     cattle: livestock.filter(l => l.type === 'cattle').length,
     goat: livestock.filter(l => l.type === 'goat').length,
-    sheep: livestock.filter(l => l.type === 'sheep').length,
   };
 
   if (loading) {
@@ -327,7 +323,7 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
   calculateAge: (date: Date) => string;
 }) {
   const getAnimalEmoji = (type: string) => {
-    const emojis: Record<string, string> = { cattle: '🐄', goat: '🐐', sheep: '🐑', chicken: '🐔' };
+    const emojis: Record<string, string> = { cattle: '🐄', goat: '🐐' };
     return emojis[type] || '🐄';
   };
 

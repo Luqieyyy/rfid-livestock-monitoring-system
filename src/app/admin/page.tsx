@@ -161,7 +161,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
                       <span className="text-xl">
-                        {animal.type === 'cattle' ? '🐄' : animal.type === 'goat' ? '🐐' : animal.type === 'sheep' ? '🐑' : '🐔'}
+                        {animal.type === 'cattle' ? '🐄' : '🐐'}
                       </span>
                     </div>
                     <div>

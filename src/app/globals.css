@@ -103,3 +103,150 @@ input:focus, select:focus, textarea:focus {
   background: linear-gradient(90deg, rgba(5, 150, 105, 0.15) 0%, transparent 100%);
   border-left: 3px solid #059669;
 }
+
+/* 3D Livestock Models */
+.cattle-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: float 4s ease-in-out infinite;
+  scale: 1.2;
+}
+
+.cattle-body {
+  width: 80px;
+  height: 40px;
+  position: relative;
+  border-radius: 50px;
+}
+
+.cattle-head {
+  width: 35px;
+  height: 30px;
+  position: absolute;
+  top: -8px;
+  left: -25px;
+  border-radius: 50px;
+}
+
+.cattle-legs {
+  position: absolute;
+  bottom: -20px;
+  left: 10px;
+  right: 10px;
+}
+
+.cattle-legs .leg {
+  width: 8px;
+  height: 20px;
+  position: absolute;
+  border-radius: 10px;
+}
+
+.cattle-legs .leg:nth-child(1) { left: 5px; }
+.cattle-legs .leg:nth-child(2) { left: 20px; }
+.cattle-legs .leg:nth-child(3) { right: 20px; }
+.cattle-legs .leg:nth-child(4) { right: 5px; }
+
+.cattle-spots {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+}
+
+.cattle-spots .spot {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.cattle-spots .spot:nth-child(1) { 
+  width: 8px; 
+  height: 8px; 
+  top: 0px; 
+  left: 15px; 
+}
+
+.cattle-spots .spot:nth-child(2) { 
+  width: 6px; 
+  height: 6px; 
+  top: 12px; 
+  left: 30px; 
+}
+
+.cattle-spots .spot:nth-child(3) { 
+  width: 7px; 
+  height: 7px; 
+  top: 8px; 
+  left: 45px; 
+}
+
+.goat-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: float 4s ease-in-out infinite 0.5s;
+  scale: 1.1;
+}
+
+.goat-body {
+  width: 70px;
+  height: 35px;
+  position: relative;
+  border-radius: 45px;
+}
+
+.goat-head {
+  width: 30px;
+  height: 25px;
+  position: absolute;
+  top: -6px;
+  left: -20px;
+  border-radius: 40px;
+}
+
+.goat-legs {
+  position: absolute;
+  bottom: -18px;
+  left: 8px;
+  right: 8px;
+}
+
+.goat-legs .leg {
+  width: 6px;
+  height: 18px;
+  position: absolute;
+  border-radius: 8px;
+}
+
+.goat-legs .leg:nth-child(1) { left: 8px; }
+.goat-legs .leg:nth-child(2) { left: 20px; }
+.goat-legs .leg:nth-child(3) { right: 20px; }
+.goat-legs .leg:nth-child(4) { right: 8px; }
+
+.goat-horns {
+  position: absolute;
+  top: -8px;
+  left: -15px;
+}
+
+.goat-horns .horn {
+  width: 3px;
+  height: 12px;
+  position: absolute;
+  border-radius: 2px;
+  transform: rotate(-20deg);
+}
+
+.goat-horns .horn:nth-child(1) { 
+  left: 8px; 
+  transform: rotate(-15deg);
+}
+
+.goat-horns .horn:nth-child(2) { 
+  left: 18px; 
+  transform: rotate(15deg);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotateY(5deg); }
+  50% { transform: translateY(-8px) rotateY(-5deg); }
+}

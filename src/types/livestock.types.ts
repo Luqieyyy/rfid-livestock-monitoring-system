@@ -1,6 +1,22 @@
 // TypeScript interfaces for Firestore data models
 // These should match the data structure used by your Flutter mobile app
 
+// Firebase data structure (what's actually in the database)
+export interface FirebaseLivestock {
+  id: string;
+  tagId: string;
+  type: 'cattle' | 'goat';
+  breed: string;
+  age: string;
+  name: string;
+  status: string;
+  photoUrl?: string;
+  rfid?: string;
+  eatingStatus?: string;
+  lastScan?: any;
+}
+
+// App data structure (what the app expects)
 export interface Livestock {
   id: string;
   tagId: string;
@@ -16,6 +32,11 @@ export interface Livestock {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+  // Additional fields from Firebase
+  name?: string;
+  photoUrl?: string;
+  rfid?: string;
+  age?: string;
 }
 
 export interface HealthRecord {
