@@ -93,10 +93,10 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
                 Browse All
               </Link>
               <Link
-                href="/buyer?type=cattle"
+                href="/buyer?type=cows"
                 className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
               >
-                Cattle
+                Cows
               </Link>
               <Link
                 href="/buyer?type=goat"
@@ -143,7 +143,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
             <div className="md:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col gap-2">
                 <Link href="/buyer" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Browse All</Link>
-                <Link href="/buyer?type=cattle" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cattle</Link>
+                <Link href="/buyer?type=cows" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cows</Link>
                 <Link href="/buyer?type=goat" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Goats</Link>
                 <Link href="/admin" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Admin Portal</Link>
               </div>

@@ -40,10 +40,13 @@ const convertTimestamp = (data: DocumentData): any => {
 const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
   const now = new Date();
   
+  // Convert cattle to cows for consistency
+  const animalType = firebaseData.type === 'cattle' ? 'cows' : firebaseData.type || 'goat';
+  
   return {
     id: firebaseData.id || '',
     tagId: firebaseData.tagId || firebaseData.rfid || 'N/A',
-    type: firebaseData.type || 'goat',
+    type: animalType as 'cows' | 'goat',
     breed: firebaseData.breed || 'Unknown',
     dateOfBirth: firebaseData.age ? new Date(now.getFullYear() - parseInt(firebaseData.age), 0, 1) : now,
     gender: 'male', // Default since not in Firebase data
@@ -442,41 +445,71 @@ export const dashboardService = {
 
   // Optimized: Get stats and recent livestock in one call to avoid duplicate queries
   async getStatsWithLivestock(): Promise<{ stats: DashboardStats; recentLivestock: Livestock[] }> {
-    const [livestock, sales, breeding] = await Promise.all([
-      livestockService.getAll(),
-      salesRecordService.getAll(),
-      breedingRecordService.getAll(),
-    ]);
+    try {
+      console.log('🔍 Dashboard: Starting to fetch data...');
+      
+      const [livestock, sales, breeding] = await Promise.all([
+        livestockService.getAll(),
+        salesRecordService.getAll(),
+        breedingRecordService.getAll(),
+      ]);
 
-    const healthyCount = livestock.filter((l: Livestock) => l.status === 'healthy').length;
-    const sickCount = livestock.filter((l: Livestock) => l.status === 'sick').length;
-    const deceasedCount = livestock.filter((l: Livestock) => l.status === 'deceased').length;
-    const activeBreedingCount = breeding.filter(
-      (b: BreedingRecord) => b.status === 'pregnant' || b.status === 'planned'
-    ).length;
-    const pendingSalesCount = sales.filter(
-      (s: SalesRecord) => s.deliveryStatus !== 'delivered'
-    ).length;
-    const totalRevenue = sales
-      .filter((s: SalesRecord) => s.paymentStatus === 'completed')
-      .reduce((sum: number, s: SalesRecord) => sum + s.price, 0);
-    const averageWeight =
-      livestock.length > 0
-        ? livestock.reduce((sum: number, l: Livestock) => sum + (l.weight || 0), 0) / livestock.length
-        : 0;
+      console.log('📊 Dashboard data fetched:', {
+        livestock: livestock.length,
+        sales: sales.length,
+        breeding: breeding.length
+      });
 
-    return {
-      stats: {
-        totalLivestock: livestock.length,
-        healthyCount,
-        sickCount,
-        deceasedCount,
-        activeBreedingCount,
-        pendingSalesCount,
-        totalRevenue,
-        averageWeight,
-      },
-      recentLivestock: livestock.slice(0, 5),
-    };
+      const healthyCount = livestock.filter((l: Livestock) => l.status === 'healthy').length;
+      const sickCount = livestock.filter((l: Livestock) => l.status === 'sick').length;
+      const deceasedCount = livestock.filter((l: Livestock) => l.status === 'deceased').length;
+      const activeBreedingCount = breeding.filter(
+        (b: BreedingRecord) => b.status === 'pregnant' || b.status === 'planned'
+      ).length;
+      const pendingSalesCount = sales.filter(
+        (s: SalesRecord) => s.deliveryStatus !== 'delivered'
+      ).length;
+      const totalRevenue = sales
+        .filter((s: SalesRecord) => s.paymentStatus === 'completed')
+        .reduce((sum: number, s: SalesRecord) => sum + s.price, 0);
+      const averageWeight =
+        livestock.length > 0
+          ? livestock.reduce((sum: number, l: Livestock) => sum + (l.weight || 0), 0) / livestock.length
+          : 0;
+
+      const result = {
+        stats: {
+          totalLivestock: livestock.length,
+          healthyCount,
+          sickCount,
+          deceasedCount,
+          activeBreedingCount,
+          pendingSalesCount,
+          totalRevenue,
+          averageWeight,
+        },
+        recentLivestock: livestock.slice(0, 5),
+      };
+
+      console.log('✅ Dashboard stats calculated:', result.stats);
+      console.log('🐄 Recent livestock:', result.recentLivestock);
+
+      return result;
+    } catch (error) {
+      console.error('❌ Dashboard error:', error);
+      return {
+        stats: {
+          totalLivestock: 0,
+          healthyCount: 0,
+          sickCount: 0,
+          deceasedCount: 0,
+          activeBreedingCount: 0,
+          pendingSalesCount: 0,
+          totalRevenue: 0,
+          averageWeight: 0,
+        },
+        recentLivestock: [],
+      };
+    }
   },
 };

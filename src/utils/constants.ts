@@ -1,5 +1,5 @@
 export const LIVESTOCK_TYPES = [
-  { value: 'cattle', label: 'Cattle' },
+  { value: 'cows', label: 'Cows' },
   { value: 'goat', label: 'Goat' },
 ] as const;
 

@@ -42,10 +42,10 @@ export default function HomePage() {
                 Premium Livestock Marketplace
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                Find Premium <span className="gradient-text">Cattle & Goats</span> for Your Investment
+                Find Premium <span className="gradient-text">Cows & Goats</span> for Your Investment
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Looking for high-quality, well-maintained livestock? Discover the finest cattle and goats, 
+                Looking for high-quality, well-maintained livestock? Discover the finest cows and goats, 
                 all health-certified and ready for purchase. Connect directly with trusted farms and make smart investments.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -82,7 +82,7 @@ export default function HomePage() {
                 {/* 3D Cattle Model */}
                 <div className="relative bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 mb-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">Premium Cattle</h3>
+                    <h3 className="font-semibold text-gray-900">Premium Cows</h3>
                     <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">Available</span>
                   </div>
                   <div className="relative h-48 flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-orange-100">
@@ -149,7 +149,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Our Marketplace?</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Your trusted partner for finding premium cattle and goats with complete transparency
+              Your trusted partner for finding premium cows and goats with complete transparency
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

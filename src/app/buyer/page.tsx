@@ -81,7 +81,7 @@ function BuyerPortalContent() {
 
   const getAnimalEmoji = (type: string) => {
     const emojis: Record<string, string> = {
-      cattle: '🐄',
+      cows: '🐄',
       goat: '🐐',
     };
     return emojis[type] || '🐄';
@@ -89,7 +89,7 @@ function BuyerPortalContent() {
 
   const typeStats = {
     all: livestock.length,
-    cattle: livestock.filter(l => l.type === 'cattle').length,
+    cows: livestock.filter(l => l.type === 'cows').length,
     goat: livestock.filter(l => l.type === 'goat').length,
   };
 
@@ -140,9 +140,8 @@ function BuyerPortalContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { type: 'all', label: 'All Animals', emoji: '📊' },
-          { type: 'cattle', label: 'Cattle', emoji: '🐄' },
+          { type: 'cows', label: 'Cows', emoji: '🐄' },
           { type: 'goat', label: 'Goats', emoji: '🐐' },
-          { type: 'sheep', label: 'Sheep', emoji: '🐑' },
         ].map((category) => (
           <button
             key={category.type}
@@ -323,7 +322,7 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
   calculateAge: (date: Date) => string;
 }) {
   const getAnimalEmoji = (type: string) => {
-    const emojis: Record<string, string> = { cattle: '🐄', goat: '🐐' };
+    const emojis: Record<string, string> = { cows: '🐄', goat: '🐐' };
     return emojis[type] || '🐄';
   };
 
