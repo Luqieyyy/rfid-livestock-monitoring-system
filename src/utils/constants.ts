@@ -1,5 +1,3 @@
-// Constants used throughout the application
-
 export const LIVESTOCK_TYPES = [
   { value: 'cattle', label: 'Cattle' },
   { value: 'goat', label: 'Goat' },

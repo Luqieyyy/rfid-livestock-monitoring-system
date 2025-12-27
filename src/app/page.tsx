@@ -1,19 +1,20 @@
+'use client';
+
 import Link from 'next/link';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-900">LiveStock<span className="text-emerald-600">Pro</span></span>
+              <span className="text-xl font-bold text-gray-900">Farm<span className="text-emerald-600">Sense</span></span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</a>
@@ -21,18 +22,17 @@ export default function HomePage() {
               <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">How It Works</a>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/buyer" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                Marketplace
-              </Link>
-              <Link href="/admin" className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25">
-                Dashboard
+              <Link href="/login" className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Login
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="pt-32 pb-20 gradient-bg overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -42,22 +42,22 @@ export default function HomePage() {
                 Modern Farm Management Solution
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                Manage Your <span className="gradient-text">Livestock</span> Like Never Before
+                Smart <span className="gradient-text">Farm Management</span> with FarmSense
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                A complete digital solution for modern livestock farming. Track health records, 
-                manage breeding cycles, monitor sales, and make data-driven decisions to grow your farm.
+                Revolutionize your livestock farming with intelligent insights. Track health records, 
+                manage breeding cycles, monitor sales, and make data-driven decisions for sustainable growth.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/admin" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-semibold transition-all hover:shadow-xl hover:shadow-emerald-500/30">
-                  Access Dashboard
+                <Link href="/login" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-semibold transition-all hover:shadow-xl hover:shadow-emerald-500/30">
+                  Get Started
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
-                <Link href="/buyer" className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-800 px-8 py-4 rounded-xl font-semibold border border-gray-200 transition-all hover:border-gray-300">
-                  Browse Livestock
-                </Link>
+                <a href="#features" className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-800 px-8 py-4 rounded-xl font-semibold border border-gray-200 transition-all hover:border-gray-300">
+                  Learn More
+                </a>
               </div>
               <div className="flex items-center gap-8 mt-10 pt-10 border-t border-gray-200">
                 <div>
@@ -302,14 +302,14 @@ export default function HomePage() {
             Join modern farmers who are using LiveStock Pro to streamline operations and boost productivity.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/admin" className="inline-flex items-center justify-center gap-2 bg-white text-emerald-700 px-8 py-4 rounded-xl font-semibold transition-all hover:shadow-xl hover:bg-gray-50">
-              Get Started Free
+            <Link href="/admin/login" className="inline-flex items-center justify-center gap-2 bg-white text-emerald-700 px-8 py-4 rounded-xl font-semibold transition-all hover:shadow-xl hover:bg-gray-50">
+              Admin Login
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
-            <Link href="/buyer" className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-xl font-semibold transition-all hover:bg-white/10">
-              View Marketplace
+            <Link href="/buyer/login" className="inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white/30 px-8 py-4 rounded-xl font-semibold transition-all hover:bg-white/10">
+              Buyer Login
             </Link>
           </div>
         </div>
@@ -328,11 +328,11 @@ export default function HomePage() {
               <span className="text-xl font-bold text-white">LiveStock<span className="text-emerald-500">Pro</span></span>
             </div>
             <div className="flex items-center gap-8">
-              <Link href="/admin" className="hover:text-white transition-colors">Admin</Link>
-              <Link href="/buyer" className="hover:text-white transition-colors">Buyer</Link>
+              <Link href="/admin/login" className="hover:text-white transition-colors">Admin</Link>
+              <Link href="/buyer/login" className="hover:text-white transition-colors">Buyer</Link>
               <a href="#features" className="hover:text-white transition-colors">Features</a>
             </div>
-            <p className="text-sm">© 2024 LiveStock Pro. All rights reserved.</p>
+            <p className="text-sm">© {new Date().getFullYear()} LiveStock Pro. All rights reserved.</p>
           </div>
         </div>
       </footer>

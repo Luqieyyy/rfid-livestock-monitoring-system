@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -9,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'LiveStock Pro - Farm Management System',
-  description: 'Professional livestock farming management platform for modern farms. Track health, breeding, and sales efficiently.',
-  keywords: 'livestock, farm management, cattle, farming, agriculture',
+  title: 'FarmSense - Smart Farm Management System',
+  description: 'Intelligent livestock farming management platform for modern farms. Track health, breeding, and sales with smart insights.',
+  keywords: 'farmsense, livestock, farm management, cattle, farming, agriculture, smart farming',
 };
 
 export default function RootLayout({
@@ -21,7 +22,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

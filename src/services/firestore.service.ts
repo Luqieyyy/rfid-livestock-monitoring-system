@@ -34,9 +34,7 @@ const convertTimestamp = (data: DocumentData): any => {
   return converted;
 };
 
-// Livestock Services
 export const livestockService = {
-  // Get all livestock
   async getAll(): Promise<Livestock[]> {
     const livestockRef = collection(db, 'livestock');
     const q = query(livestockRef, orderBy('createdAt', 'desc'));
@@ -47,7 +45,6 @@ export const livestockService = {
     })) as Livestock[];
   },
 
-  // Create new livestock
   async create(data: Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const livestockRef = collection(db, 'livestock');
     const docRef = await addDoc(livestockRef, {

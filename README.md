@@ -1,10 +1,62 @@
-# Livestock Farming Management System
+# FarmSense - Smart Livestock Management System
 
-A professional web-based livestock management platform built with Next.js, TypeScript, and Firebase. This system provides comprehensive farm management tools through an Admin Dashboard and a public-facing Buyer Portal.
+A modern web-based livestock management platform built with Next.js, TypeScript, and Firebase.
 
-## 🎯 Project Overview
+## Overview
 
-This system is designed as an academic and production-level demonstration of a modern livestock management platform that integrates with a Flutter mobile application through a shared Firebase backend.
+FarmSense provides comprehensive farm management tools through an Admin Dashboard and Buyer Portal, designed to streamline livestock operations and improve farm efficiency.
+
+## Features
+
+**Admin Dashboard:**
+- Real-time livestock monitoring
+- Health records management  
+- Breeding cycle tracking
+- Sales transaction management
+- Analytics and insights
+
+**Buyer Portal:**
+- Browse available livestock
+- View detailed information
+- Health-verified listings
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: Firebase Firestore
+- **Authentication**: Firebase Auth
+- **UI Components**: Custom components with Lucide icons
+
+## Quick Start
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Configure Firebase credentials in `.env.local`
+4. Run development server: `npm run dev`
+5. Access application at `http://localhost:3000`
+
+## Authentication
+
+The system supports role-based authentication:
+- **Admin**: Full farm management access
+- **Buyer**: Marketplace browsing access
+
+## Project Structure
+
+```
+src/
+├── app/              # App router pages
+├── components/       # Reusable UI components
+├── context/          # React context providers
+├── lib/              # Utility libraries
+├── services/         # API and business logic
+├── types/            # TypeScript type definitions
+└── utils/            # Helper functions
+```
+
+## License
+
+This project is part of an academic assignment for livestock management system development.
 
 ### Key Features
 

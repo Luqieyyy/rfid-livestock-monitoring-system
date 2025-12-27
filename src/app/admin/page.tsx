@@ -16,7 +16,6 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Fetch all data in parallel - but avoid duplicate livestock fetch
       const [statsData, checkups] = await Promise.all([
         dashboardService.getStatsWithLivestock(),
         healthRecordService.getUpcomingCheckups(),
@@ -44,12 +43,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Welcome back! 👋</h2>
-            <p className="text-emerald-100">Here&apos;s what&apos;s happening with your farm today.</p>
+            <h2 className="text-2xl font-bold mb-2">Welcome to FarmSense! 🌾</h2>
+            <p className="text-emerald-100">Monitor your livestock with intelligent insights and real-time data.</p>
           </div>
           <div className="hidden md:block">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">

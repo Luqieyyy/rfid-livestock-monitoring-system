@@ -1,7 +1,7 @@
 {
-  "name": "livestock-management-system",
+  "name": "farmsense-management-system",
   "version": "1.0.0",
-  "description": "Livestock Farming Management System - Admin Dashboard and Buyer Portal",
+  "description": "FarmSense - Smart Livestock Management System with Admin Dashboard and Buyer Portal",
   "private": true,
   "scripts": {
     "dev": "next dev",
