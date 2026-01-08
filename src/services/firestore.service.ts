@@ -40,25 +40,64 @@ const convertTimestamp = (data: DocumentData): any => {
 const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
   const now = new Date();
   
-  // Convert cattle to cows for consistency
-  const animalType = firebaseData.type === 'cattle' ? 'cows' : firebaseData.type || 'goat';
+  // Convert cattle/Cow to cows for consistency
+  let animalType: 'cows' | 'goat' | 'sheep' = 'cows';
+  if (firebaseData.type) {
+    const typeStr = firebaseData.type.toLowerCase();
+    if (typeStr.includes('goat') || typeStr.includes('kambing')) {
+      animalType = 'goat';
+    } else if (typeStr.includes('sheep') || typeStr.includes('biri')) {
+      animalType = 'sheep';
+    } else if (typeStr.includes('cow') || typeStr.includes('cattle') || typeStr.includes('lembu')) {
+      animalType = 'cows';
+    }
+  }
+  
+  // Normalize status - Firebase might have "Healthy" instead of "healthy"
+  let normalizedStatus = 'healthy';
+  if (firebaseData.status) {
+    const statusStr = firebaseData.status.toLowerCase().trim();
+    if (statusStr === 'healthy' || statusStr === 'success') {
+      normalizedStatus = 'healthy';
+    } else if (statusStr === 'sick' || statusStr === 'treatment') {
+      normalizedStatus = 'sick';
+    } else if (statusStr === 'quarantine') {
+      normalizedStatus = 'quarantine';
+    } else if (statusStr === 'deceased') {
+      normalizedStatus = 'deceased';
+    }
+  }
+  
+  // Parse age to calculate date of birth
+  let calculatedDOB = now;
+  if (firebaseData.age) {
+    const ageStr = String(firebaseData.age);
+    const ageNum = parseInt(ageStr);
+    if (!isNaN(ageNum)) {
+      calculatedDOB = new Date(now.getFullYear() - ageNum, now.getMonth(), now.getDate());
+    }
+  }
   
   return {
     id: firebaseData.id || '',
-    tagId: firebaseData.tagId || firebaseData.rfid || 'N/A',
-    type: animalType as 'cows' | 'goat',
+    tagId: firebaseData.tagId || firebaseData.rfid_tag || firebaseData.rfid || 'N/A',
+    type: animalType,
     breed: firebaseData.breed || 'Unknown',
-    dateOfBirth: firebaseData.age ? new Date(now.getFullYear() - parseInt(firebaseData.age), 0, 1) : now,
-    gender: 'male', // Default since not in Firebase data
-    status: (firebaseData.status || 'healthy').toLowerCase() as any,
-    weight: 0, // Default since not in Firebase data
-    location: 'Farm', // Default since not in Firebase data
-    createdAt: firebaseData.lastScan ? (firebaseData.lastScan instanceof Timestamp ? firebaseData.lastScan.toDate() : new Date(firebaseData.lastScan)) : now,
-    updatedAt: now,
+    dateOfBirth: calculatedDOB,
+    gender: (firebaseData.gender || 'male').toLowerCase() as 'male' | 'female',
+    status: normalizedStatus as any,
+    weight: parseFloat(firebaseData.weight) || 0,
+    location: firebaseData.location || firebaseData.name || 'Farm',
+    createdAt: firebaseData.timestamp ? 
+      (firebaseData.timestamp instanceof Timestamp ? firebaseData.timestamp.toDate() : new Date(firebaseData.timestamp)) : 
+      (firebaseData.lastScan ? (firebaseData.lastScan instanceof Timestamp ? firebaseData.lastScan.toDate() : new Date(firebaseData.lastScan)) : now),
+    updatedAt: firebaseData.updatedAt ? 
+      (firebaseData.updatedAt instanceof Timestamp ? firebaseData.updatedAt.toDate() : new Date(firebaseData.updatedAt)) : 
+      now,
     // Additional fields from Firebase
     name: firebaseData.name,
-    photoUrl: firebaseData.photoUrl,
-    rfid: firebaseData.rfid,
+    photoUrl: firebaseData.photoUrl || firebaseData.photoURL,
+    rfid: firebaseData.rfid || firebaseData.rfid_tag,
     age: firebaseData.age,
   };
 };
@@ -69,22 +108,16 @@ export const livestockService = {
       const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
       const snapshot = await getDocs(livestockRef);
       
-      console.log(`🔍 Found ${snapshot.docs.length} documents in ${COLLECTIONS.LIVESTOCK} collection`);
-      
       const livestock = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        console.log(`📄 Document ${doc.id}:`, data);
-        
         return adaptFirebaseToLivestock({
           id: doc.id,
-          ...data
+          ...doc.data()
         });
       });
       
-      console.log('🐄 Adapted livestock data:', livestock);
       return livestock;
     } catch (error) {
-      console.error('❌ Error fetching livestock:', error);
+      console.error('Error fetching livestock:', error);
       return [];
     }
   },
@@ -446,19 +479,11 @@ export const dashboardService = {
   // Optimized: Get stats and recent livestock in one call to avoid duplicate queries
   async getStatsWithLivestock(): Promise<{ stats: DashboardStats; recentLivestock: Livestock[] }> {
     try {
-      console.log('🔍 Dashboard: Starting to fetch data...');
-      
       const [livestock, sales, breeding] = await Promise.all([
         livestockService.getAll(),
         salesRecordService.getAll(),
         breedingRecordService.getAll(),
       ]);
-
-      console.log('📊 Dashboard data fetched:', {
-        livestock: livestock.length,
-        sales: sales.length,
-        breeding: breeding.length
-      });
 
       const healthyCount = livestock.filter((l: Livestock) => l.status === 'healthy').length;
       const sickCount = livestock.filter((l: Livestock) => l.status === 'sick').length;
@@ -477,7 +502,7 @@ export const dashboardService = {
           ? livestock.reduce((sum: number, l: Livestock) => sum + (l.weight || 0), 0) / livestock.length
           : 0;
 
-      const result = {
+      return {
         stats: {
           totalLivestock: livestock.length,
           healthyCount,
@@ -490,13 +515,8 @@ export const dashboardService = {
         },
         recentLivestock: livestock.slice(0, 5),
       };
-
-      console.log('✅ Dashboard stats calculated:', result.stats);
-      console.log('🐄 Recent livestock:', result.recentLivestock);
-
-      return result;
     } catch (error) {
-      console.error('❌ Dashboard error:', error);
+      console.error('Dashboard error:', error);
       return {
         stats: {
           totalLivestock: 0,

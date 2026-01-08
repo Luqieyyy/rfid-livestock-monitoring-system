@@ -321,14 +321,49 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
   onClose: () => void;
   calculateAge: (date: Date) => string;
 }) {
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+    tagId: animal.tagId,
+    type: animal.type,
+    breed: animal.breed,
+    dateOfBirth: animal.dateOfBirth.toString().split('T')[0],
+    gender: animal.gender,
+    weight: animal.weight.toString(),
+    location: animal.location,
+    status: animal.status,
+    notes: animal.notes || '',
+  });
+  const [saving, setSaving] = useState(false);
+
   const getAnimalEmoji = (type: string) => {
-    const emojis: Record<string, string> = { cows: '🐄', goat: '🐐' };
+    const emojis: Record<string, string> = { cows: '🐄', goat: '🐐', sheep: '🐑' };
     return emojis[type] || '🐄';
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await livestockService.update(animal.id, {
+        ...formData,
+        weight: parseFloat(formData.weight),
+        dateOfBirth: new Date(formData.dateOfBirth),
+      });
+      alert('Animal updated successfully!');
+      setEditMode(false);
+      onClose();
+      window.location.reload(); // Refresh to show updated data
+    } catch (error) {
+      console.error('Error updating animal:', error);
+      alert('Failed to update animal. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-8 text-white relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,66 +383,223 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
             </div>
           </div>
         </div>
-        <div className="p-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <p className="text-xs text-gray-400 mb-1">Weight</p>
-              <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <p className="text-xs text-gray-400 mb-1">Age</p>
-              <p className="text-xl font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <p className="text-xs text-gray-400 mb-1">Gender</p>
-              <p className="text-xl font-bold text-gray-900 capitalize">{animal.gender}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <p className="text-xs text-gray-400 mb-1">Location</p>
-              <p className="text-xl font-bold text-gray-900">{animal.location}</p>
-            </div>
-          </div>
-          <div className="space-y-4 mb-8">
-            <h3 className="font-bold text-gray-900">Animal Details</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex justify-between py-3 border-b border-gray-100">
-                <span className="text-gray-500">Date of Birth</span>
-                <span className="font-medium text-gray-900">{new Date(animal.dateOfBirth).toLocaleDateString()}</span>
+        
+        {editMode ? (
+          // Edit Form
+          <form onSubmit={handleSubmit} className="p-8">
+            <h3 className="font-bold text-gray-900 mb-4">Edit Animal Details</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Tag ID *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.tagId}
+                    onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Type *</label>
+                  <select
+                    required
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  >
+                    <option value="cows">🐄 Cows</option>
+                    <option value="goat">🐐 Goat</option>
+                    <option value="sheep">🐑 Sheep</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex justify-between py-3 border-b border-gray-100">
-                <span className="text-gray-500">Health Status</span>
-                <span className="font-medium text-emerald-600 capitalize">{animal.status}</span>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Breed *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.breed}
+                    onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
+                  <select
+                    required
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-8">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Weight (kg) *</label>
+                  <input
+                    type="number"
+                    required
+                    step="0.1"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  />
+                </div>
               </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Health Status *</label>
+                  <select
+                    required
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'healthy' | 'sick' | 'quarantine' | 'deceased' })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  >
+                    <option value="healthy">Healthy</option>
+                    <option value="sick">Sick</option>
+                    <option value="quarantine">Quarantine</option>
+                  </select>
+                </div>
+              </div>
+              
               <div>
-                <h4 className="font-semibold text-emerald-800 mb-1">Health Certified</h4>
-                <p className="text-sm text-emerald-700">This animal has passed all health verification requirements.</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  placeholder="Additional notes..."
+                />
               </div>
             </div>
-          </div>
-          {animal.notes && (
-            <div className="bg-gray-50 rounded-xl p-5 mb-8">
-              <h4 className="font-semibold text-gray-900 mb-2">Additional Notes</h4>
-              <p className="text-gray-600">{animal.notes}</p>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                type="submit"
+                disabled={saving}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button 
+                type="button"
+                onClick={() => setEditMode(false)}
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
-          )}
-          <div className="flex gap-3">
-            <button className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg shadow-cyan-500/25">
-              Contact Seller
-            </button>
-            <button onClick={onClose} className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
-              Close
-            </button>
+          </form>
+        ) : (
+          // View Mode
+          <div className="p-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <p className="text-xs text-gray-400 mb-1">Weight</p>
+                <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <p className="text-xs text-gray-400 mb-1">Age</p>
+                <p className="text-xl font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <p className="text-xs text-gray-400 mb-1">Gender</p>
+                <p className="text-xl font-bold text-gray-900 capitalize">{animal.gender}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <p className="text-xs text-gray-400 mb-1">Location</p>
+                <p className="text-xl font-bold text-gray-900">{animal.location}</p>
+              </div>
+            </div>
+            <div className="space-y-4 mb-8">
+              <h3 className="font-bold text-gray-900">Animal Details</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex justify-between py-3 border-b border-gray-100">
+                  <span className="text-gray-500">Date of Birth</span>
+                  <span className="font-medium text-gray-900">{new Date(animal.dateOfBirth).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between py-3 border-b border-gray-100">
+                  <span className="text-gray-500">Health Status</span>
+                  <span className="font-medium text-emerald-600 capitalize">{animal.status}</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-8">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-emerald-800 mb-1">Health Certified</h4>
+                  <p className="text-sm text-emerald-700">This animal has passed all health verification requirements.</p>
+                </div>
+              </div>
+            </div>
+            {animal.notes && (
+              <div className="bg-gray-50 rounded-xl p-5 mb-8">
+                <h4 className="font-semibold text-gray-900 mb-2">Additional Notes</h4>
+                <p className="text-gray-600">{animal.notes}</p>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                onClick={(e) => {
+                  console.log('EDIT BUTTON CLICKED!');
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Edit mode set to true');
+                }}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
+                style={{ cursor: 'pointer', zIndex: 1000 }}
+              >
+                Edit Animal
+              </button>
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

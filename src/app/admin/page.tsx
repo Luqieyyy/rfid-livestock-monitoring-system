@@ -18,13 +18,26 @@ export default function AdminDashboard() {
     try {
       const [statsData, checkups] = await Promise.all([
         dashboardService.getStatsWithLivestock(),
-        healthRecordService.getUpcomingCheckups(),
+        healthRecordService.getUpcomingCheckups().catch(() => []),
       ]);
+
       setStats(statsData.stats);
       setRecentLivestock(statsData.recentLivestock);
       setUpcomingCheckups(checkups);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading dashboard data:', error);
+      
+      // Set empty stats to allow page to render
+      setStats({
+        totalLivestock: 0,
+        healthyCount: 0,
+        sickCount: 0,
+        deceasedCount: 0,
+        activeBreedingCount: 0,
+        pendingSalesCount: 0,
+        totalRevenue: 0,
+        averageWeight: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -45,14 +58,26 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2">Welcome to FarmSense! 🌾</h2>
             <p className="text-emerald-100">Monitor your livestock with intelligent insights and real-time data.</p>
           </div>
-          <div className="hidden md:block">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
-              <p className="text-sm text-emerald-100">Total Animals</p>
-              <p className="text-3xl font-bold">{stats?.totalLivestock || 0}</p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={loadDashboardData}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-medium transition-all flex items-center gap-2"
+              title="Refresh Data"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+            <div className="hidden md:block">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+                <p className="text-sm text-emerald-100">Total Animals</p>
+                <p className="text-3xl font-bold">{stats?.totalLivestock || 0}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -161,7 +186,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
                       <span className="text-xl">
-                        {animal.type === 'cows' ? '🐄' : '🐐'}
+                        {animal.type === 'cows' ? '🐄' : animal.type === 'sheep' ? '🐑' : '🐐'}
                       </span>
                     </div>
                     <div>

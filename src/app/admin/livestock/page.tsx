@@ -13,6 +13,7 @@ export default function LivestockPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedAnimal, setSelectedAnimal] = useState<Livestock | null>(null);
+  const [editingAnimal, setEditingAnimal] = useState<Livestock | null>(null);
 
   useEffect(() => {
     loadLivestock();
@@ -70,6 +71,7 @@ export default function LivestockPage() {
     const emojis: Record<string, string> = {
       cows: '🐄',
       goat: '🐐',
+      sheep: '🐑',
     };
     return emojis[type] || '🐄';
   };
@@ -289,12 +291,31 @@ export default function LivestockPage() {
 
       {/* Detail Modal */}
       {selectedAnimal && (
-        <AnimalDetailModal animal={selectedAnimal} onClose={() => setSelectedAnimal(null)} />
+        <AnimalDetailModal 
+          animal={selectedAnimal} 
+          onClose={() => setSelectedAnimal(null)} 
+          onEdit={() => {
+            setEditingAnimal(selectedAnimal);
+            setSelectedAnimal(null);
+          }}
+        />
       )}
 
       {/* Add Modal Placeholder */}
       {showAddModal && (
         <AddLivestockModal onClose={() => setShowAddModal(false)} onSuccess={loadLivestock} />
+      )}
+
+      {/* Edit Modal */}
+      {editingAnimal && (
+        <EditLivestockModal 
+          animal={editingAnimal} 
+          onClose={() => setEditingAnimal(null)} 
+          onSuccess={() => {
+            loadLivestock();
+            setEditingAnimal(null);
+          }} 
+        />
       )}
     </div>
   );
@@ -314,7 +335,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function AnimalDetailModal({ animal, onClose }: { animal: Livestock; onClose: () => void }) {
+function AnimalDetailModal({ animal, onClose, onEdit }: { animal: Livestock; onClose: () => void; onEdit: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -357,7 +378,10 @@ function AnimalDetailModal({ animal, onClose }: { animal: Livestock; onClose: ()
           )}
         </div>
         <div className="p-6 border-t border-gray-100 flex gap-3">
-          <button className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors">
+          <button 
+            onClick={onEdit}
+            className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+          >
             Edit Animal
           </button>
           <button onClick={onClose} className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
@@ -532,6 +556,188 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
               className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Add Livestock'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock; onClose: () => void; onSuccess: () => void }) {
+  const [formData, setFormData] = useState({
+    tagId: animal.tagId,
+    type: animal.type,
+    breed: animal.breed,
+    dateOfBirth: new Date(animal.dateOfBirth).toISOString().split('T')[0],
+    gender: animal.gender,
+    weight: animal.weight.toString(),
+    location: animal.location,
+    status: animal.status,
+    notes: animal.notes || '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await livestockService.update(animal.id, {
+        ...formData,
+        weight: parseFloat(formData.weight),
+        dateOfBirth: new Date(formData.dateOfBirth),
+      });
+      onSuccess();
+    } catch (error) {
+      console.error('Error updating livestock:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Edit Livestock</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Tag ID *</label>
+              <input
+                type="text"
+                required
+                value={formData.tagId}
+                onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., COW-001"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Type *</label>
+              <select
+                required
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              >
+                <option value="cows">🐄 Cows</option>
+                <option value="goat">🐐 Goat</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Breed *</label>
+              <input
+                type="text"
+                required
+                value={formData.breed}
+                onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., Angus"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
+              <input
+                type="date"
+                required
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
+              <select
+                required
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Weight (kg) *</label>
+              <input
+                type="number"
+                required
+                value={formData.weight}
+                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., 450"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>
+              <input
+                type="text"
+                required
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., Barn A"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Status *</label>
+              <select
+                required
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              >
+                <option value="healthy">Healthy</option>
+                <option value="sick">Sick</option>
+                <option value="quarantine">Quarantine</option>
+                <option value="deceased">Deceased</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              placeholder="Additional notes..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Update Livestock'}
             </button>
             <button
               type="button"

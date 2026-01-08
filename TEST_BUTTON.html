@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Button Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+        .content { background: white; padding: 30px; border-radius: 20px; max-width: 500px; }
+        button { padding: 15px 30px; margin: 10px; cursor: pointer; border: none; border-radius: 10px; font-size: 16px; }
+        .edit-btn { background: linear-gradient(to right, #059669, #0d9488); color: white; }
+        .close-btn { background: #f3f4f6; color: #374151; }
+    </style>
+</head>
+<body>
+    <h1>Button Click Test</h1>
+    <p>Click the button below to test if buttons are working:</p>
+    
+    <div class="modal" onclick="alert('Background clicked')">
+        <div class="content" onclick="event.stopPropagation()">
+            <h2>Modal Test</h2>
+            <p>Animal: E200991234 - Goat</p>
+            
+            <button class="edit-btn" onclick="event.stopPropagation(); alert('Edit button clicked!')">
+                Edit Animal
+            </button>
+            
+            <button class="close-btn" onclick="event.stopPropagation(); alert('Close button clicked!')">
+                Close
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        console.log('Test page loaded');
+        console.log('If buttons dont work, there is a CSS or JS conflict');
+    </script>
+</body>
+</html>

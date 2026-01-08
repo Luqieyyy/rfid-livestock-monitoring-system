@@ -5,7 +5,7 @@
 export interface FirebaseLivestock {
   id: string;
   tagId: string;
-  type: 'cows' | 'goat';
+  type: 'cows' | 'goat' | 'sheep';
   breed: string;
   age: string;
   name: string;
@@ -20,7 +20,7 @@ export interface FirebaseLivestock {
 export interface Livestock {
   id: string;
   tagId: string;
-  type: 'cows' | 'goat';
+  type: 'cows' | 'goat' | 'sheep';
   breed: string;
   dateOfBirth: Date;
   gender: 'male' | 'female';
