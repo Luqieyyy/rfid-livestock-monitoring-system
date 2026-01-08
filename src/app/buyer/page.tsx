@@ -79,14 +79,6 @@ function BuyerPortalContent() {
     return months > 0 ? `${years}y ${months}m` : `${years} years`;
   };
 
-  const getAnimalEmoji = (type: string) => {
-    const emojis: Record<string, string> = {
-      cows: '🐄',
-      goat: '🐐',
-    };
-    return emojis[type] || '🐄';
-  };
-
   const typeStats = {
     all: livestock.length,
     cows: livestock.filter(l => l.type === 'cows').length,
@@ -139,9 +131,9 @@ function BuyerPortalContent() {
       {/* Category Quick Filters */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { type: 'all', label: 'All Animals', emoji: '📊' },
-          { type: 'cows', label: 'Cows', emoji: '🐄' },
-          { type: 'goat', label: 'Goats', emoji: '🐐' },
+          { type: 'all', label: 'All Animals', icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> },
+          { type: 'cows', label: 'Cows', icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg> },
+          { type: 'goat', label: 'Goats', icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg> },
         ].map((category) => (
           <button
             key={category.type}
@@ -152,7 +144,7 @@ function BuyerPortalContent() {
                 : 'bg-white border-gray-100 hover:border-gray-200'
             }`}
           >
-            <div className="text-3xl mb-2">{category.emoji}</div>
+            <div className="text-cyan-600 mb-2">{category.icon}</div>
             <p className="font-semibold text-gray-900">{category.label}</p>
             <p className="text-sm text-gray-500">
               {typeStats[category.type as keyof typeof typeStats]} available
@@ -216,8 +208,10 @@ function BuyerPortalContent() {
                     Verified
                   </span>
                 </div>
-                <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center text-5xl shadow-sm group-hover:scale-110 transition-transform">
-                  {getAnimalEmoji(animal.type)}
+                <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
                 </div>
               </div>
               <div className="p-6">
@@ -277,37 +271,6 @@ function BuyerPortalContent() {
         </div>
       )}
 
-      {/* Trust Badges */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center">
-          <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Health Verified</h3>
-          <p className="text-gray-500 text-sm">All livestock undergo comprehensive health checkups</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Full Documentation</h3>
-          <p className="text-gray-500 text-sm">Complete medical records and breeding history</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center">
-          <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Traceable Origin</h3>
-          <p className="text-gray-500 text-sm">Full traceability with verified digital records</p>
-        </div>
-      </div>
-
       {/* Animal Detail Modal */}
       {selectedAnimal && (
         <AnimalDetailModal animal={selectedAnimal} onClose={() => setSelectedAnimal(null)} calculateAge={calculateAge} />
@@ -334,11 +297,6 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
     notes: animal.notes || '',
   });
   const [saving, setSaving] = useState(false);
-
-  const getAnimalEmoji = (type: string) => {
-    const emojis: Record<string, string> = { cows: '🐄', goat: '🐐', sheep: '🐑' };
-    return emojis[type] || '🐄';
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,13 +329,15 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
             </svg>
           </button>
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center text-6xl shadow-lg">
-              {getAnimalEmoji(animal.type)}
+            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+              <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
             </div>
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-2xl font-bold">{animal.tagId}</h2>
-                <span className="bg-emerald-400 text-emerald-900 px-3 py-1 rounded-full text-xs font-semibold">✓ Verified</span>
+                <span className="bg-emerald-400 text-emerald-900 px-3 py-1 rounded-full text-xs font-semibold">Verified</span>
               </div>
               <p className="text-cyan-100 capitalize text-lg">{animal.breed} • {animal.type}</p>
             </div>
@@ -408,9 +368,9 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                   >
-                    <option value="cows">🐄 Cows</option>
-                    <option value="goat">🐐 Goat</option>
-                    <option value="sheep">🐑 Sheep</option>
+                    <option value="cows">Cows</option>
+                    <option value="goat">Goat</option>
+                    <option value="sheep">Sheep</option>
                   </select>
                 </div>
               </div>

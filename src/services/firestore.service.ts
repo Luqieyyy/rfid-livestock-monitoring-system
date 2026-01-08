@@ -23,6 +23,10 @@ import type {
   BreedingRecord,
   SalesRecord,
   DashboardStats,
+  FeedingSchedule,
+  FeedingActivity,
+  NotificationSettings,
+  PushNotification,
 } from '@/types/livestock.types';
 
 // Helper function to convert Firestore Timestamp to Date
@@ -530,6 +534,315 @@ export const dashboardService = {
         },
         recentLivestock: [],
       };
+    }
+  },
+};
+
+// Feeding Schedule Service
+export const feedingScheduleService = {
+  async getAll(): Promise<FeedingSchedule[]> {
+    try {
+      const q = query(collection(db, 'feedingSchedules'), orderBy('time', 'asc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as FeedingSchedule[];
+    } catch (error) {
+      console.error('Error fetching feeding schedules:', error);
+      throw error;
+    }
+  },
+
+  async getById(id: string): Promise<FeedingSchedule | null> {
+    try {
+      const docRef = doc(db, 'feedingSchedules', id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return null;
+      return { id: docSnap.id, ...convertTimestamp(docSnap.data()) } as FeedingSchedule;
+    } catch (error) {
+      console.error('Error fetching feeding schedule:', error);
+      throw error;
+    }
+  },
+
+  async create(data: Omit<FeedingSchedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'feedingSchedules'), {
+        ...data,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating feeding schedule:', error);
+      throw error;
+    }
+  },
+
+  async update(id: string, data: Partial<FeedingSchedule>): Promise<void> {
+    try {
+      const docRef = doc(db, 'feedingSchedules', id);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error updating feeding schedule:', error);
+      throw error;
+    }
+  },
+
+  async delete(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'feedingSchedules', id));
+    } catch (error) {
+      console.error('Error deleting feeding schedule:', error);
+      throw error;
+    }
+  },
+
+  async getActiveSchedules(): Promise<FeedingSchedule[]> {
+    try {
+      const q = query(
+        collection(db, 'feedingSchedules'),
+        where('isActive', '==', true),
+        orderBy('time', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as FeedingSchedule[];
+    } catch (error) {
+      console.error('Error fetching active schedules:', error);
+      throw error;
+    }
+  },
+};
+
+// Feeding Activity Service
+export const feedingActivityService = {
+  async getAll(limitCount?: number): Promise<FeedingActivity[]> {
+    try {
+      let q = query(collection(db, 'feedingActivities'), orderBy('fedAt', 'desc'));
+      if (limitCount) {
+        q = query(q, limit(limitCount));
+      }
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as FeedingActivity[];
+    } catch (error) {
+      console.error('Error fetching feeding activities:', error);
+      throw error;
+    }
+  },
+
+  async getByLivestock(livestockId: string): Promise<FeedingActivity[]> {
+    try {
+      const q = query(
+        collection(db, 'feedingActivities'),
+        where('livestockId', '==', livestockId),
+        orderBy('fedAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as FeedingActivity[];
+    } catch (error) {
+      console.error('Error fetching livestock feeding activities:', error);
+      throw error;
+    }
+  },
+
+  async getByDateRange(startDate: Date, endDate: Date): Promise<FeedingActivity[]> {
+    try {
+      const q = query(
+        collection(db, 'feedingActivities'),
+        where('fedAt', '>=', startDate),
+        where('fedAt', '<=', endDate),
+        orderBy('fedAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as FeedingActivity[];
+    } catch (error) {
+      console.error('Error fetching feeding activities by date range:', error);
+      throw error;
+    }
+  },
+
+  async getRecent(limitCount: number = 10): Promise<FeedingActivity[]> {
+    return this.getAll(limitCount);
+  },
+
+  async getTodayActivities(): Promise<FeedingActivity[]> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      return this.getByDateRange(today, tomorrow);
+    } catch (error) {
+      console.error('Error fetching today activities:', error);
+      throw error;
+    }
+  },
+
+  async create(data: Omit<FeedingActivity, 'id' | 'createdAt'>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'feedingActivities'), {
+        ...data,
+        createdAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating feeding activity:', error);
+      throw error;
+    }
+  },
+
+  async delete(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'feedingActivities', id));
+    } catch (error) {
+      console.error('Error deleting feeding activity:', error);
+      throw error;
+    }
+  },
+};
+
+// Notification Service
+export const notificationService = {
+  async createNotification(data: Omit<PushNotification, 'id' | 'sentAt' | 'status'>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'notifications'), {
+        ...data,
+        sentAt: serverTimestamp(),
+        status: 'pending',
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  },
+
+  async getScheduledNotifications(): Promise<PushNotification[]> {
+    try {
+      const q = query(
+        collection(db, 'notifications'),
+        where('status', '==', 'pending'),
+        orderBy('sentAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as PushNotification[];
+    } catch (error) {
+      console.error('Error fetching scheduled notifications:', error);
+      throw error;
+    }
+  },
+
+  async getNotificationHistory(limitCount: number = 50): Promise<PushNotification[]> {
+    try {
+      const q = query(
+        collection(db, 'notifications'),
+        orderBy('sentAt', 'desc'),
+        limit(limitCount)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamp(doc.data()),
+      })) as PushNotification[];
+    } catch (error) {
+      console.error('Error fetching notification history:', error);
+      throw error;
+    }
+  },
+
+  async updateNotificationStatus(id: string, status: 'sent' | 'failed'): Promise<void> {
+    try {
+      const docRef = doc(db, 'notifications', id);
+      await updateDoc(docRef, { status });
+    } catch (error) {
+      console.error('Error updating notification status:', error);
+      throw error;
+    }
+  },
+
+  async scheduleFeedingNotification(schedule: FeedingSchedule): Promise<string> {
+    try {
+      const notification: Omit<PushNotification, 'id' | 'sentAt' | 'status'> = {
+        type: 'feeding',
+        title: `Feeding Time: ${schedule.name}`,
+        body: `Time to feed ${schedule.livestockTypes.join(', ')}. ${schedule.quantity}${schedule.unit} of ${schedule.feedType}`,
+        data: {
+          scheduleId: schedule.id,
+          scheduleName: schedule.name,
+          feedType: schedule.feedType,
+          quantity: schedule.quantity,
+          unit: schedule.unit,
+          time: schedule.time,
+        },
+        scheduleId: schedule.id,
+      };
+      return await this.createNotification(notification);
+    } catch (error) {
+      console.error('Error scheduling feeding notification:', error);
+      throw error;
+    }
+  },
+};
+
+// Notification Settings Service
+export const notificationSettingsService = {
+  async get(): Promise<NotificationSettings | null> {
+    try {
+      const q = query(collection(db, 'notificationSettings'), limit(1));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) return null;
+      const doc = snapshot.docs[0];
+      return { id: doc.id, ...convertTimestamp(doc.data()) } as NotificationSettings;
+    } catch (error) {
+      console.error('Error fetching notification settings:', error);
+      throw error;
+    }
+  },
+
+  async create(data: Omit<NotificationSettings, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'notificationSettings'), {
+        ...data,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating notification settings:', error);
+      throw error;
+    }
+  },
+
+  async update(id: string, data: Partial<NotificationSettings>): Promise<void> {
+    try {
+      const docRef = doc(db, 'notificationSettings', id);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      throw error;
     }
   },
 };

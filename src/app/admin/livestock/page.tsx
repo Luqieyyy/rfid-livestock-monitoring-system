@@ -67,15 +67,6 @@ export default function LivestockPage() {
     return `${Math.floor(ageInDays / 365)}y`;
   };
 
-  const getAnimalEmoji = (type: string) => {
-    const emojis: Record<string, string> = {
-      cows: '🐄',
-      goat: '🐐',
-      sheep: '🐑',
-    };
-    return emojis[type] || '🐄';
-  };
-
   const stats = {
     total: livestock.length,
     healthy: livestock.filter(l => l.status === 'healthy').length,
@@ -118,7 +109,9 @@ export default function LivestockPage() {
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">📊</span>
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -151,7 +144,9 @@ export default function LivestockPage() {
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">🔒</span>
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
             <div>
               <p className="text-2xl font-bold text-amber-600">{stats.quarantine}</p>
@@ -273,7 +268,9 @@ export default function LivestockPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">🐄</span>
+            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No livestock found</h3>
           <p className="text-gray-500 mb-6">Try adjusting your filters or add new livestock</p>
@@ -351,8 +348,10 @@ function AnimalDetailModal({ animal, onClose, onEdit }: { animal: Livestock; onC
         </div>
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center text-4xl">
-              {animal.type === 'cattle' ? '🐄' : animal.type === 'goat' ? '🐐' : '🐑'}
+            <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center">
+              <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900">{animal.tagId}</h3>
@@ -468,10 +467,10 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
-                <option value="cattle">🐄 Cattle</option>
-                <option value="goat">🐐 Goat</option>
-                <option value="sheep">🐑 Sheep</option>
-                <option value="chicken">🐔 Chicken</option>
+                <option value="cattle">Cattle</option>
+                <option value="goat">Goat</option>
+                <option value="sheep">Sheep</option>
+                <option value="chicken">Chicken</option>
               </select>
             </div>
           </div>
@@ -636,8 +635,8 @@ function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock;
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
-                <option value="cows">🐄 Cows</option>
-                <option value="goat">🐐 Goat</option>
+                <option value="cows">Cows</option>
+                <option value="goat">Goat</option>
               </select>
             </div>
           </div>

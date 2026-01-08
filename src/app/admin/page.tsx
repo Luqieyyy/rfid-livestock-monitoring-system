@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { dashboardService, healthRecordService } from '@/services/firestore.service';
-import type { DashboardStats, Livestock, HealthRecord } from '@/types/livestock.types';
+import { dashboardService, healthRecordService, feedingActivityService } from '@/services/firestore.service';
+import type { DashboardStats, Livestock, HealthRecord, FeedingActivity } from '@/types/livestock.types';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentLivestock, setRecentLivestock] = useState<Livestock[]>([]);
   const [upcomingCheckups, setUpcomingCheckups] = useState<HealthRecord[]>([]);
+  const [recentFeedings, setRecentFeedings] = useState<FeedingActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,13 +17,15 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [statsData, checkups] = await Promise.all([
+      const [statsData, checkups, feedings] = await Promise.all([
         dashboardService.getStatsWithLivestock(),
         healthRecordService.getUpcomingCheckups().catch(() => []),
+        feedingActivityService.getRecent(5).catch(() => []),
       ]);
 
       setStats(statsData.stats);
       setRecentLivestock(statsData.recentLivestock);
+      setRecentFeedings(feedings);
       setUpcomingCheckups(checkups);
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
@@ -59,7 +62,7 @@ export default function AdminDashboard() {
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-2">Welcome to FarmSense! 🌾</h2>
+            <h2 className="text-2xl font-bold mb-2">Welcome to FarmSense</h2>
             <p className="text-emerald-100">Monitor your livestock with intelligent insights and real-time data.</p>
           </div>
           <div className="flex items-center gap-4">
@@ -161,10 +164,10 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <QuickActionButton href="/admin/livestock" icon="🐄" label="Add Livestock" />
-            <QuickActionButton href="/admin/health" icon="💊" label="Record Health" />
-            <QuickActionButton href="/admin/breeding" icon="🧬" label="New Breeding" />
-            <QuickActionButton href="/admin/sales" icon="💰" label="Record Sale" />
+            <QuickActionButton href="/admin/livestock" icon="livestock" label="Add Livestock" />
+            <QuickActionButton href="/admin/health" icon="health" label="Record Health" />
+            <QuickActionButton href="/admin/breeding" icon="breeding" label="New Breeding" />
+            <QuickActionButton href="/admin/sales" icon="sales" label="Record Sale" />
           </div>
         </div>
       </div>
@@ -185,9 +188,9 @@ export default function AdminDashboard() {
                 <div key={animal.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
-                      <span className="text-xl">
-                        {animal.type === 'cows' ? '🐄' : animal.type === 'sheep' ? '🐑' : '🐐'}
-                      </span>
+                      <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{animal.tagId}</p>
@@ -200,6 +203,43 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <EmptyState message="No livestock data yet" />
+          )}
+        </div>
+
+        {/* Recent Feeding Activities */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Feeding</h3>
+            <a href="/admin/feeding" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+              View All →
+            </a>
+          </div>
+          {recentFeedings.length > 0 ? (
+            <div className="space-y-4">
+              {recentFeedings.map((feeding) => (
+                <div key={feeding.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{feeding.livestockTagId}</p>
+                      <p className="text-sm text-gray-500">{feeding.feedType} • {feeding.quantity} {feeding.unit}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">
+                      {new Date(feeding.fedAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-xs text-gray-500">{feeding.farmerName}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState message="No feeding activities yet" />
           )}
         </div>
 
@@ -307,9 +347,16 @@ function StatCard({ title, value, icon, color, trend, alert }: {
 }
 
 function QuickActionButton({ href, icon, label }: { href: string; icon: string; label: string }) {
+  const icons: Record<string, JSX.Element> = {
+    livestock: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
+    health: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>,
+    breeding: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+    sales: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  };
+
   return (
     <a href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
-      <span className="text-xl">{icon}</span>
+      <div className="text-emerald-600">{icons[icon] || icons.livestock}</div>
       <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{label}</span>
       <svg className="w-4 h-4 text-gray-400 ml-auto group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

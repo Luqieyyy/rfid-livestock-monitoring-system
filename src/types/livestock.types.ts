@@ -91,3 +91,59 @@ export interface DashboardStats {
   totalRevenue: number;
   averageWeight: number;
 }
+
+export interface FeedingSchedule {
+  id: string;
+  name: string;
+  time: string; // Format: "07:00" or "17:00"
+  feedType: string;
+  quantity: number; // in kg
+  unit: 'kg' | 'lbs';
+  livestockTypes: string[]; // ['cows', 'goat', 'sheep']
+  isActive: boolean;
+  notificationEnabled: boolean;
+  notifyBefore: number; // minutes before feeding time
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FeedingActivity {
+  id: string;
+  scheduleId?: string;
+  scheduleName?: string;
+  livestockId: string;
+  livestockTagId: string;
+  farmerId: string;
+  farmerName: string;
+  feedType: string;
+  quantity: number;
+  unit: 'kg' | 'lbs';
+  fedAt: Date;
+  notes?: string;
+  location?: string;
+  photoUrl?: string;
+  createdAt: Date;
+}
+
+export interface NotificationSettings {
+  id: string;
+  type: 'feeding' | 'health' | 'general';
+  enabled: boolean;
+  recipients: string[]; // farmer IDs or 'all'
+  scheduleIds?: string[]; // specific feeding schedules
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PushNotification {
+  id: string;
+  type: 'feeding' | 'health' | 'breeding' | 'general';
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  recipientId?: string; // specific farmer or null for all
+  scheduleId?: string;
+  sentAt: Date;
+  status: 'pending' | 'sent' | 'failed';
+  readAt?: Date;
+}
