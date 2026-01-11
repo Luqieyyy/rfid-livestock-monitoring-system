@@ -318,6 +318,17 @@ export default function LivestockPage() {
   );
 }
 
+function getAnimalEmoji(type: string): string {
+  const emojis: Record<string, string> = {
+    cows: '🐄',
+    cattle: '🐄',
+    goat: '🐐',
+    sheep: '🐑',
+    chicken: '🐔',
+  };
+  return emojis[type.toLowerCase()] || '🐄';
+}
+
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     healthy: 'bg-emerald-100 text-emerald-700',
@@ -404,13 +415,13 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const [formData, setFormData] = useState({
     tagId: '',
-    type: 'cattle',
+    type: 'cows' as 'cows' | 'goat' | 'sheep',
     breed: '',
     dateOfBirth: '',
-    gender: 'male',
+    gender: 'male' as 'male' | 'female',
     weight: '',
     location: '',
-    status: 'healthy',
+    status: 'healthy' as 'healthy' | 'sick' | 'quarantine' | 'deceased',
     notes: '',
   });
   const [saving, setSaving] = useState(false);
@@ -464,13 +475,12 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
               <select
                 required
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
-                <option value="cattle">Cattle</option>
+                <option value="cows">Cows</option>
                 <option value="goat">Goat</option>
                 <option value="sheep">Sheep</option>
-                <option value="chicken">Chicken</option>
               </select>
             </div>
           </div>
@@ -505,7 +515,7 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
               <select
                 required
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="male">Male</option>
@@ -573,13 +583,13 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
 function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock; onClose: () => void; onSuccess: () => void }) {
   const [formData, setFormData] = useState({
     tagId: animal.tagId,
-    type: animal.type,
+    type: animal.type as 'cows' | 'goat' | 'sheep',
     breed: animal.breed,
     dateOfBirth: new Date(animal.dateOfBirth).toISOString().split('T')[0],
-    gender: animal.gender,
+    gender: animal.gender as 'male' | 'female',
     weight: animal.weight.toString(),
     location: animal.location,
-    status: animal.status,
+    status: animal.status as 'healthy' | 'sick' | 'quarantine' | 'deceased',
     notes: animal.notes || '',
   });
   const [saving, setSaving] = useState(false);
@@ -632,11 +642,12 @@ function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock;
               <select
                 required
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="cows">Cows</option>
                 <option value="goat">Goat</option>
+                <option value="sheep">Sheep</option>
               </select>
             </div>
           </div>
@@ -671,7 +682,7 @@ function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock;
               <select
                 required
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="male">Male</option>
@@ -708,7 +719,7 @@ function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock;
               <select
                 required
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'healthy' | 'sick' | 'quarantine' | 'deceased' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="healthy">Healthy</option>
