@@ -108,10 +108,8 @@ export default function LivestockPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+            <div className="w-30 h-14 flex items-center justify-center">
+              <img src="/totallivestockfarm.jpg" alt="total" className="w-30 h-30 object-contain rounded-lg" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -121,8 +119,8 @@ export default function LivestockPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">✅</span>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <img src="/healthy.png" alt="healthy" className="w-12 h-12 object-contain" />
             </div>
             <div>
               <p className="text-2xl font-bold text-emerald-600">{stats.healthy}</p>
@@ -132,8 +130,8 @@ export default function LivestockPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">🏥</span>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <img src="/sickanimal.png" alt="sick" className="w-12 h-12 object-contain" />
             </div>
             <div>
               <p className="text-2xl font-bold text-red-600">{stats.sick}</p>
@@ -143,10 +141,8 @@ export default function LivestockPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <div className="w-14 h-14 flex items-center justify-center">
+              <img src="/quarantine_livestock.png" alt="quarantine" className="w-12 h-12 object-contain" />
             </div>
             <div>
               <p className="text-2xl font-bold text-amber-600">{stats.quarantine}</p>
@@ -318,15 +314,13 @@ export default function LivestockPage() {
   );
 }
 
-function getAnimalEmoji(type: string): string {
-  const emojis: Record<string, string> = {
-    cows: '🐄',
-    cattle: '🐄',
-    goat: '🐐',
-    sheep: '🐑',
-    chicken: '🐔',
+function getAnimalEmoji(type: string): JSX.Element {
+  const images: Record<string, string> = {
+    cows: '/cow.jpg',
+    goat: '/goat.png',
   };
-  return emojis[type.toLowerCase()] || '🐄';
+  const src = images[type.toLowerCase()] || '/cow.jpg';
+  return <img src={src} alt={type} className="w-8 h-8 object-cover rounded-lg" />;
 }
 
 function StatusBadge({ status }: { status: string }) {

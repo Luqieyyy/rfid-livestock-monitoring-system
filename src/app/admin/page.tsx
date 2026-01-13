@@ -91,27 +91,27 @@ export default function AdminDashboard() {
         <StatCard
           title="Healthy"
           value={stats?.healthyCount || 0}
-          icon={<CheckCircleIcon />}
+          icon={<img src="/healthy.png" alt="healthy" className="w-40 h-40   object-contain" />}
           color="emerald"
           trend={stats?.healthyCount ? `${Math.round((stats.healthyCount / (stats.totalLivestock || 1)) * 100)}%` : '0%'}
         />
         <StatCard
           title="Under Treatment"
           value={stats?.sickCount || 0}
-          icon={<HeartIcon />}
+          icon={<img src="/undertreatment.jpg" alt="treatment" className="w-40 h-40 object-contain" />}
           color="amber"
           alert={stats?.sickCount ? stats.sickCount > 0 : false}
         />
         <StatCard
           title="Active Breeding"
           value={stats?.activeBreedingCount || 0}
-          icon={<FlaskIcon />}
+          icon={<img src="/breadingicon.jpg" alt="breeding" className="w-40 h-40 object-contain" />}
           color="cyan"
         />
         <StatCard
           title="Pending Sales"
           value={stats?.pendingSalesCount || 0}
-          icon={<ShoppingIcon />}
+          icon={<img src="/sales.png" alt="sales" className="w-40 h-40 object-contain" />}
           color="violet"
         />
       </div>
@@ -126,10 +126,8 @@ export default function AdminDashboard() {
           <div className="grid sm:grid-cols-3 gap-6">
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div className="w-14 h-14 flex items-center justify-center">
+                  <img src="/sales_myr.png" alt="revenue" className="w-12 h-12 object-contain" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-gray-900">${(stats?.totalRevenue || 0).toLocaleString()}</p>
@@ -137,10 +135,8 @@ export default function AdminDashboard() {
             </div>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                  </svg>
+                <div className="w-14 h-14 flex items-center justify-center">
+                  <img src="/avg_weight.png" alt="weight" className="w-12 h-12 object-contain" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-gray-900">{(stats?.averageWeight || 0).toFixed(1)} kg</p>
@@ -148,10 +144,8 @@ export default function AdminDashboard() {
             </div>
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div className="w-14 h-14 flex items-center justify-center">
+                  <img src="/deceased.png" alt="deceased" className="w-12 h-12 object-contain" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-gray-900">{stats?.deceasedCount || 0}</p>
@@ -325,10 +319,8 @@ function StatCard({ title, value, icon, color, trend, alert }: {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 card-shadow-hover">
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color].split(' ')[1]}`}>
-          <div className={`bg-gradient-to-br ${colors[color].split(' ').slice(0, 2).join(' ')} text-white p-2.5 rounded-lg`}>
-            {icon}
-          </div>
+        <div className="w-14 h-14 flex items-center justify-center">
+          {icon}
         </div>
         {alert && (
           <span className="flex h-3 w-3">
@@ -348,7 +340,7 @@ function StatCard({ title, value, icon, color, trend, alert }: {
 
 function QuickActionButton({ href, icon, label }: { href: string; icon: string; label: string }) {
   const icons: Record<string, JSX.Element> = {
-    livestock: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
+    livestock: <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
     health: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>,
     breeding: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
     sales: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
