@@ -49,6 +49,7 @@ export default function LivestockPage() {
     if (searchQuery) {
       filtered = filtered.filter(
         (item) =>
+          item.animalId.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.tagId.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.breed.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -108,8 +109,8 @@ export default function LivestockPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-30 h-14 flex items-center justify-center">
-              <img src="/totallivestockfarm.jpg" alt="total" className="w-30 h-30 object-contain rounded-lg" />
+            <div className="w-20 h-20 flex items-center justify-center">
+              <img src="/totallivestockfarm.jpg" alt="total" className="w-20 h-20 object-contain rounded-lg" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -119,8 +120,8 @@ export default function LivestockPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 flex items-center justify-center">
-              <img src="/healthy.png" alt="healthy" className="w-12 h-12 object-contain" />
+            <div className="w-20 h-20 flex items-center justify-center">
+              <img src="/healthy.png" alt="healthy" className="w-20 h-20 object-contain" />
             </div>
             <div>
               <p className="text-2xl font-bold text-emerald-600">{stats.healthy}</p>
@@ -130,8 +131,8 @@ export default function LivestockPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 flex items-center justify-center">
-              <img src="/sickanimal.png" alt="sick" className="w-12 h-12 object-contain" />
+            <div className="w-20 h-20 flex items-center justify-center">
+              <img src="/sickanimal.png" alt="sick" className="w-20 h-20 object-contain" />
             </div>
             <div>
               <p className="text-2xl font-bold text-red-600">{stats.sick}</p>
@@ -141,8 +142,8 @@ export default function LivestockPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 flex items-center justify-center">
-              <img src="/quarantine_livestock.png" alt="quarantine" className="w-12 h-12 object-contain" />
+            <div className="w-20 h-20 flex items-center justify-center">
+              <img src="/quarantine_livestock.png" alt="quarantine" className="w-20 h-20 object-contain" />
             </div>
             <div>
               <p className="text-2xl font-bold text-amber-600">{stats.quarantine}</p>
@@ -162,7 +163,7 @@ export default function LivestockPage() {
             </svg>
             <input
               type="text"
-              placeholder="Search by tag ID or breed..."
+              placeholder="Search by Animal ID, Tag ID or Breed..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
@@ -213,50 +214,76 @@ export default function LivestockPage() {
             <div
               key={animal.id}
               onClick={() => setSelectedAnimal(animal)}
-              className="bg-white rounded-2xl border border-gray-100 p-5 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group"
+              className="bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+              {/* Animal Photo */}
+              <div className="relative h-48 bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden">
+                {animal.photoUrl ? (
+                  <img 
+                    src={animal.photoUrl} 
+                    alt={animal.animalId}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      // Fallback to emoji if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-6xl">${getAnimalEmoji(animal.type)}</div>`;
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-6xl group-hover:scale-110 transition-transform">
                     {getAnimalEmoji(animal.type)}
                   </div>
+                )}
+                <div className="absolute top-3 right-3">
+                  <StatusBadge status={animal.status} />
+                </div>
+              </div>
+
+              {/* Animal Info */}
+              <div className="p-5">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-bold text-gray-900">{animal.tagId}</h3>
+                    <h3 className="text-lg font-bold text-gray-900">#{animal.animalId}</h3>
                     <p className="text-sm text-gray-500">{animal.breed}</p>
                   </div>
+                  <div className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
+                    {animal.tagId}
+                  </div>
                 </div>
-                <StatusBadge status={animal.status} />
-              </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Age</p>
-                  <p className="text-sm font-semibold text-gray-700">{calculateAge(animal.dateOfBirth)}</p>
+                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-100">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Age</p>
+                    <p className="text-sm font-semibold text-gray-700">{calculateAge(animal.dateOfBirth)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Weight</p>
+                    <p className="text-sm font-semibold text-gray-700">{animal.weight} kg</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Gender</p>
+                    <p className="text-sm font-semibold text-gray-700 capitalize">{animal.gender}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Weight</p>
-                  <p className="text-sm font-semibold text-gray-700">{animal.weight} kg</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Gender</p>
-                  <p className="text-sm font-semibold text-gray-700 capitalize">{animal.gender}</p>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {animal.location}
-                </span>
-                <span className="text-emerald-600 text-sm font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                  Details
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </span>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {animal.location}
+                  </span>
+                  <span className="text-emerald-600 text-sm font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                    Details
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
               </div>
             </div>
           ))}

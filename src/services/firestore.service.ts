@@ -84,6 +84,7 @@ const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
   
   return {
     id: firebaseData.id || '',
+    animalId: firebaseData.animalId || 'N/A', // Sequential animal ID
     tagId: firebaseData.tagId || firebaseData.rfid_tag || firebaseData.rfid || 'N/A',
     type: animalType,
     breed: firebaseData.breed || 'Unknown',
@@ -128,12 +129,47 @@ export const livestockService = {
 
   async create(data: Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
+    
+    // Auto-generate animalId if not provided
+    let animalId = data.animalId;
+    if (!animalId || animalId === 'N/A') {
+      animalId = await this.generateAnimalId();
+    }
+    
     const docRef = await addDoc(livestockRef, {
       ...data,
+      animalId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
     return docRef.id;
+  },
+
+  // Generate sequential animal ID
+  async generateAnimalId(): Promise<string> {
+    try {
+      const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
+      const snapshot = await getDocs(livestockRef);
+      
+      // Find highest existing animalId
+      let maxId = 0;
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.animalId) {
+          const numericId = parseInt(data.animalId);
+          if (!isNaN(numericId) && numericId > maxId) {
+            maxId = numericId;
+          }
+        }
+      });
+      
+      // Generate next ID with leading zeros
+      const nextId = maxId + 1;
+      return String(nextId).padStart(6, '0');
+    } catch (error) {
+      console.error('Error generating animal ID:', error);
+      return String(Date.now()).slice(-6); // Fallback to timestamp-based ID
+    }
   },
 
   // Update livestock

@@ -4,6 +4,7 @@
 // Firebase data structure (what's actually in the database)
 export interface FirebaseLivestock {
   id: string;
+  animalId: string; // Sequential ID like "000001"
   tagId: string;
   type: 'cows' | 'goat' | 'sheep';
   breed: string;
@@ -19,6 +20,7 @@ export interface FirebaseLivestock {
 // App data structure (what the app expects)
 export interface Livestock {
   id: string;
+  animalId: string; // Sequential ID like "000001" - main identifier
   tagId: string;
   type: 'cows' | 'goat' | 'sheep';
   breed: string;
