@@ -4,6 +4,52 @@ export const LIVESTOCK_TYPES = [
   { value: 'sheep', label: 'Sheep' },
 ] as const;
 
+// Cattle/Cow Breeds
+export const COW_BREEDS = [
+  { value: 'Baka Malaysia', label: 'Baka Malaysia' },
+  { value: 'Baka Kampung', label: 'Baka Kampung' },
+  { value: 'Brahman', label: 'Brahman' },
+  { value: 'Kedah-Kelantan', label: 'Kedah-Kelantan' },
+  { value: 'Friesian', label: 'Friesian' },
+  { value: 'Jersey', label: 'Jersey' },
+  { value: 'Limousin', label: 'Limousin' },
+  { value: 'Charolais', label: 'Charolais' },
+  { value: 'Angus', label: 'Angus' },
+  { value: 'Crossbreed', label: 'Crossbreed' },
+  { value: 'Other', label: 'Other' },
+] as const;
+
+// Goat Breeds
+export const GOAT_BREEDS = [
+  { value: 'Kambing Katjang', label: 'Kambing Katjang' },
+  { value: 'Kambing Boer', label: 'Kambing Boer' },
+  { value: 'Kambing Saanen', label: 'Kambing Saanen' },
+  { value: 'Kambing Jamnapari', label: 'Kambing Jamnapari' },
+  { value: 'Kambing Kampung', label: 'Kambing Kampung' },
+  { value: 'Crossbreed', label: 'Crossbreed' },
+  { value: 'Other', label: 'Other' },
+] as const;
+
+// Sheep Breeds
+export const SHEEP_BREEDS = [
+  { value: 'Biri-biri Melayu', label: 'Biri-biri Melayu' },
+  { value: 'Dorper', label: 'Dorper' },
+  { value: 'Merino', label: 'Merino' },
+  { value: 'Suffolk', label: 'Suffolk' },
+  { value: 'Crossbreed', label: 'Crossbreed' },
+  { value: 'Other', label: 'Other' },
+] as const;
+
+// Farm Locations (Kandang)
+export const FARM_LOCATIONS = [
+  { value: 'Kandang A', label: 'Kandang A', capacity: 50, color: '#10b981' },
+  { value: 'Kandang B', label: 'Kandang B', capacity: 50, color: '#3b82f6' },
+  { value: 'Kandang C', label: 'Kandang C', capacity: 30, color: '#f59e0b' },
+  { value: 'Kandang D', label: 'Kandang D', capacity: 30, color: '#ef4444' },
+  { value: 'Quarantine Area', label: 'Quarantine Area', capacity: 20, color: '#8b5cf6' },
+  { value: 'Medical Bay', label: 'Medical Bay', capacity: 10, color: '#ec4899' },
+] as const;
+
 export const LIVESTOCK_STATUS = [
   { value: 'healthy', label: 'Healthy', color: 'green' },
   { value: 'sick', label: 'Sick', color: 'red' },

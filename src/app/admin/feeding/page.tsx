@@ -54,12 +54,8 @@ export default function FeedingManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Feeding Management</h1>
-          <p className="text-gray-500 mt-1">Manage feeding schedules and track feeding activities</p>
-        </div>
+      {/* Action Button */}
+      <div className="flex justify-end">
         <button
           onClick={() => setShowScheduleModal(true)}
           className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2"

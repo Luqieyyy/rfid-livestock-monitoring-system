@@ -72,12 +72,8 @@ export default function BreedingPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Breeding Management</h1>
-          <p className="text-gray-500 mt-1">Track breeding cycles, pregnancies, and offspring</p>
-        </div>
+      {/* Action Button */}
+      <div className="flex justify-end">
         <button
           onClick={() => setShowAddModal(true)}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"

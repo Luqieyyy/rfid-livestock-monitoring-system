@@ -3,17 +3,26 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+// New navigation structure with groups
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: DashboardIcon },
-  { name: 'Livestock', href: '/admin/livestock', icon: LivestockIcon },
-  { name: 'Health Records', href: '/admin/health', icon: HealthIcon },
-  { name: 'Breeding', href: '/admin/breeding', icon: BreedingIcon },
-  { name: 'Feeding', href: '/admin/feeding', icon: FeedingIcon },
-  { name: 'Sales', href: '/admin/sales', icon: SalesIcon },
-  { name: 'Staff Management', href: '/admin/staff', icon: StaffIcon },
-  { name: 'Admin Tools', href: '/admin/tools', icon: ToolsIcon },
+  { name: 'Dashboard', href: '/admin', icon: DashboardIcon, type: 'single' },
+  {
+    name: 'Livestock Management',
+    icon: LivestockIcon,
+    type: 'group',
+    children: [
+      { name: 'Livestock Registry', href: '/admin/livestock', icon: LivestockIcon },
+      { name: 'Health Records', href: '/admin/health', icon: HealthIcon },
+      { name: 'Breeding', href: '/admin/breeding', icon: BreedingIcon },
+      { name: 'Feeding', href: '/admin/feeding', icon: FeedingIcon },
+    ],
+  },
+  { name: 'Farm Overview', href: '/admin/farm-overview', icon: FarmIcon, type: 'single' },
+  { name: 'Sales', href: '/admin/sales', icon: SalesIcon, type: 'single' },
+  { name: 'Staff Management', href: '/admin/staff', icon: StaffIcon, type: 'single' },
+  { name: 'Admin Tools', href: '/admin/tools', icon: ToolsIcon, type: 'single' },
 ];
 
 function DashboardIcon({ className }: { className?: string }) {
@@ -81,10 +90,31 @@ function ToolsIcon({ className }: { className?: string }) {
   );
 }
 
+function FarmIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    'Livestock Management': true, // Open by default
+  });
+
+  // Toggle group open/close
+  const toggleGroup = (groupName: string) => {
+    setOpenGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
+
+  // Check if any child in group is active
+  const isGroupActive = (children: any[]) => {
+    return children.some(child => pathname === child.href);
+  };
 
   // TEMPORARY: Development mode - bypass auth for testing
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -162,24 +192,84 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`} />
-                  {item.name}
-                  {isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-                  )}
-                </Link>
-              );
+              // Single nav item
+              if (item.type === 'single') {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href!}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <item.icon className={`w-5 h-5 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                    {item.name}
+                    {isActive && (
+                      <div className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                    )}
+                  </Link>
+                );
+              }
+
+              // Group with collapsible children
+              if (item.type === 'group' && item.children) {
+                const isOpen = openGroups[item.name];
+                const groupActive = isGroupActive(item.children);
+                
+                return (
+                  <div key={item.name} className="space-y-1">
+                    <button
+                      onClick={() => toggleGroup(item.name)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        groupActive
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      <item.icon className={`w-5 h-5 ${groupActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                      <span className="flex-1 text-left">{item.name}</span>
+                      <svg
+                        className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    
+                    {isOpen && (
+                      <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
+                        {item.children.map((child) => {
+                          const isActive = pathname === child.href;
+                          return (
+                            <Link
+                              key={child.name}
+                              href={child.href}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                isActive
+                                  ? 'text-emerald-700 bg-emerald-50'
+                                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                              }`}
+                            >
+                              <child.icon className={`w-4 h-4 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                              {child.name}
+                              {isActive && (
+                                <div className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return null;
             })}
           </nav>
 
@@ -210,7 +300,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center justify-between px-8 py-4">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
-                {navigation.find(n => n.href === pathname)?.name || 'Dashboard'}
+                {(() => {
+                  // Check single items first
+                  const singleItem = navigation.find(n => n.type === 'single' && n.href === pathname);
+                  if (singleItem) return singleItem.name;
+                  
+                  // Check group children
+                  for (const item of navigation) {
+                    if (item.type === 'group' && item.children) {
+                      const child = item.children.find(c => c.href === pathname);
+                      if (child) return child.name;
+                    }
+                  }
+                  
+                  return 'Dashboard';
+                })()}
               </h1>
               <p className="text-sm text-gray-500">
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}

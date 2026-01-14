@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { livestockService } from '@/services/firestore.service';
+import { kandangService } from '@/services/farm.service';
 import type { Livestock } from '@/types/livestock.types';
+import type { Kandang } from '@/types/farm.types';
+import { COW_BREEDS, GOAT_BREEDS, SHEEP_BREEDS } from '@/utils/constants';
 
 export default function LivestockPage() {
   const [livestock, setLivestock] = useState<Livestock[]>([]);
   const [filteredLivestock, setFilteredLivestock] = useState<Livestock[]>([]);
+  const [kandangs, setKandangs] = useState<Kandang[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -16,12 +20,28 @@ export default function LivestockPage() {
   const [editingAnimal, setEditingAnimal] = useState<Livestock | null>(null);
 
   useEffect(() => {
-    loadLivestock();
+    loadData();
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [filter, typeFilter, searchQuery, livestock]);
+
+  const loadData = async () => {
+    try {
+      const [livestockData, kandangData] = await Promise.all([
+        livestockService.getAll(),
+        kandangService.getAll()
+      ]);
+      setLivestock(livestockData);
+      setFilteredLivestock(livestockData);
+      setKandangs(kandangData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadLivestock = async () => {
     try {
@@ -88,12 +108,8 @@ export default function LivestockPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Livestock Registry</h1>
-          <p className="text-gray-500 mt-1">Manage and track all animals in your farm</p>
-        </div>
+      {/* Action Button */}
+      <div className="flex justify-end">
         <button
           onClick={() => setShowAddModal(true)}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
@@ -323,7 +339,11 @@ export default function LivestockPage() {
 
       {/* Add Modal Placeholder */}
       {showAddModal && (
-        <AddLivestockModal onClose={() => setShowAddModal(false)} onSuccess={loadLivestock} />
+        <AddLivestockModal 
+          onClose={() => setShowAddModal(false)} 
+          onSuccess={loadLivestock}
+          kandangs={kandangs}
+        />
       )}
 
       {/* Edit Modal */}
@@ -334,7 +354,8 @@ export default function LivestockPage() {
           onSuccess={() => {
             loadLivestock();
             setEditingAnimal(null);
-          }} 
+          }}
+          kandangs={kandangs}
         />
       )}
     </div>
@@ -433,7 +454,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+function AddLivestockModal({ onClose, onSuccess, kandangs }: { onClose: () => void; onSuccess: () => void; kandangs: Kandang[] }) {
   const [formData, setFormData] = useState({
     tagId: '',
     type: 'cows' as 'cows' | 'goat' | 'sheep',
@@ -557,15 +578,23 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Location (Kandang) *</label>
+            <select
               required
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder="e.g., Barn A"
-            />
+            >
+              <option value="">Select Kandang</option>
+              {kandangs.map(kandang => (
+                <option key={kandang.id} value={kandang.name}>
+                  {kandang.name} - {kandang.location || 'No location'}
+                </option>
+              ))}
+            </select>
+            {kandangs.length === 0 && (
+              <p className="mt-1 text-xs text-orange-600">⚠️ No kandang available. Please add kandang first.</p>
+            )}
           </div>
 
           <div>
@@ -601,7 +630,7 @@ function AddLivestockModal({ onClose, onSuccess }: { onClose: () => void; onSucc
   );
 }
 
-function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock; onClose: () => void; onSuccess: () => void }) {
+function EditLivestockModal({ animal, onClose, onSuccess, kandangs }: { animal: Livestock; onClose: () => void; onSuccess: () => void; kandangs: Kandang[] }) {
   const [formData, setFormData] = useState({
     tagId: animal.tagId,
     type: animal.type as 'cows' | 'goat' | 'sheep',
@@ -725,15 +754,20 @@ function EditLivestockModal({ animal, onClose, onSuccess }: { animal: Livestock;
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>
-              <input
-                type="text"
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Location (Kandang) *</label>
+              <select
                 required
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., Barn A"
-              />
+              >
+                <option value="">Select Kandang</option>
+                {kandangs.map(kandang => (
+                  <option key={kandang.id} value={kandang.name}>
+                    {kandang.name} - {kandang.location || 'No location'}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Status *</label>

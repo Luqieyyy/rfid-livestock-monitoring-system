@@ -24,13 +24,13 @@ export async function testFirebaseConnection() {
       data: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     };
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Firebase connection test failed:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
 // Call this in browser console to test
 if (typeof window !== 'undefined') {
-  window.testFirebaseConnection = testFirebaseConnection;
+  (window as unknown as { testFirebaseConnection: typeof testFirebaseConnection }).testFirebaseConnection = testFirebaseConnection;
 }
