@@ -1,8 +1,8 @@
 // Component for Breed Selector based on animal type
-import { COW_BREEDS, GOAT_BREEDS, SHEEP_BREEDS, FARM_LOCATIONS } from '@/utils/constants';
+import { COW_BREEDS, GOAT_BREEDS, FARM_LOCATIONS } from '@/utils/constants';
 
 interface BreedSelectorProps {
-  animalType: 'cows' | 'goat' | 'sheep';
+  animalType: 'cows' | 'goat';
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
@@ -15,8 +15,6 @@ export function BreedSelector({ animalType, value, onChange, required = true }: 
         return COW_BREEDS;
       case 'goat':
         return GOAT_BREEDS;
-      case 'sheep':
-        return SHEEP_BREEDS;
       default:
         return [];
     }
@@ -34,7 +32,7 @@ export function BreedSelector({ animalType, value, onChange, required = true }: 
         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
       >
         <option value="">Select Breed</option>
-        {breeds.map(breed => (
+        {breeds.map((breed: { value: string; label: string }) => (
           <option key={breed.value} value={breed.value}>{breed.label}</option>
         ))}
       </select>

@@ -44,8 +44,8 @@ const convertTimestamp = (data: DocumentData): any => {
 const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
   const now = new Date();
   
-  // Convert cattle/Cow to cows for consistency
-  let animalType: 'cows' | 'goat' | 'sheep' = 'cows';
+  // Convert cattle/Cow to cow for consistency
+  let animalType: 'cow' | 'goat' | 'sheep' = 'cow';
   if (firebaseData.type) {
     const typeStr = firebaseData.type.toLowerCase();
     if (typeStr.includes('goat') || typeStr.includes('kambing')) {
@@ -53,7 +53,7 @@ const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
     } else if (typeStr.includes('sheep') || typeStr.includes('biri')) {
       animalType = 'sheep';
     } else if (typeStr.includes('cow') || typeStr.includes('cattle') || typeStr.includes('lembu')) {
-      animalType = 'cows';
+      animalType = 'cow';
     }
   }
   

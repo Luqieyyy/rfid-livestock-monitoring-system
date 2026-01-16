@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { livestockService } from '@/services/firestore.service';
 import type { Livestock } from '@/types/livestock.types';
+import { formatAnimalDisplayName } from '@/utils/helpers';
 
 function BuyerPortalContent() {
   const searchParams = useSearchParams();
@@ -43,14 +44,19 @@ function BuyerPortalContent() {
     let filtered = [...livestock];
 
     if (selectedType !== 'all') {
-      filtered = filtered.filter((item) => item.type === selectedType);
+      if (selectedType === 'cows') {
+        filtered = filtered.filter((item) => item.type === 'cow');
+      } else {
+        filtered = filtered.filter((item) => item.type === selectedType);
+      }
     }
 
     if (searchQuery) {
       filtered = filtered.filter(
         (item) =>
-          item.tagId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.breed.toLowerCase().includes(searchQuery.toLowerCase())
+          item.animalId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.rfid && item.rfid.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -81,7 +87,7 @@ function BuyerPortalContent() {
 
   const typeStats = {
     all: livestock.length,
-    cows: livestock.filter(l => l.type === 'cows').length,
+    cows: livestock.filter(l => l.type === 'cow').length,
     goat: livestock.filter(l => l.type === 'goat').length,
   };
 
@@ -131,21 +137,31 @@ function BuyerPortalContent() {
       {/* Category Quick Filters */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { type: 'all', label: 'All Animals', icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> },
-          { type: 'cows', label: 'Cows', icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg> },
-          { type: 'goat', label: 'Goats', icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg> },
+          { type: 'all', label: 'All Animals', image: '/stat-cow.png' },
+          { type: 'cows', label: 'Cows', image: '/cow.jpg' },
+          { type: 'goat', label: 'Goats', image: '/goat.png' },
         ].map((category) => (
           <button
             key={category.type}
             onClick={() => setSelectedType(category.type)}
-            className={`p-4 rounded-2xl border-2 transition-all ${
+            className={`p-5 rounded-2xl border-2 transition-all ${
               selectedType === category.type
-                ? 'bg-cyan-50 border-cyan-300 shadow-lg shadow-cyan-500/10'
-                : 'bg-white border-gray-100 hover:border-gray-200'
+                ? 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-300 shadow-lg shadow-cyan-500/20'
+                : 'bg-white border-gray-100 hover:border-cyan-200 hover:shadow-md'
             }`}
           >
-            <div className="text-cyan-600 mb-2">{category.icon}</div>
-            <p className="font-semibold text-gray-900">{category.label}</p>
+            <div className="mb-3 flex justify-center">
+              <div className={`w-20 h-20 rounded-xl overflow-hidden shadow-sm ${
+                selectedType === category.type ? 'ring-2 ring-cyan-400 ring-offset-2' : ''
+              }`}>
+                <img 
+                  src={category.image} 
+                  alt={category.label} 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </div>
+            <p className="font-bold text-gray-900 mb-1">{category.label}</p>
             <p className="text-sm text-gray-500">
               {typeStats[category.type as keyof typeof typeStats]} available
             </p>
@@ -162,7 +178,7 @@ function BuyerPortalContent() {
             </svg>
             <input
               type="text"
-              placeholder="Search by tag ID or breed..."
+              placeholder="Search by animal ID or breed..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all"
@@ -201,22 +217,32 @@ function BuyerPortalContent() {
               onClick={() => setSelectedAnimal(animal)}
               className="bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer group hover:shadow-xl hover:border-cyan-200 transition-all"
             >
-              <div className="bg-gradient-to-r from-slate-100 to-cyan-50 p-6 relative">
-                <div className="absolute top-4 right-4">
+              <div className="relative h-48 bg-gradient-to-r from-slate-100 to-cyan-50 overflow-hidden">
+                <div className="absolute top-4 right-4 z-10">
                   <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
                     Verified
                   </span>
                 </div>
-                <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                  <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
+                {animal.photoUrl ? (
+                  <img 
+                    src={animal.photoUrl} 
+                    alt={animal.breed}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img 
+                      src={animal.type === 'cow' ? '/cow.jpg' : '/goat.png'} 
+                      alt={animal.type}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <div className="mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{animal.tagId}</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
                   <p className="text-gray-500 capitalize">{animal.breed} • {animal.type}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -284,44 +310,10 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
   onClose: () => void;
   calculateAge: (date: Date) => string;
 }) {
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    tagId: animal.tagId,
-    type: animal.type,
-    breed: animal.breed,
-    dateOfBirth: animal.dateOfBirth.toString().split('T')[0],
-    gender: animal.gender,
-    weight: animal.weight.toString(),
-    location: animal.location,
-    status: animal.status,
-    notes: animal.notes || '',
-  });
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await livestockService.update(animal.id, {
-        ...formData,
-        weight: parseFloat(formData.weight),
-        dateOfBirth: new Date(formData.dateOfBirth),
-      });
-      alert('Animal updated successfully!');
-      setEditMode(false);
-      onClose();
-      window.location.reload(); // Refresh to show updated data
-    } catch (error) {
-      console.error('Error updating animal:', error);
-      alert('Failed to update animal. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-8 text-white relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,238 +321,124 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
             </svg>
           </button>
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-              <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
+            {animal.photoUrl ? (
+              <img 
+                src={animal.photoUrl} 
+                alt={animal.breed}
+                className="w-24 h-24 rounded-2xl object-cover shadow-lg border-4 border-white/20"
+              />
+            ) : (
+              <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-2xl font-bold">{animal.tagId}</h2>
+                <h2 className="text-2xl font-bold">{animal.animalId}</h2>
                 <span className="bg-emerald-400 text-emerald-900 px-3 py-1 rounded-full text-xs font-semibold">Verified</span>
               </div>
               <p className="text-cyan-100 capitalize text-lg">{animal.breed} • {animal.type}</p>
+              <p className="text-cyan-200 text-sm mt-1">RFID: {animal.rfid || 'N/A'}</p>
             </div>
           </div>
         </div>
         
-        {editMode ? (
-          // Edit Form
-          <form onSubmit={handleSubmit} className="p-8">
-            <h3 className="font-bold text-gray-900 mb-4">Edit Animal Details</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Tag ID *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.tagId}
-                    onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Type *</label>
-                  <select
-                    required
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  >
-                    <option value="cows">Cows</option>
-                    <option value="goat">Goat</option>
-                    <option value="sheep">Sheep</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Breed *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.breed}
-                    onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
-                  <select
-                    required
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Weight (kg) *</label>
-                  <input
-                    type="number"
-                    required
-                    step="0.1"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dateOfBirth}
-                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Health Status *</label>
-                  <select
-                    required
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'healthy' | 'sick' | 'quarantine' | 'deceased' })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  >
-                    <option value="healthy">Healthy</option>
-                    <option value="sick">Sick</option>
-                    <option value="quarantine">Quarantine</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  placeholder="Additional notes..."
-                />
-              </div>
+        {/* View Mode - Show all details */}
+        <div className="p-8">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 text-center border border-blue-100">
+              <p className="text-xs text-gray-500 mb-1">Weight</p>
+              <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
             </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button 
-                type="submit"
-                disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button 
-                type="button"
-                onClick={() => setEditMode(false)}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 text-center border border-purple-100">
+              <p className="text-xs text-gray-500 mb-1">Age</p>
+              <p className="text-xl font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
             </div>
-          </form>
-        ) : (
-          // View Mode
-          <div className="p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <p className="text-xs text-gray-400 mb-1">Weight</p>
-                <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <p className="text-xs text-gray-400 mb-1">Age</p>
-                <p className="text-xl font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <p className="text-xs text-gray-400 mb-1">Gender</p>
-                <p className="text-xl font-bold text-gray-900 capitalize">{animal.gender}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <p className="text-xs text-gray-400 mb-1">Location</p>
-                <p className="text-xl font-bold text-gray-900">{animal.location}</p>
-              </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-100">
+              <p className="text-xs text-gray-500 mb-1">Gender</p>
+              <p className="text-xl font-bold text-gray-900 capitalize">{animal.gender}</p>
             </div>
-            <div className="space-y-4 mb-8">
-              <h3 className="font-bold text-gray-900">Animal Details</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex justify-between py-3 border-b border-gray-100">
-                  <span className="text-gray-500">Date of Birth</span>
-                  <span className="font-medium text-gray-900">{new Date(animal.dateOfBirth).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-gray-100">
-                  <span className="text-gray-500">Health Status</span>
-                  <span className="font-medium text-emerald-600 capitalize">{animal.status}</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-emerald-800 mb-1">Health Certified</h4>
-                  <p className="text-sm text-emerald-700">This animal has passed all health verification requirements.</p>
-                </div>
-              </div>
-            </div>
-            {animal.notes && (
-              <div className="bg-gray-50 rounded-xl p-5 mb-8">
-                <h4 className="font-semibold text-gray-900 mb-2">Additional Notes</h4>
-                <p className="text-gray-600">{animal.notes}</p>
-              </div>
-            )}
-            <div className="flex gap-3">
-              <button 
-                type="button"
-                onClick={(e) => {
-                  console.log('EDIT BUTTON CLICKED!');
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Edit mode set to true');
-                }}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
-                style={{ cursor: 'pointer', zIndex: 1000 }}
-              >
-                Edit Animal
-              </button>
-              <button 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onClose();
-                }}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-              >
-                Close
-              </button>
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 text-center border border-orange-100">
+              <p className="text-xs text-gray-500 mb-1">Location</p>
+              <p className="text-xl font-bold text-gray-900">{animal.location}</p>
             </div>
           </div>
-        )}
+
+          {/* Detailed Information */}
+          <div className="space-y-6 mb-8">
+            <h3 className="text-lg font-bold text-gray-900">Complete Animal Profile</h3>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              <InfoRow label="Date of Birth" value={new Date(animal.dateOfBirth).toLocaleDateString()} />
+              <InfoRow label="Health Status" value={animal.status} valueClass="text-emerald-600 capitalize" />
+              <InfoRow label="Animal ID" value={animal.animalId} />
+              <InfoRow label="RFID" value={animal.rfid || 'N/A'} />
+              <InfoRow label="Breed" value={animal.breed} valueClass="capitalize" />
+            </div>
+          </div>
+
+          {/* Health Certification */}
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="font-semibold text-emerald-800 mb-1">Health Certified</h4>
+                <p className="text-sm text-emerald-700">This animal has passed all health verification requirements and is ready for purchase.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes Section */}
+          {animal.notes && (
+            <div className="bg-gray-50 rounded-xl p-5 mb-6">
+              <h4 className="font-semibold text-gray-900 mb-2">Additional Notes</h4>
+              <p className="text-gray-600">{animal.notes}</p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button 
+              type="button"
+              onClick={() => {
+                // Open WhatsApp or messaging system
+                const message = `Hi, I'm interested in ${animal.breed} ${animal.type} (ID: ${animal.animalId}). Can we discuss further?`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+              }}
+              className="flex-1 px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 012.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.188 8.188 0 01-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.12-.24-.01-.39.11-.5.11-.11.27-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43-.14 0-.3-.01-.47-.01z"/>
+              </svg>
+              Chat with Owner
+            </button>
+            <button 
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, valueClass = "text-gray-900" }: { label: string; value: string; valueClass?: string }) {
+  return (
+    <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-xl">
+      <span className="text-sm text-gray-500">{label}</span>
+      <span className={`font-medium ${valueClass}`}>{value}</span>
     </div>
   );
 }

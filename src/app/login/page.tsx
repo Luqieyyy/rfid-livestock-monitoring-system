@@ -47,39 +47,49 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background Image with 3D Parallax Effect */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 via-emerald-800/30 to-teal-900/40 z-10"></div>
+          <img 
+            src="/livestockfarming_farmerwallpaper.jpeg"
+            alt="Farm Background"
+            className="absolute inset-0 w-full h-full object-cover animate-slow-zoom"
+          />
         </div>
         
-        <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-xl p-2">
-              <img 
-                src="/farmsenselogo.png" 
-                alt="FarmSense Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="text-2xl font-bold text-white">Farm<span className="text-emerald-200">Sense</span></span>
+        {/* Animated 3D Overlay Elements */}
+        <div className="absolute inset-0 z-20 opacity-20">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-400 rounded-full blur-3xl animate-float-delayed"></div>
+          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-teal-300 rounded-full blur-3xl animate-pulse-slow"></div>
+        </div>
+        
+        <div className="relative z-30 p-12 flex flex-col justify-between w-full">
+        <div>
+          <Link href="/" className="flex items-center gap-3 transform hover:scale-105 transition-transform duration-300">
+            <img 
+              src="/farmsenselogo.png" 
+              alt="FarmSense Logo"
+              className="w-12 h-12 object-contain drop-shadow-lg"
+            />
+            <span className="text-2xl font-bold text-white drop-shadow-lg">Farm<span className="text-emerald-200">Sense</span></span>
           </Link>
         </div>
 
-        <div className="relative z-10 space-y-8">
+        <div className="space-y-8 backdrop-blur-sm bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl transform hover:scale-[1.02] transition-all duration-300">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-4">Smart Livestock Management</h1>
-            <p className="text-emerald-100 text-lg leading-relaxed">
+            <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg animate-fade-in">Smart Livestock Management</h1>
+            <p className="text-emerald-100 text-lg leading-relaxed drop-shadow">
               Access your FarmSense dashboard to manage livestock, track health records, 
               monitor breeding cycles, or browse the marketplace for premium animals.
             </p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 transform hover:scale-105 transition-all duration-300 border border-white/20 shadow-lg">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shadow-md">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -88,9 +98,9 @@ export default function LoginPage() {
               </div>
               <p className="text-emerald-200 text-sm">Full farm management access</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 transform hover:scale-105 transition-all duration-300 border border-white/20 shadow-lg">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shadow-md">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
@@ -102,8 +112,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 text-emerald-200 text-sm">
+        <div className="text-emerald-200 text-sm drop-shadow">
           © 2025 FarmSense. Smart farming technology.
+        </div>
         </div>
       </div>
 

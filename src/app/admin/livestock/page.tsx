@@ -5,7 +5,9 @@ import { livestockService } from '@/services/firestore.service';
 import { kandangService } from '@/services/farm.service';
 import type { Livestock } from '@/types/livestock.types';
 import type { Kandang } from '@/types/farm.types';
-import { COW_BREEDS, GOAT_BREEDS, SHEEP_BREEDS } from '@/utils/constants';
+import { COW_BREEDS, GOAT_BREEDS } from '@/utils/constants';
+import { generateAnimalId, formatAnimalDisplayName } from '@/utils/helpers';
+import ManageBreedsModal from '@/components/livestock/ManageBreedsModal';
 
 export default function LivestockPage() {
   const [livestock, setLivestock] = useState<Livestock[]>([]);
@@ -16,11 +18,14 @@ export default function LivestockPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBreedModal, setShowBreedModal] = useState(false);
   const [selectedAnimal, setSelectedAnimal] = useState<Livestock | null>(null);
   const [editingAnimal, setEditingAnimal] = useState<Livestock | null>(null);
+  const [customBreeds, setCustomBreeds] = useState<{ cow: string[]; goat: string[] }>({ cow: [], goat: [] });
 
   useEffect(() => {
     loadData();
+    loadCustomBreeds();
   }, []);
 
   useEffect(() => {
@@ -41,6 +46,63 @@ export default function LivestockPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadCustomBreeds = async () => {
+    try {
+      const { getFirestore, doc, getDoc } = await import('firebase/firestore');
+      const db = getFirestore();
+      const breedDoc = await getDoc(doc(db, 'settings', 'customBreeds'));
+      if (breedDoc.exists()) {
+        const data = breedDoc.data();
+        setCustomBreeds({
+          cow: data.cow || [],
+          goat: data.goat || []
+        });
+      }
+    } catch (error) {
+      console.error('Error loading custom breeds:', error);
+    }
+  };
+
+  const saveCustomBreed = async (type: 'cow' | 'goat', breedName: string) => {
+    try {
+      const { getFirestore, doc, setDoc } = await import('firebase/firestore');
+      const db = getFirestore();
+      const updatedBreeds = {
+        ...customBreeds,
+        [type]: [...customBreeds[type], breedName]
+      };
+      await setDoc(doc(db, 'settings', 'customBreeds'), updatedBreeds);
+      setCustomBreeds(updatedBreeds);
+      return true;
+    } catch (error) {
+      console.error('Error saving custom breed:', error);
+      return false;
+    }
+  };
+
+  const deleteCustomBreed = async (type: 'cow' | 'goat', breedName: string) => {
+    try {
+      const { getFirestore, doc, setDoc } = await import('firebase/firestore');
+      const db = getFirestore();
+      const updatedBreeds = {
+        ...customBreeds,
+        [type]: customBreeds[type].filter(b => b !== breedName)
+      };
+      await setDoc(doc(db, 'settings', 'customBreeds'), updatedBreeds);
+      setCustomBreeds(updatedBreeds);
+      return true;
+    } catch (error) {
+      console.error('Error deleting custom breed:', error);
+      return false;
+    }
+  };
+
+  const getAllBreeds = (type: 'cow' | 'goat') => {
+    const baseBreeds = type === 'cow' ? COW_BREEDS : GOAT_BREEDS;
+    const customList = customBreeds[type].map(b => ({ value: b, label: b }));
+    return [...baseBreeds, ...customList];
   };
 
   const loadLivestock = async () => {
@@ -70,8 +132,8 @@ export default function LivestockPage() {
       filtered = filtered.filter(
         (item) =>
           item.animalId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.tagId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.breed.toLowerCase().includes(searchQuery.toLowerCase())
+          item.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.rfid && item.rfid.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -108,8 +170,18 @@ export default function LivestockPage() {
 
   return (
     <div className="space-y-6">
-      {/* Action Button */}
-      <div className="flex justify-end">
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setShowBreedModal(true)}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-emerald-600 text-emerald-600 rounded-xl font-medium hover:bg-emerald-50 transition-all"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Manage Breeds
+        </button>
         <button
           onClick={() => setShowAddModal(true)}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
@@ -179,7 +251,7 @@ export default function LivestockPage() {
             </svg>
             <input
               type="text"
-              placeholder="Search by Animal ID, Tag ID or Breed..."
+              placeholder="Search by Animal ID, RFID or Breed..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
@@ -188,7 +260,7 @@ export default function LivestockPage() {
 
           {/* Type Filter */}
           <div className="flex gap-2 flex-wrap">
-            {['all', 'cows', 'goat'].map((type) => (
+            {['all', 'cow', 'goat'].map((type) => (
               <button
                 key={type}
                 onClick={() => setTypeFilter(type)}
@@ -262,11 +334,11 @@ export default function LivestockPage() {
               <div className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">#{animal.animalId}</h3>
+                    <h3 className="text-lg font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
                     <p className="text-sm text-gray-500">{animal.breed}</p>
                   </div>
                   <div className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
-                    {animal.tagId}
+                    #{animal.animalId}
                   </div>
                 </div>
 
@@ -343,6 +415,8 @@ export default function LivestockPage() {
           onClose={() => setShowAddModal(false)} 
           onSuccess={loadLivestock}
           kandangs={kandangs}
+          existingLivestock={livestock}
+          getAllBreeds={getAllBreeds}
         />
       )}
 
@@ -351,11 +425,19 @@ export default function LivestockPage() {
         <EditLivestockModal 
           animal={editingAnimal} 
           onClose={() => setEditingAnimal(null)} 
-          onSuccess={() => {
-            loadLivestock();
-            setEditingAnimal(null);
-          }}
+          onSuccess={loadLivestock}
           kandangs={kandangs}
+          getAllBreeds={getAllBreeds}
+        />
+      )}
+
+      {/* Manage Breeds Modal */}
+      {showBreedModal && (
+        <ManageBreedsModal
+          onClose={() => setShowBreedModal(false)}
+          customBreeds={customBreeds}
+          onSaveBreed={saveCustomBreed}
+          onDeleteBreed={deleteCustomBreed}
         />
       )}
     </div>
@@ -364,7 +446,7 @@ export default function LivestockPage() {
 
 function getAnimalEmoji(type: string): JSX.Element {
   const images: Record<string, string> = {
-    cows: '/cow.jpg',
+    cow: '/cow.jpg',
     goat: '/goat.png',
   };
   const src = images[type.toLowerCase()] || '/cow.jpg';
@@ -407,7 +489,7 @@ function AnimalDetailModal({ animal, onClose, onEdit }: { animal: Livestock; onC
               </svg>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">{animal.tagId}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
               <p className="text-gray-500">{animal.breed} • {animal.type}</p>
               <StatusBadge status={animal.status} />
             </div>
@@ -454,10 +536,16 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AddLivestockModal({ onClose, onSuccess, kandangs }: { onClose: () => void; onSuccess: () => void; kandangs: Kandang[] }) {
+function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, getAllBreeds }: { 
+  onClose: () => void; 
+  onSuccess: () => void; 
+  kandangs: Kandang[]; 
+  existingLivestock: Livestock[];
+  getAllBreeds: (type: 'cow' | 'goat') => Array<{ value: string; label: string }>;
+}) {
   const [formData, setFormData] = useState({
-    tagId: '',
-    type: 'cows' as 'cows' | 'goat' | 'sheep',
+    type: 'cow' as 'cow' | 'goat',
+    rfid: '',
     breed: '',
     dateOfBirth: '',
     gender: 'male' as 'male' | 'female',
@@ -465,24 +553,64 @@ function AddLivestockModal({ onClose, onSuccess, kandangs }: { onClose: () => vo
     location: '',
     status: 'healthy' as 'healthy' | 'sick' | 'quarantine' | 'deceased',
     notes: '',
+    photoUrl: '',
   });
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    const storage = getStorage();
+    const storageRef = ref(storage, `livestock/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
+      let photoUrl = formData.photoUrl;
+      
+      // Upload image if selected
+      if (imageFile) {
+        setUploading(true);
+        photoUrl = await uploadImage(imageFile);
+        setUploading(false);
+      }
+
+      // Auto-generate animalId based on type
+      const animalId = generateAnimalId(existingLivestock, formData.type);
+
       await livestockService.create({
         ...formData,
+        animalId, // Add auto-generated animalId
         weight: parseFloat(formData.weight),
         dateOfBirth: new Date(formData.dateOfBirth),
+        photoUrl,
       } as Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>);
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error adding livestock:', error);
+      alert('Error adding livestock. Please try again.');
     } finally {
       setSaving(false);
+      setUploading(false);
     }
   };
 
@@ -500,44 +628,57 @@ function AddLivestockModal({ onClose, onSuccess, kandangs }: { onClose: () => vo
           </div>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Tag ID *</label>
-              <input
-                type="text"
-                required
-                value={formData.tagId}
-                onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., COW-001"
-              />
+          {/* Info message about auto-generated Animal ID */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
+            <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm text-blue-800">
+              <p className="font-medium">Animal ID will be auto-generated</p>
+              <p className="text-blue-600 text-xs mt-0.5">Sequential ID (e.g., 00001, 00002) will be assigned automatically based on animal type</p>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Type *</label>
               <select
                 required
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cow' | 'goat', breed: '' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
-                <option value="cows">Cows</option>
+                <option value="cow">Cow</option>
                 <option value="goat">Goat</option>
-                <option value="sheep">Sheep</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">RFID *</label>
+              <input
+                type="text"
+                required
+                value={formData.rfid}
+                onChange={(e) => setFormData({ ...formData, rfid: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., RFID123456"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Breed *</label>
-              <input
-                type="text"
+              <select
                 required
                 value={formData.breed}
                 onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., Angus"
-              />
+              >
+                <option value="">Select Breed</option>
+                {getAllBreeds(formData.type).map((breed) => (
+                  <option key={breed.value} value={breed.value}>{breed.label}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
@@ -608,13 +749,55 @@ function AddLivestockModal({ onClose, onSuccess, kandangs }: { onClose: () => vo
             />
           </div>
 
+          {/* Image Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Livestock Photo</label>
+            <div className="mt-2">
+              {imagePreview ? (
+                <div className="relative w-full h-48 rounded-xl overflow-hidden border-2 border-gray-200">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview('');
+                    }}
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-500 font-medium">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-400">PNG, JPG or JPEG (MAX. 5MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Add Livestock'}
+              {uploading ? 'Uploading Image...' : saving ? 'Saving...' : 'Add Livestock'}
             </button>
             <button
               type="button"
@@ -630,10 +813,17 @@ function AddLivestockModal({ onClose, onSuccess, kandangs }: { onClose: () => vo
   );
 }
 
-function EditLivestockModal({ animal, onClose, onSuccess, kandangs }: { animal: Livestock; onClose: () => void; onSuccess: () => void; kandangs: Kandang[] }) {
+function EditLivestockModal({ animal, onClose, onSuccess, kandangs, getAllBreeds }: { 
+  animal: Livestock; 
+  onClose: () => void; 
+  onSuccess: () => void; 
+  kandangs: Kandang[];
+  getAllBreeds: (type: 'cow' | 'goat') => Array<{ value: string; label: string }>;
+}) {
   const [formData, setFormData] = useState({
-    tagId: animal.tagId,
-    type: animal.type as 'cows' | 'goat' | 'sheep',
+    animalId: animal.animalId,
+    rfid: animal.rfid,
+    type: animal.type as 'cow' | 'goat',
     breed: animal.breed,
     dateOfBirth: new Date(animal.dateOfBirth).toISOString().split('T')[0],
     gender: animal.gender as 'male' | 'female',
@@ -641,23 +831,59 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs }: { animal: 
     location: animal.location,
     status: animal.status as 'healthy' | 'sick' | 'quarantine' | 'deceased',
     notes: animal.notes || '',
+    photoUrl: animal.photoUrl || '',
   });
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(animal.photoUrl || '');
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    const storage = getStorage();
+    const storageRef = ref(storage, `livestock/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
+      let photoUrl = formData.photoUrl;
+      
+      // Upload new image if selected
+      if (imageFile) {
+        setUploading(true);
+        photoUrl = await uploadImage(imageFile);
+        setUploading(false);
+      }
+
       await livestockService.update(animal.id, {
         ...formData,
         weight: parseFloat(formData.weight),
         dateOfBirth: new Date(formData.dateOfBirth),
+        photoUrl,
       });
       onSuccess();
     } catch (error) {
       console.error('Error updating livestock:', error);
+      alert('Error updating livestock. Please try again.');
     } finally {
       setSaving(false);
+      setUploading(false);
     }
   };
 
@@ -675,44 +901,53 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs }: { animal: 
           </div>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Show Animal ID as readonly */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Animal ID (Auto-generated)</label>
+            <p className="text-lg font-bold text-gray-900">{formatAnimalDisplayName(animal.type, formData.animalId)}</p>
+            <p className="text-xs text-gray-500 mt-0.5">ID: {formData.animalId}</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Tag ID *</label>
-              <input
-                type="text"
-                required
-                value={formData.tagId}
-                onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., COW-001"
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Type *</label>
               <select
                 required
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cows' | 'goat' | 'sheep' })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cow' | 'goat' })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
-                <option value="cows">Cows</option>
+                <option value="cow">Cow</option>
                 <option value="goat">Goat</option>
-                <option value="sheep">Sheep</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">RFID *</label>
+              <input
+                type="text"
+                required
+                value={formData.rfid}
+                onChange={(e) => setFormData({ ...formData, rfid: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., RFID123456"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Breed *</label>
-              <input
-                type="text"
+              <select
                 required
                 value={formData.breed}
                 onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="e.g., Angus"
-              />
+              >
+                <option value="">Select Breed</option>
+                {getAllBreeds(formData.type).map((breed) => (
+                  <option key={breed.value} value={breed.value}>{breed.label}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
@@ -796,13 +1031,56 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs }: { animal: 
             />
           </div>
 
+          {/* Image Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Livestock Photo</label>
+            <div className="mt-2">
+              {imagePreview ? (
+                <div className="relative w-full h-48 rounded-xl overflow-hidden border-2 border-gray-200">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview('');
+                      setFormData({ ...formData, photoUrl: '' });
+                    }}
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-500 font-medium">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-400">PNG, JPG or JPEG (MAX. 5MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Update Livestock'}
+              {uploading ? 'Uploading Image...' : saving ? 'Saving...' : 'Update Livestock'}
             </button>
             <button
               type="button"

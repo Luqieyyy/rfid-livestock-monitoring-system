@@ -116,6 +116,9 @@ export default function StaffManagementPage() {
   };
 
   const filteredUsers = users.filter(user => {
+    // Only show farmers, exclude admin and buyer roles
+    if (user.role === 'admin' || user.role === 'buyer') return false;
+    
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     const matchesSearch = searchQuery === '' || 
       user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,7 +199,6 @@ export default function StaffManagementPage() {
             className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="all">All Roles</option>
-            <option value="admin">Admin</option>
             <option value="farmer">Farmer</option>
           </select>
         </div>

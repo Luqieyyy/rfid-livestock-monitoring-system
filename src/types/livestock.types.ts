@@ -4,15 +4,18 @@
 // Firebase data structure (what's actually in the database)
 export interface FirebaseLivestock {
   id: string;
-  animalId: string; // Sequential ID like "000001"
-  tagId: string;
-  type: 'cows' | 'goat' | 'sheep';
+  animalId: string; // Auto-generated sequential ID: 00001, 00002, etc.
+  type: 'cow' | 'goat';
   breed: string;
   age: string;
-  name: string;
   status: string;
   photoUrl?: string;
-  rfid?: string;
+  rfid: string; // Required RFID tag identifier
+  gender?: string;
+  weight?: number;
+  location?: string;
+  dateOfBirth?: any;
+  notes?: string;
   eatingStatus?: string;
   lastScan?: any;
 }
@@ -20,9 +23,8 @@ export interface FirebaseLivestock {
 // App data structure (what the app expects)
 export interface Livestock {
   id: string;
-  animalId: string; // Sequential ID like "000001" - main identifier
-  tagId: string;
-  type: 'cows' | 'goat' | 'sheep';
+  animalId: string; // Auto-generated sequential ID: 00001, 00002, etc. - main identifier
+  type: 'cow' | 'goat';
   breed: string;
   dateOfBirth: Date;
   gender: 'male' | 'female';
@@ -35,9 +37,8 @@ export interface Livestock {
   createdAt: Date;
   updatedAt: Date;
   // Additional fields from Firebase
-  name?: string;
   photoUrl?: string;
-  rfid?: string;
+  rfid: string; // Required RFID tag identifier
   age?: string;
 }
 
@@ -114,7 +115,7 @@ export interface FeedingActivity {
   scheduleId?: string;
   scheduleName?: string;
   livestockId: string;
-  livestockTagId: string;
+  livestockAnimalId: string; // References the animalId field
   farmerId: string;
   farmerName: string;
   feedType: string;

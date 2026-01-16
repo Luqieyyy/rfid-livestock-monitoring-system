@@ -1,7 +1,6 @@
 export const LIVESTOCK_TYPES = [
   { value: 'cows', label: 'Cows' },
   { value: 'goat', label: 'Goat' },
-  { value: 'sheep', label: 'Sheep' },
 ] as const;
 
 // Cattle/Cow Breeds
@@ -26,16 +25,6 @@ export const GOAT_BREEDS = [
   { value: 'Kambing Saanen', label: 'Kambing Saanen' },
   { value: 'Kambing Jamnapari', label: 'Kambing Jamnapari' },
   { value: 'Kambing Kampung', label: 'Kambing Kampung' },
-  { value: 'Crossbreed', label: 'Crossbreed' },
-  { value: 'Other', label: 'Other' },
-] as const;
-
-// Sheep Breeds
-export const SHEEP_BREEDS = [
-  { value: 'Biri-biri Melayu', label: 'Biri-biri Melayu' },
-  { value: 'Dorper', label: 'Dorper' },
-  { value: 'Merino', label: 'Merino' },
-  { value: 'Suffolk', label: 'Suffolk' },
   { value: 'Crossbreed', label: 'Crossbreed' },
   { value: 'Other', label: 'Other' },
 ] as const;

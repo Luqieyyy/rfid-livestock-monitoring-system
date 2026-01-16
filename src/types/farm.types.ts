@@ -32,9 +32,9 @@ export interface Kandang {
 
 export interface Animal {
   id: string;
-  animalId: string;
-  tagId?: string;
-  type: 'cow' | 'goat' | 'sheep';
+  animalId: string; // Auto-generated sequential ID: 00001, 00002, etc.
+  rfid: string; // Required RFID tag identifier
+  type: 'cow' | 'goat';
   breed: string;
   kandangId: string;
   position?: Position3D;
@@ -45,6 +45,9 @@ export interface Animal {
   weight?: number;
   gender?: 'male' | 'female';
   dateOfBirth?: Date;
+  age?: string;
+  location?: string;
+  notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

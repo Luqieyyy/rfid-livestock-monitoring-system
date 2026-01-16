@@ -166,3 +166,40 @@ export function sortByDate<T>(
     return order === 'asc' ? dateA - dateB : dateB - dateA;
   });
 }
+
+/**
+ * Generate next animal ID based on existing animals of the same type
+ * Returns format: "00001", "00002", etc.
+ */
+export function generateAnimalId(existingAnimals: any[], animalType: string): string {
+  // Filter animals of the same type
+  const sameTypeAnimals = existingAnimals.filter(a => a.type === animalType);
+  
+  // If no animals of this type exist, start from 00001
+  if (sameTypeAnimals.length === 0) {
+    return '00001';
+  }
+  
+  // Find the highest animalId number for this type
+  const highestId = sameTypeAnimals.reduce((max, animal) => {
+    const idNum = parseInt(animal.animalId || '0', 10);
+    return idNum > max ? idNum : max;
+  }, 0);
+  
+  // Return next ID with leading zeros (5 digits)
+  return String(highestId + 1).padStart(5, '0');
+}
+
+/**
+ * Format animal display name like "Cow 001" or "Goat 002"
+ * Extracts last 3 digits from animalId (00001 -> 001)
+ */
+export function formatAnimalDisplayName(type: string, animalId: string): string {
+  // Capitalize first letter of type
+  const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+  
+  // Extract last 3 digits from animalId
+  const shortId = animalId.slice(-3);
+  
+  return `${capitalizedType} ${shortId}`;
+}
