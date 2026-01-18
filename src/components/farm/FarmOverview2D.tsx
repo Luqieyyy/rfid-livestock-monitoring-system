@@ -193,8 +193,13 @@ function KandangCard({
                         className={`w-4 h-4 rounded-full shadow-xl border-2 border-white ${
                           animal.status === 'sick' || animal.status === 'quarantine'
                             ? 'bg-red-500' 
-                            : 'bg-emerald-500'
+                            : 'bg-red-600 animate-pulse'
                         }`}
+                        style={
+                          animal.status !== 'sick' && animal.status !== 'quarantine'
+                            ? { animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                            : undefined
+                        }
                         title={`${animal.animalId} - ${animal.status}`}
                       />
                     ))}
@@ -208,7 +213,7 @@ function KandangCard({
         {/* Legend */}
         <div className="relative z-10 flex items-center justify-center gap-6 text-sm font-semibold pt-3 mt-2 border-t-2 border-amber-800/40 bg-white/95 rounded-xl px-4 py-2.5 shadow-xl mx-3">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-lg"></div>
+            <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow-lg animate-pulse" style={{ animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></div>
             <span className="text-gray-700">Healthy</span>
           </div>
           <div className="flex items-center gap-2">

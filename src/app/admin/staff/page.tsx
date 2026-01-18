@@ -38,10 +38,12 @@ export default function StaffManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [rfidLogs, setRfidLogs] = useState<RFIDLog[]>([]);
   const [eatingLogs, setEatingLogs] = useState<any[]>([]);
+  const [livestock, setLivestock] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [activeTab, setActiveTab] = useState<'admin' | 'buyers' | 'farmers'>('buyers');
 
   useEffect(() => {
     loadData();
@@ -102,22 +104,39 @@ export default function StaffManagementPage() {
       });
       setEatingLogs(eatingData);
 
-      console.log('📊 Staff Management Data:', {
+      // Load livestock data
+      const livestockRef = collection(db, 'livestock');
+      const livestockSnapshot = await getDocs(livestockRef);
+      const livestockData = livestockSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setLivestock(livestockData);
+
+      console.log('📊 User Management Data:', {
         users: usersData.length,
         rfidLogs: rfidData.length,
-        eatingLogs: eatingData.length
+        eatingLogs: eatingData.length,
+        livestock: livestockData.length
       });
 
     } catch (error) {
-      console.error('❌ Error loading staff data:', error);
+      console.error('❌ Error loading user data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const filteredUsers = users.filter(user => {
-    // Only show farmers, exclude admin and buyer roles
-    if (user.role === 'admin' || user.role === 'buyer') return false;
+    // Filter based on active tab
+    if (activeTab === 'admin') {
+      if (user.role !== 'admin') return false;
+    } else if (activeTab === 'buyers') {
+      if (user.role !== 'buyer') return false;
+    } else {
+      // Farmers tab
+      if (user.role !== 'farmer') return false;
+    }
     
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     const matchesSearch = searchQuery === '' || 
@@ -131,8 +150,9 @@ export default function StaffManagementPage() {
   };
 
   const stats = {
-    totalUsers: users.length,
+    totalUsers: users.filter(u => u.role === 'farmer').length, // Only count farmers as staff
     admins: users.filter(u => u.role === 'admin').length,
+    buyers: users.filter(u => u.role === 'buyer').length,
     farmers: users.filter(u => u.role === 'farmer').length,
     totalScans: rfidLogs.length,
     todayScans: rfidLogs.filter(log => {
@@ -147,7 +167,7 @@ export default function StaffManagementPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading staff data...</p>
+          <p className="text-gray-500">Loading user data...</p>
         </div>
       </div>
     );
@@ -158,8 +178,8 @@ export default function StaffManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
-          <p className="text-gray-500 mt-1">Monitor staff activities and access logs</p>
+          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-500 mt-1">Monitor user activities and access logs</p>
         </div>
         <button
           onClick={loadData}
@@ -173,12 +193,47 @@ export default function StaffManagementPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatsCard icon="👥" label="Total Staff" value={stats.totalUsers} color="blue" />
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <StatsCard icon="👥" label="Total Farmers" value={stats.totalUsers} color="blue" />
         <StatsCard icon="👑" label="Admins" value={stats.admins} color="purple" />
+        <StatsCard icon="🛒" label="Buyers" value={stats.buyers} color="pink" />
         <StatsCard icon="🧑‍🌾" label="Farmers" value={stats.farmers} color="green" />
         <StatsCard icon="📊" label="Total Scans" value={stats.totalScans} color="cyan" />
         <StatsCard icon="📅" label="Today's Scans" value={stats.todayScans} color="orange" />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('buyers')}
+          className={`px-6 py-3 font-medium text-sm transition-all ${
+            activeTab === 'buyers'
+              ? 'text-emerald-600 border-b-2 border-emerald-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Buyers
+        </button>
+        <button
+          onClick={() => setActiveTab('farmers')}
+          className={`px-6 py-3 font-medium text-sm transition-all ${
+            activeTab === 'farmers'
+              ? 'text-emerald-600 border-b-2 border-emerald-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Farmers
+        </button>
+        <button
+          onClick={() => setActiveTab('admin')}
+          className={`px-6 py-3 font-medium text-sm transition-all ${
+            activeTab === 'admin'
+              ? 'text-emerald-600 border-b-2 border-emerald-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Admins
+        </button>
       </div>
 
       {/* Filters */}
@@ -199,7 +254,9 @@ export default function StaffManagementPage() {
             className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="all">All Roles</option>
-            <option value="farmer">Farmer</option>
+            {activeTab === 'admin' && <option value="admin">Admin</option>}
+            {activeTab === 'buyers' && <option value="buyer">Buyer</option>}
+            {activeTab === 'farmers' && <option value="farmer">Farmer</option>}
           </select>
         </div>
       </div>
@@ -207,15 +264,22 @@ export default function StaffManagementPage() {
       {/* Staff List */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">Staff Directory</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {activeTab === 'admin' ? 'Admin Directory' : activeTab === 'buyers' ? 'Buyer Directory' : 'Farmer Directory'}
+          </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {activeTab === 'farmers' ? 'Staff' : 'User'}
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                {(activeTab === 'admin' || activeTab === 'buyers') && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -246,6 +310,11 @@ export default function StaffManagementPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <RoleBadge role={user.role} />
                   </td>
+                  {(activeTab === 'admin' || activeTab === 'buyers') && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="text-sm text-gray-700">{(user as any).phoneNumber || 'N/A'}</p>
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <p className="text-sm text-gray-700">{user.createdAt.toLocaleDateString()}</p>
                   </td>
@@ -254,7 +323,7 @@ export default function StaffManagementPage() {
                       onClick={() => setSelectedUser(user)}
                       className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
                     >
-                      View Activity
+                      View {user.role === 'buyer' ? 'Interests' : 'Activity'}
                     </button>
                   </td>
                 </tr>
@@ -355,25 +424,98 @@ export default function StaffManagementPage() {
               </div>
             </div>
             <div className="p-6">
-              <h4 className="font-semibold text-gray-900 mb-4">User Information</h4>
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-sm text-gray-500">Role</p>
-                  <RoleBadge role={selectedUser.role} />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Registered</p>
-                  <p className="font-medium text-gray-900">{selectedUser.createdAt.toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">User ID</p>
-                  <p className="font-medium text-gray-900 text-xs">{selectedUser.uid}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Activity Count</p>
-                  <p className="font-medium text-gray-900">{getUserActivityCount(selectedUser.uid)} scans</p>
-                </div>
-              </div>
+              {selectedUser.role === 'buyer' ? (
+                <>
+                  <h4 className="font-semibold text-gray-900 mb-4">Buyer Information</h4>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <p className="text-sm text-gray-500">Role</p>
+                      <RoleBadge role={selectedUser.role} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Registered</p>
+                      <p className="font-medium text-gray-900">{selectedUser.createdAt.toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Phone Number</p>
+                      <p className="font-medium text-gray-900">{(selectedUser as any).phoneNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">User ID</p>
+                      <p className="font-medium text-gray-900 text-xs">{selectedUser.uid}</p>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-semibold text-gray-900 mb-4 mt-6">Livestock Interests</h4>
+                  <div className="space-y-3">
+                    {livestock
+                      .filter(animal => (animal.interestedBuyers || []).includes(selectedUser.uid))
+                      .map(animal => (
+                        <div key={animal.id} className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-semibold text-gray-900">{animal.name || animal.animalId}</h5>
+                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                              {animal.breed || 'N/A'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-gray-500">Animal ID</p>
+                              <p className="font-medium text-gray-900">{animal.animalId}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Gender</p>
+                              <p className="font-medium text-gray-900 capitalize">{animal.gender || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Age</p>
+                              <p className="font-medium text-gray-900">{animal.age || 'N/A'} months</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Weight</p>
+                              <p className="font-medium text-gray-900">{animal.weight || 'N/A'} kg</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Health Status</p>
+                              <p className="font-medium text-gray-900 capitalize">{animal.healthStatus || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Status</p>
+                              <p className="font-medium text-gray-900 capitalize">{animal.status || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    {livestock.filter(animal => (animal.interestedBuyers || []).includes(selectedUser.uid)).length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No livestock interests yet</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h4 className="font-semibold text-gray-900 mb-4">User Information</h4>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <p className="text-sm text-gray-500">Role</p>
+                      <RoleBadge role={selectedUser.role} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Registered</p>
+                      <p className="font-medium text-gray-900">{selectedUser.createdAt.toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">User ID</p>
+                      <p className="font-medium text-gray-900 text-xs">{selectedUser.uid}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Activity Count</p>
+                      <p className="font-medium text-gray-900">{getUserActivityCount(selectedUser.uid)} scans</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -386,6 +528,7 @@ function StatsCard({ icon, label, value, color }: { icon: string; label: string;
   const colors: Record<string, string> = {
     blue: 'from-blue-100 to-indigo-100',
     purple: 'from-purple-100 to-violet-100',
+    pink: 'from-pink-100 to-rose-100',
     green: 'from-emerald-100 to-teal-100',
     cyan: 'from-cyan-100 to-blue-100',
     orange: 'from-amber-100 to-orange-100',
@@ -405,6 +548,7 @@ function StatsCard({ icon, label, value, color }: { icon: string; label: string;
 function RoleBadge({ role }: { role: string }) {
   const styles: Record<string, string> = {
     admin: 'bg-purple-100 text-purple-700',
+    buyer: 'bg-pink-100 text-pink-700',
     farmer: 'bg-emerald-100 text-emerald-700',
   };
   return (

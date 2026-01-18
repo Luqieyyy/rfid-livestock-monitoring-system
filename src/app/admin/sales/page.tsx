@@ -10,6 +10,8 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<SalesRecord | null>(null);
 
   useEffect(() => {
     loadData();
@@ -207,6 +209,20 @@ export default function SalesPage() {
                       <p className="font-medium capitalize">{sale.deliveryStatus}</p>
                     </div>
                   </div>
+
+                  {/* Edit Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedSale(sale);
+                      setShowEditModal(true);
+                    }}
+                    className="p-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors"
+                    title="Edit sale"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 </div>
 
                 {sale.notes && (
@@ -248,6 +264,19 @@ export default function SalesPage() {
           livestock={livestock}
           onClose={() => setShowAddModal(false)} 
           onSuccess={loadData} 
+        />
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedSale && (
+        <EditSaleModal
+          sale={selectedSale}
+          livestock={livestock}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedSale(null);
+          }}
+          onSuccess={loadData}
         />
       )}
     </div>
@@ -414,6 +443,187 @@ function AddSaleModal({ livestock, onClose, onSuccess }: {
               className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50"
             >
               {saving ? 'Recording...' : 'Record Sale'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditSaleModal({ sale, livestock, onClose, onSuccess }: { 
+  sale: SalesRecord;
+  livestock: Livestock[];
+  onClose: () => void; 
+  onSuccess: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    livestockId: sale.livestockId,
+    buyerName: sale.buyerName,
+    buyerContact: sale.buyerContact,
+    price: sale.price.toString(),
+    saleDate: new Date(sale.saleDate).toISOString().split('T')[0],
+    paymentStatus: sale.paymentStatus,
+    deliveryStatus: sale.deliveryStatus,
+    notes: sale.notes || '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await salesRecordService.update(sale.id, {
+        ...formData,
+        price: parseFloat(formData.price),
+        saleDate: new Date(formData.saleDate),
+      });
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error updating sale:', error);
+      alert('Failed to update sale record. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Edit Sale Record</h2>
+              <p className="text-sm text-gray-500 mt-1">Update payment and delivery status</p>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Livestock *</label>
+            <select
+              required
+              value={formData.livestockId}
+              onChange={(e) => setFormData({ ...formData, livestockId: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select livestock</option>
+              {livestock.map((animal) => (
+                <option key={animal.id} value={animal.id}>
+                  {animal.tagId} - {animal.breed} ({animal.weight}kg)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Buyer Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.buyerName}
+                onChange={(e) => setFormData({ ...formData, buyerName: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Full name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact *</label>
+              <input
+                type="text"
+                required
+                value={formData.buyerContact}
+                onChange={(e) => setFormData({ ...formData, buyerContact: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Phone or email"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Sale Price ($) *</label>
+              <input
+                type="number"
+                required
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Sale Date *</label>
+              <input
+                type="date"
+                required
+                value={formData.saleDate}
+                onChange={(e) => setFormData({ ...formData, saleDate: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Payment Status *</label>
+              <select
+                value={formData.paymentStatus}
+                onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="pending">⏳ Pending</option>
+                <option value="partial">💳 Partial</option>
+                <option value="completed">✅ Completed</option>
+                <option value="cancelled">❌ Cancelled</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Delivery Status *</label>
+              <select
+                value={formData.deliveryStatus}
+                onChange={(e) => setFormData({ ...formData, deliveryStatus: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="pending">📦 Pending</option>
+                <option value="in-transit">🚚 In Transit</option>
+                <option value="delivered">✅ Delivered</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Additional notes..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"

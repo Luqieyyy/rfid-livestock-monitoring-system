@@ -21,7 +21,7 @@ const navigation = [
   },
   { name: 'Farm Overview', href: '/admin/farm-overview', icon: FarmIcon, type: 'single' },
   { name: 'Sales', href: '/admin/sales', icon: SalesIcon, type: 'single' },
-  { name: 'Staff Management', href: '/admin/staff', icon: StaffIcon, type: 'single' },
+  { name: 'User Management', href: '/admin/staff', icon: StaffIcon, type: 'single' },
   { name: 'Admin Tools', href: '/admin/tools', icon: ToolsIcon, type: 'single' },
 ];
 
