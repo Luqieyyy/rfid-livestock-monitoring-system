@@ -496,7 +496,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-600 leading-relaxed italic">"{r.comment}"</p>
+                <p className="text-gray-600 leading-relaxed italic">&quot;{r.comment}&quot;</p>
               </div>
             </div>
           ))}
