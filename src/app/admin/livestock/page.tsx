@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { livestockService } from '@/services/firestore.service';
 import { kandangService } from '@/services/farm.service';
+import { getFirebaseDb, getFirebaseStorage } from '@/lib/firebase';
 import type { Livestock } from '@/types/livestock.types';
 import type { Kandang } from '@/types/farm.types';
 import { COW_BREEDS, GOAT_BREEDS } from '@/utils/constants';
@@ -50,8 +51,8 @@ export default function LivestockPage() {
 
   const loadCustomBreeds = async () => {
     try {
-      const { getFirestore, doc, getDoc } = await import('firebase/firestore');
-      const db = getFirestore();
+      const { doc, getDoc } = await import('firebase/firestore');
+      const db = getFirebaseDb();
       const breedDoc = await getDoc(doc(db, 'settings', 'customBreeds'));
       if (breedDoc.exists()) {
         const data = breedDoc.data();
@@ -67,8 +68,8 @@ export default function LivestockPage() {
 
   const saveCustomBreed = async (type: 'cow' | 'goat', breedName: string) => {
     try {
-      const { getFirestore, doc, setDoc } = await import('firebase/firestore');
-      const db = getFirestore();
+      const { doc, setDoc } = await import('firebase/firestore');
+      const db = getFirebaseDb();
       const updatedBreeds = {
         ...customBreeds,
         [type]: [...customBreeds[type], breedName]
@@ -84,8 +85,8 @@ export default function LivestockPage() {
 
   const deleteCustomBreed = async (type: 'cow' | 'goat', breedName: string) => {
     try {
-      const { getFirestore, doc, setDoc } = await import('firebase/firestore');
-      const db = getFirestore();
+      const { doc, setDoc } = await import('firebase/firestore');
+      const db = getFirebaseDb();
       const updatedBreeds = {
         ...customBreeds,
         [type]: customBreeds[type].filter(b => b !== breedName)
@@ -573,8 +574,8 @@ function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, ge
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-    const storage = getStorage();
+    const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    const storage = getFirebaseStorage();
     const storageRef = ref(storage, `livestock/${Date.now()}_${file.name}`);
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
@@ -851,8 +852,8 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs, getAllBreeds
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-    const storage = getStorage();
+    const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    const storage = getFirebaseStorage();
     const storageRef = ref(storage, `livestock/${Date.now()}_${file.name}`);
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);

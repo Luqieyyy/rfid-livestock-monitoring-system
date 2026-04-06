@@ -12,13 +12,14 @@ import {
   getDoc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { getFirebaseAuth, getFirebaseDb, isFirebaseConfigured } from '@/lib/firebase';
 import type { AuthUser, UserRole, LoginCredentials, RegisterCredentials } from '@/types/auth.types';
 
 const USERS_COLLECTION = 'users';
 
 export const getUserProfile = async (uid: string): Promise<AuthUser | null> => {
   try {
+    const db = getFirebaseDb();
     const userDoc = await getDoc(doc(db, USERS_COLLECTION, uid));
     if (userDoc.exists()) {
       const data = userDoc.data();
@@ -42,6 +43,7 @@ export const createUserProfile = async (
   role: UserRole,
   displayName?: string
 ): Promise<void> => {
+  const db = getFirebaseDb();
   const userRef = doc(db, USERS_COLLECTION, user.uid);
   await setDoc(userRef, {
     uid: user.uid,
@@ -57,6 +59,7 @@ export const createUserProfile = async (
 export const authService = {
   async login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
     const { email, password } = credentials;
+    const auth = getFirebaseAuth();
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
@@ -87,6 +90,7 @@ export const authService = {
   // Register new user - Only buyers can register
   async register(credentials: RegisterCredentials): Promise<AuthUser> {
     const { email, password, displayName, role } = credentials;
+    const auth = getFirebaseAuth();
     
     // Only allow buyer registration
     if (role !== 'buyer') {
@@ -113,11 +117,18 @@ export const authService = {
 
   // Sign out
   async logout(): Promise<void> {
+    const auth = getFirebaseAuth();
     await signOut(auth);
   },
 
   // Listen to auth state changes
   onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
+    if (!isFirebaseConfigured()) {
+      callback(null);
+      return () => {};
+    }
+
+    const auth = getFirebaseAuth();
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const profile = await getUserProfile(firebaseUser.uid);
@@ -130,6 +141,10 @@ export const authService = {
 
   // Get current user
   getCurrentUser(): User | null {
-    return auth.currentUser;
+    if (!isFirebaseConfigured()) {
+      return null;
+    }
+
+    return getFirebaseAuth().currentUser;
   },
 };

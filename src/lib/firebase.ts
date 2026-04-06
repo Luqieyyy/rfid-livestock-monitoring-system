@@ -4,40 +4,72 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from '@/config/firebase.config';
 
-let app: FirebaseApp;
-let db: Firestore;
-let auth: Auth;
-let storage: FirebaseStorage;
+let app: FirebaseApp | null = null;
+let firebaseDb: Firestore | null = null;
+let firebaseAuth: Auth | null = null;
+let firebaseStorage: FirebaseStorage | null = null;
+
+const requiredKeys = ['apiKey', 'authDomain', 'projectId'] as const;
+
+export const getMissingFirebaseConfigKeys = () => {
+  return requiredKeys.filter((key) => !firebaseConfig[key]);
+};
+
+export const isFirebaseConfigured = () => getMissingFirebaseConfigKeys().length === 0;
 
 // Validate Firebase configuration
 const validateConfig = () => {
-  const requiredKeys = ['apiKey', 'authDomain', 'projectId'];
-  const missingKeys = requiredKeys.filter(key => !firebaseConfig[key as keyof typeof firebaseConfig]);
+  const missingKeys = getMissingFirebaseConfigKeys();
   
   if (missingKeys.length > 0) {
-    console.error('Missing Firebase configuration:', missingKeys);
     throw new Error(`Missing Firebase config: ${missingKeys.join(', ')}`);
   }
 };
 
-// Initialize Firebase (singleton pattern)
-try {
-  validateConfig();
-  
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    auth = getAuth(app);
-    storage = getStorage(app);
-  } else {
-    app = getApps()[0];
-    db = getFirestore(app);
-    auth = getAuth(app);
-    storage = getStorage(app);
+const ensureFirebaseApp = () => {
+  if (!isFirebaseConfigured()) {
+    validateConfig();
   }
-} catch (error) {
-  console.error('Firebase initialization error:', error);
-  throw error;
+
+  if (!app) {
+    app = getApps()[0] ?? initializeApp(firebaseConfig);
+  }
+
+  return app;
 }
 
-export { app, db, auth, storage };
+export const getFirebaseApp = () => ensureFirebaseApp();
+
+export const getFirebaseDb = () => {
+  if (!firebaseDb) {
+    firebaseDb = getFirestore(ensureFirebaseApp());
+  }
+  return firebaseDb;
+};
+
+export const getFirebaseAuth = () => {
+  if (!firebaseAuth) {
+    firebaseAuth = getAuth(ensureFirebaseApp());
+  }
+  return firebaseAuth;
+};
+
+export const getFirebaseStorage = () => {
+  if (!firebaseStorage) {
+    firebaseStorage = getStorage(ensureFirebaseApp());
+  }
+  return firebaseStorage;
+};
+
+const createLazyProxy = <T extends object>(resolver: () => T): T => {
+  return new Proxy({} as T, {
+    get: (_, property) => Reflect.get(resolver(), property),
+    has: (_, property) => property in resolver(),
+    ownKeys: () => Reflect.ownKeys(resolver()),
+    getOwnPropertyDescriptor: (_, property) => Object.getOwnPropertyDescriptor(resolver(), property),
+  });
+};
+
+export const db = createLazyProxy(getFirebaseDb);
+export const auth = createLazyProxy(getFirebaseAuth);
+export const storage = createLazyProxy(getFirebaseStorage);
