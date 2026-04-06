@@ -113,7 +113,12 @@ export default function AdminDashboard() {
     },
   ].filter((item) => item.value > 0);
 
-  const focusItems = [
+  const focusItems: Array<{
+    label: string;
+    value: string;
+    helper: string;
+    tone: 'emerald' | 'amber' | 'cyan' | 'violet';
+  }> = [
     {
       label: 'Health stability',
       value: `${healthyRate}%`,

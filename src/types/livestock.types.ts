@@ -5,7 +5,8 @@
 export interface FirebaseLivestock {
   id: string;
   animalId: string; // Auto-generated sequential ID: 00001, 00002, etc.
-  type: 'cow' | 'goat';
+  tagId?: string;
+  type: 'cow' | 'goat' | 'sheep';
   breed: string;
   age: string;
   status: string;
@@ -24,7 +25,8 @@ export interface FirebaseLivestock {
 export interface Livestock {
   id: string;
   animalId: string; // Auto-generated sequential ID: 00001, 00002, etc. - main identifier
-  type: 'cow' | 'goat';
+  tagId: string;
+  type: 'cow' | 'goat' | 'sheep';
   breed: string;
   dateOfBirth: Date;
   gender: 'male' | 'female';
@@ -37,6 +39,7 @@ export interface Livestock {
   createdAt: Date;
   updatedAt: Date;
   // Additional fields from Firebase
+  name?: string;
   photoUrl?: string;
   rfid: string; // Required RFID tag identifier
   age?: string;
@@ -78,7 +81,7 @@ export interface SalesRecord {
   buyerContact: string;
   saleDate: Date;
   price: number;
-  paymentStatus: 'pending' | 'partial' | 'completed';
+  paymentStatus: 'pending' | 'partial' | 'completed' | 'cancelled';
   deliveryStatus: 'pending' | 'in-transit' | 'delivered';
   notes?: string;
   createdAt: Date;
@@ -115,6 +118,7 @@ export interface FeedingActivity {
   scheduleId?: string;
   scheduleName?: string;
   livestockId: string;
+  livestockTagId?: string;
   livestockAnimalId: string; // References the animalId field
   farmerId: string;
   farmerName: string;
