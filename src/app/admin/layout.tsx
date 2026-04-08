@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
+import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 
 // New navigation structure with groups
 const navigation = [
@@ -15,6 +16,7 @@ const navigation = [
     children: [
       { name: 'Livestock Registry', href: '/admin/livestock', icon: LivestockIcon },
       { name: 'Health Records', href: '/admin/health', icon: HealthIcon },
+      { name: 'Vaccination', href: '/admin/vaccination', icon: VaccineIcon },
       { name: 'Breeding', href: '/admin/breeding', icon: BreedingIcon },
       { name: 'Feeding', href: '/admin/feeding', icon: FeedingIcon },
     ],
@@ -72,6 +74,14 @@ function FeedingIcon({ className }: { className?: string }) {
   );
 }
 
+function VaccineIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+    </svg>
+  );
+}
+
 function StaffIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,9 +103,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { unreadAlerts } = useDashboardRealtime();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    'Livestock Management': true, // Open by default
+    'Livestock Management': true,
   });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Toggle group open/close
   const toggleGroup = (groupName: string) => {
@@ -159,8 +171,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Mobile overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 z-40">
+      <aside
+        className={`fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 z-40 transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+      >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-gray-100">
@@ -285,10 +308,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <div className="pl-64">
+      <div className="md:pl-64">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-          <div className="flex items-center justify-between px-8 py-4">
+          <div className="flex items-center justify-between px-4 sm:px-8 py-4">
+            <div className="flex items-center gap-3">
+              {/* Hamburger — mobile only */}
+              <button
+                className="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-all"
+                onClick={() => setSidebarOpen((v) => !v)}
+                aria-label="Open menu"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
                 {(() => {
@@ -307,17 +341,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   return 'Dashboard';
                 })()}
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 hidden sm:block">
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
+            </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all">
+              <Link href="/admin/health" className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all" title={`${unreadAlerts} animal(s) need attention`}>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+                {unreadAlerts > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {unreadAlerts > 9 ? '9+' : unreadAlerts}
+                  </span>
+                )}
+              </Link>
               <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold">
                   {user?.displayName?.charAt(0).toUpperCase() || 'A'}
@@ -332,7 +371,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Content */}
-        <main className="p-8">
+        <main className="p-4 sm:p-8">
           {children}
         </main>
       </div>

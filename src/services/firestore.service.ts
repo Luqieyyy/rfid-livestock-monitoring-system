@@ -14,7 +14,8 @@ import {
   Timestamp,
   serverTimestamp,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
+const db = getFirebaseDb();
 import { COLLECTIONS } from '@/utils/constants';
 import type {
   Livestock,
@@ -41,7 +42,7 @@ const convertTimestamp = (data: DocumentData): any => {
 };
 
 // Data adapter to convert Firebase data to app format
-const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
+export const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
   const now = new Date();
   
   // Convert cattle/Cow to cow for consistency

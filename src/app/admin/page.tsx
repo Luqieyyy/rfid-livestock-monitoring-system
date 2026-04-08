@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -14,62 +14,26 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { dashboardService, healthRecordService, feedingActivityService } from '@/services/firestore.service';
-import type { DashboardStats, Livestock, HealthRecord, FeedingActivity } from '@/types/livestock.types';
+import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
+import type { Livestock, HealthRecord, FeedingActivity } from '@/types/livestock.types';
 
 const HEALTH_COLORS = ['#10b981', '#f59e0b', '#f97316', '#64748b'];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentLivestock, setRecentLivestock] = useState<Livestock[]>([]);
-  const [upcomingCheckups, setUpcomingCheckups] = useState<HealthRecord[]>([]);
-  const [recentFeedings, setRecentFeedings] = useState<FeedingActivity[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    stats,
+    recentLivestock,
+    recentFeedings,
+    upcomingCheckups,
+    rfidActivity,
+    loading,
+    lastUpdated,
+  } = useDashboardRealtime();
 
   const formatMYR = (amount: number): string => `MYR ${amount.toLocaleString('en-MY')}`;
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      const [statsData, checkups, feedings] = await Promise.all([
-        dashboardService.getStatsWithLivestock(),
-        healthRecordService.getUpcomingCheckups().catch(() => []),
-        feedingActivityService.getRecent(5).catch(() => []),
-      ]);
-
-      setStats(statsData.stats);
-      setRecentLivestock(statsData.recentLivestock);
-      setRecentFeedings(feedings);
-      setUpcomingCheckups(checkups);
-    } catch (error: any) {
-      console.error('Error loading dashboard data:', error);
-      setStats({
-        totalLivestock: 0,
-        healthyCount: 0,
-        sickCount: 0,
-        deceasedCount: 0,
-        activeBreedingCount: 0,
-        pendingSalesCount: 0,
-        totalRevenue: 0,
-        averageWeight: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const totalLivestock = stats?.totalLivestock || 0;
@@ -146,41 +110,59 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-[28px] border border-slate-200 bg-white p-6 card-shadow">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-600">Dashboard Overview</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Ringkasan operasi ladang</h2>
-            <p className="mt-2 text-sm text-slate-600 sm:text-base">
-              Paparan utama untuk pantau status ternakan, jualan, rawatan dan aktiviti harian tanpa elemen hero yang berat.
+    <div className="space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">Dashboard Overview</span>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              </span>
+              Live
+            </div>
+          </div>
+          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Ringkasan operasi ladang</h2>
+          {lastUpdated && (
+            <p className="mt-0.5 text-xs text-slate-400">
+              Dikemaskini {lastUpdated.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={loadDashboardData}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500"
-              title="Refresh Data"
-            >
-              <RefreshIcon />
-              Refresh data
-            </button>
-            <Link
-              href="/admin/health"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-            >
-              <PulseIcon />
-              Review health queue
-            </Link>
-          </div>
+          )}
         </div>
+        <Link
+          href="/admin/health"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 self-start sm:self-auto"
+        >
+          <PulseIcon />
+          Review health queue
+        </Link>
+      </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <HeroMetric label="Total livestock" value={`${totalLivestock}`} helper="Animals currently tracked" />
-          <HeroMetric label="Healthy rate" value={`${healthyRate}%`} helper="Overall herd condition" />
-          <HeroMetric label="Need attention" value={`${attentionRate}%`} helper="Treatment + checkup load" accent />
-        </div>
+      {/* Hero KPI Cards */}
+      <section className="grid gap-4 sm:grid-cols-3">
+        <HeroMetric
+          label="Total Livestock"
+          value={`${totalLivestock}`}
+          helper="Animals currently tracked"
+          icon={<LivestockKpiIcon />}
+          tone="slate"
+        />
+        <HeroMetric
+          label="Healthy Rate"
+          value={`${healthyRate}%`}
+          helper={`${stats?.healthyCount || 0} of ${totalLivestock} in healthy status`}
+          icon={<HealthKpiIcon />}
+          tone="emerald"
+        />
+        <HeroMetric
+          label="Need Attention"
+          value={`${attentionRate}%`}
+          helper={`${(stats?.sickCount || 0) + upcomingCheckups.length} cases require action`}
+          icon={<AlertKpiIcon />}
+          tone={attentionRate > 0 ? 'amber' : 'slate'}
+        />
       </section>
 
       <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -428,6 +410,52 @@ export default function AdminDashboard() {
         />
       </section>
 
+      {/* RFID Live Activity Feed */}
+      {rfidActivity.length > 0 && (
+        <section className="rounded-[28px] border border-slate-200 bg-white p-6 card-shadow">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100">
+                <RfidIcon />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">RFID Scan Activity</h3>
+                <p className="text-sm text-slate-500">Terkini dari Flutter app — scan ternakan secara real-time</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-violet-500"></span>
+              </span>
+              Live
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {rfidActivity.slice(0, 6).map((scan) => (
+              <div key={scan.id} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100">
+                  <RfidIcon small />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-slate-900">{scan.name || scan.animalId}</p>
+                  <p className="text-xs text-slate-500 capitalize">{scan.type} · {scan.breed || 'Unknown breed'}</p>
+                  <p className="text-xs text-violet-600 font-mono mt-0.5">{scan.rfid}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-medium text-slate-700">
+                    {scan.scannedAt.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {scan.scannedAt.toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {stats && stats.sickCount > 0 && (
         <section className="rounded-[28px] border border-red-100 bg-gradient-to-r from-red-50 to-orange-50 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -452,23 +480,147 @@ export default function AdminDashboard() {
   );
 }
 
+function useCountUp(target: number, duration = 900): number {
+  const [current, setCurrent] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+  const prevTarget = useRef(0);
+
+  useEffect(() => {
+    const from = prevTarget.current;
+    prevTarget.current = target;
+    startRef.current = null;
+
+    const tick = (ts: number) => {
+      if (!startRef.current) startRef.current = ts;
+      const elapsed = ts - startRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(Math.round(from + (target - from) * eased));
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+
+  return current;
+}
+
 function HeroMetric({
   label,
   value,
   helper,
-  accent,
+  icon,
+  tone,
 }: {
   label: string;
   value: string;
   helper: string;
-  accent?: boolean;
+  icon: React.ReactNode;
+  tone: 'slate' | 'emerald' | 'amber';
 }) {
+  // Extract numeric portion for animation, preserve suffix (%, etc.)
+  const match = value.match(/^(\d+(\.\d+)?)(.*)/);
+  const numericPart = match ? parseFloat(match[1]) : null;
+  const suffix = match ? match[3] : '';
+  const animated = useCountUp(numericPart ?? 0);
+  const displayValue = numericPart !== null ? `${animated}${suffix}` : value;
+
+  const toneMap = {
+    slate: { wrap: 'border-slate-200 bg-white', iconWrap: 'bg-slate-100', value: 'text-slate-900' },
+    emerald: { wrap: 'border-emerald-100 bg-emerald-50/60', iconWrap: 'bg-emerald-100', value: 'text-emerald-700' },
+    amber: { wrap: 'border-amber-100 bg-amber-50/60', iconWrap: 'bg-amber-100', value: 'text-amber-700' },
+  };
+  const t = toneMap[tone];
+
   return (
-    <div className={`rounded-2xl border px-4 py-4 ${accent ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className={`mt-3 text-3xl font-semibold ${accent ? 'text-amber-700' : 'text-slate-900'}`}>{value}</p>
-      <p className="mt-1 text-sm text-slate-600">{helper}</p>
+    <div className={`rounded-2xl border p-5 shadow-sm transition-all ${t.wrap}`}>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${t.iconWrap}`}>
+        {icon}
+      </div>
+      <p className={`mt-4 text-3xl font-bold tabular-nums ${t.value}`}>{displayValue}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-700">{label}</p>
+      <p className="mt-0.5 text-xs text-slate-500">{helper}</p>
     </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <div className="h-3 w-32 rounded-full bg-slate-200" />
+          <div className="h-7 w-56 rounded-xl bg-slate-200" />
+          <div className="h-3 w-40 rounded-full bg-slate-100" />
+        </div>
+        <div className="h-10 w-40 rounded-xl bg-slate-200" />
+      </div>
+
+      {/* Hero KPIs */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-slate-200" />
+            <div className="h-9 w-24 rounded-lg bg-slate-200" />
+            <div className="h-3 w-28 rounded-full bg-slate-100" />
+            <div className="h-3 w-40 rounded-full bg-slate-100" />
+          </div>
+        ))}
+      </div>
+
+      {/* Insight cards */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-[24px] border border-slate-200 bg-white p-5 space-y-3">
+            <div className="h-3 w-32 rounded-full bg-slate-200" />
+            <div className="h-9 w-20 rounded-lg bg-slate-200" />
+            <div className="h-3 w-44 rounded-full bg-slate-100" />
+          </div>
+        ))}
+      </div>
+
+      {/* Chart area */}
+      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6">
+          <div className="mb-6 h-6 w-48 rounded-lg bg-slate-200" />
+          <div className="h-[290px] rounded-2xl bg-slate-100" />
+        </div>
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6">
+          <div className="mb-6 h-6 w-36 rounded-lg bg-slate-200" />
+          <div className="h-[290px] rounded-2xl bg-slate-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LivestockKpiIcon() {
+  return (
+    <svg className="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+function HealthKpiIcon() {
+  return (
+    <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function AlertKpiIcon() {
+  return (
+    <svg className="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
   );
 }
 
@@ -638,14 +790,6 @@ function isSameDay(value: Date | string, compare: Date) {
   );
 }
 
-function RefreshIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  );
-}
-
 function AnimalIcon() {
   return (
     <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -698,6 +842,15 @@ function AlertIcon() {
   return (
     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  );
+}
+
+function RfidIcon({ small }: { small?: boolean }) {
+  const size = small ? 'h-4 w-4' : 'h-5 w-5';
+  return (
+    <svg className={`${size} text-violet-600`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
     </svg>
   );
 }

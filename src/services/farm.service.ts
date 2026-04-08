@@ -11,7 +11,8 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
+const db = getFirebaseDb();
 import { Kandang, Animal, Position3D, Size3D } from '@/types/farm.types';
 
 const COLLECTIONS = {

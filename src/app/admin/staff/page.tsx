@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy, where, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
+const db = getFirebaseDb();
 
 interface User {
   id: string;

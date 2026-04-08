@@ -4,263 +4,259 @@ import { useEffect, useState } from 'react';
 import { healthRecordService, livestockService } from '@/services/firestore.service';
 import type { HealthRecord, Livestock } from '@/types/livestock.types';
 
+type FilterType = 'all' | 'vaccination' | 'treatment' | 'checkup' | 'diagnosis';
+
+const ic = 'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 transition';
+
 export default function HealthPage() {
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [livestock, setLivestock] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<FilterType>('all');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
-      const [recordsData, livestockData] = await Promise.all([
-        healthRecordService.getRecent(90),
-        livestockService.getAll(),
-      ]);
-      setRecords(recordsData);
-      setLivestock(livestockData);
-    } catch (error) {
-      console.error('Error loading data:', error);
+      const [r, l] = await Promise.all([healthRecordService.getRecent(90), livestockService.getAll()]);
+      setRecords(r);
+      setLivestock(l);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredRecords = filter === 'all' 
-    ? records 
-    : records.filter((r: HealthRecord) => r.type === filter);
+  const filtered = filter === 'all' ? records : records.filter((r) => r.type === filter);
 
   const stats = {
     total: records.length,
-    vaccinations: records.filter(r => r.type === 'vaccination').length,
-    treatments: records.filter(r => r.type === 'treatment').length,
-    checkups: records.filter(r => r.type === 'checkup').length,
+    vaccinations: records.filter((r) => r.type === 'vaccination').length,
+    treatments: records.filter((r) => r.type === 'treatment').length,
+    checkups: records.filter((r) => r.type === 'checkup').length,
   };
 
-  const getTypeIcon = (type: string) => {
-    const icons: Record<string, { icon: string; bg: string }> = {
-      vaccination: { icon: '💉', bg: 'from-blue-100 to-indigo-100' },
-      treatment: { icon: '💊', bg: 'from-red-100 to-pink-100' },
-      checkup: { icon: '🩺', bg: 'from-emerald-100 to-teal-100' },
-      diagnosis: { icon: '📋', bg: 'from-amber-100 to-orange-100' },
-    };
-    return icons[type] || icons.checkup;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading health records...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <HealthSkeleton />;
 
   return (
     <div className="space-y-6">
-      {/* Action Button */}
-      <div className="flex justify-end">
+      {/* Page header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">Livestock Management</p>
+          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Health Records</h2>
+          <p className="mt-0.5 text-sm text-slate-500">Rekod kesihatan, rawatan dan pemeriksaan semua ternakan.</p>
+        </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
+          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 self-start sm:self-auto"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Add Record
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-violet-100 to-purple-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">📊</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              <p className="text-sm text-gray-500">Total Records</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">💉</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-blue-600">{stats.vaccinations}</p>
-              <p className="text-sm text-gray-500">Vaccinations</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">💊</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-600">{stats.treatments}</p>
-              <p className="text-sm text-gray-500">Treatments</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">🩺</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-600">{stats.checkups}</p>
-              <p className="text-sm text-gray-500">Checkups</p>
-            </div>
-          </div>
-        </div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Total Records" value={stats.total} tone="slate" icon={<ClipboardIcon />} />
+        <StatCard label="Vaccinations" value={stats.vaccinations} tone="blue" icon={<VaccineIcon />} />
+        <StatCard label="Treatments" value={stats.treatments} tone="red" icon={<PillIcon />} />
+        <StatCard label="Checkups" value={stats.checkups} tone="emerald" icon={<StethIcon />} />
       </div>
 
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4">
-        <div className="flex gap-2 flex-wrap">
-          {[
-            { value: 'all', label: 'All Records', icon: '📋' },
-            { value: 'vaccination', label: 'Vaccinations', icon: '💉' },
-            { value: 'treatment', label: 'Treatments', icon: '💊' },
-            { value: 'checkup', label: 'Checkups', icon: '🩺' },
-            { value: 'diagnosis', label: 'Diagnosis', icon: '🔍' },
-          ].map((tab) => (
+      {/* Filter tabs + records */}
+      <div className="rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+        {/* Tabs bar */}
+        <div className="flex items-center gap-1 border-b border-slate-100 px-6 pt-5 pb-0 overflow-x-auto">
+          {([
+            { value: 'all', label: 'All Records' },
+            { value: 'vaccination', label: 'Vaccinations' },
+            { value: 'treatment', label: 'Treatments' },
+            { value: 'checkup', label: 'Checkups' },
+            { value: 'diagnosis', label: 'Diagnosis' },
+          ] as const).map((tab) => (
             <button
               key={tab.value}
               onClick={() => setFilter(tab.value)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex-shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px ${
                 filter === tab.value
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'border-emerald-500 text-emerald-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
-              <span className="flex items-center gap-1.5">
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </span>
+              {tab.label}
             </button>
           ))}
         </div>
+
+        {/* Records */}
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={<StethIcon className="h-8 w-8 text-slate-400" />}
+            title="No health records found"
+            description="Start tracking your livestock health by adding a new record."
+            action={<button onClick={() => setShowAddModal(true)} className="mt-4 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition">+ Add First Record</button>}
+          />
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {filtered.map((record) => (
+              <HealthRow key={record.id} record={record} />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Records List */}
-      {filteredRecords.length > 0 ? (
-        <div className="space-y-4">
-          {filteredRecords.map((record) => {
-            const typeInfo = getTypeIcon(record.type);
-            return (
-              <div key={record.id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:border-emerald-200 transition-all">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className={`w-14 h-14 bg-gradient-to-br ${typeInfo.bg} rounded-xl flex items-center justify-center text-2xl flex-shrink-0`}>
-                      {typeInfo.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-gray-900">Animal ID: {record.livestockId}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                          record.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                          record.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
-                          record.status === 'ongoing' ? 'bg-amber-100 text-amber-700' :
-                          'bg-gray-100 text-gray-600'
-                        }`}>
-                          {record.status}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm line-clamp-1">{record.description}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap items-center gap-6 lg:gap-8 text-sm">
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Type</p>
-                      <p className="font-medium text-gray-900 capitalize">{record.type}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Date</p>
-                      <p className="font-medium text-gray-900">{new Date(record.date).toLocaleDateString()}</p>
-                    </div>
-                    {record.veterinarian && (
-                      <div>
-                        <p className="text-xs text-gray-400 mb-0.5">Veterinarian</p>
-                        <p className="font-medium text-gray-900">{record.veterinarian}</p>
-                      </div>
-                    )}
-                    {record.medication && (
-                      <div>
-                        <p className="text-xs text-gray-400 mb-0.5">Medication</p>
-                        <p className="font-medium text-gray-900">{record.medication}</p>
-                      </div>
-                    )}
-                    {record.nextCheckup && (
-                      <div className="bg-amber-50 px-3 py-2 rounded-lg">
-                        <p className="text-xs text-amber-600 mb-0.5">Next Checkup</p>
-                        <p className="font-medium text-amber-700">{new Date(record.nextCheckup).toLocaleDateString()}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">🩺</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No health records found</h3>
-          <p className="text-gray-500 mb-6">Start tracking your livestock health by adding a new record</p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add First Record
-          </button>
-        </div>
-      )}
-
-      {/* Add Modal */}
       {showAddModal && (
-        <AddHealthRecordModal 
-          livestock={livestock}
-          onClose={() => setShowAddModal(false)} 
-          onSuccess={loadData} 
-        />
+        <AddHealthRecordModal livestock={livestock} onClose={() => setShowAddModal(false)} onSuccess={loadData} />
       )}
     </div>
   );
 }
 
-function AddHealthRecordModal({ livestock, onClose, onSuccess }: { 
-  livestock: Livestock[];
-  onClose: () => void; 
-  onSuccess: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    livestockId: '',
-    type: 'checkup',
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-    veterinarian: '',
-    medication: '',
-    dosage: '',
-    nextCheckup: '',
-    notes: '',
-  });
+function HealthRow({ record }: { record: HealthRecord }) {
+  const typeConfig = {
+    vaccination: { icon: <VaccineIcon className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-50', label: 'Vaccination' },
+    treatment: { icon: <PillIcon className="h-5 w-5 text-red-500" />, bg: 'bg-red-50', label: 'Treatment' },
+    checkup: { icon: <StethIcon className="h-5 w-5 text-emerald-600" />, bg: 'bg-emerald-50', label: 'Checkup' },
+    diagnosis: { icon: <ClipboardIcon className="h-5 w-5 text-amber-600" />, bg: 'bg-amber-50', label: 'Diagnosis' },
+  };
+  const cfg = typeConfig[record.type as keyof typeof typeConfig] ?? typeConfig.checkup;
+
+  const statusStyle: Record<string, string> = {
+    completed: 'bg-emerald-100 text-emerald-700',
+    scheduled: 'bg-sky-100 text-sky-700',
+    ongoing: 'bg-amber-100 text-amber-700',
+  };
+
+  const isOverdue = record.nextCheckup && new Date(record.nextCheckup) < new Date() && record.status !== 'completed';
+
+  return (
+    <div className="flex flex-col gap-4 px-6 py-5 hover:bg-slate-50/60 transition-colors sm:flex-row sm:items-center">
+      {/* Type icon */}
+      <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${cfg.bg}`}>
+        {cfg.icon}
+      </div>
+
+      {/* Main info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <span className="font-semibold text-slate-900 text-sm">{record.livestockId}</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusStyle[record.status] ?? 'bg-slate-100 text-slate-600'}`}>
+            {record.status}
+          </span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 capitalize">
+            {cfg.label}
+          </span>
+        </div>
+        <p className="text-sm text-slate-500 line-clamp-1">{record.description}</p>
+      </div>
+
+      {/* Meta */}
+      <div className="flex flex-wrap items-center gap-5 text-sm flex-shrink-0">
+        <MetaItem label="Date" value={new Date(record.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })} />
+        {record.veterinarian && <MetaItem label="Vet" value={record.veterinarian} />}
+        {record.medication && <MetaItem label="Medication" value={record.medication} />}
+        {record.nextCheckup && (
+          <div className={`rounded-xl px-3 py-2 text-center ${isOverdue ? 'bg-red-50' : 'bg-amber-50'}`}>
+            <p className={`text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-amber-600'}`}>Next Checkup</p>
+            <p className={`text-sm font-semibold ${isOverdue ? 'text-red-700' : 'text-amber-700'}`}>
+              {new Date(record.nextCheckup).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-slate-400 mb-0.5">{label}</p>
+      <p className="font-medium text-slate-800">{value}</p>
+    </div>
+  );
+}
+
+function StatCard({ label, value, tone, icon }: { label: string; value: number; tone: 'slate' | 'blue' | 'red' | 'emerald'; icon: React.ReactNode }) {
+  const tones = {
+    slate: { wrap: 'border-slate-200 bg-white', iconBg: 'bg-slate-100', val: 'text-slate-900' },
+    blue: { wrap: 'border-blue-100 bg-blue-50/50', iconBg: 'bg-blue-100', val: 'text-blue-700' },
+    red: { wrap: 'border-red-100 bg-red-50/50', iconBg: 'bg-red-100', val: 'text-red-700' },
+    emerald: { wrap: 'border-emerald-100 bg-emerald-50/50', iconBg: 'bg-emerald-100', val: 'text-emerald-700' },
+  };
+  const t = tones[tone];
+  return (
+    <div className={`rounded-2xl border p-5 ${t.wrap}`}>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${t.iconBg}`}>{icon}</div>
+      <p className={`mt-4 text-3xl font-bold tabular-nums ${t.val}`}>{value}</p>
+      <p className="mt-1 text-sm font-medium text-slate-600">{label}</p>
+    </div>
+  );
+}
+
+function EmptyState({ icon, title, description, action }: { icon: React.ReactNode; title: string; description: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-center py-16 text-center px-6">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 mb-4">{icon}</div>
+      <p className="font-semibold text-slate-800">{title}</p>
+      <p className="mt-1 text-sm text-slate-500 max-w-xs">{description}</p>
+      {action}
+    </div>
+  );
+}
+
+function HealthSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 w-48 rounded-xl bg-slate-200" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-2xl bg-slate-200" />)}
+      </div>
+      <div className="h-64 rounded-[28px] bg-slate-200" />
+    </div>
+  );
+}
+
+// ── Icons ──────────────────────────────────────────────────────
+
+function ClipboardIcon({ className = 'h-5 w-5 text-slate-600' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+  );
+}
+function VaccineIcon({ className = 'h-5 w-5 text-blue-600' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+    </svg>
+  );
+}
+function PillIcon({ className = 'h-5 w-5 text-red-500' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+    </svg>
+  );
+}
+function StethIcon({ className = 'h-5 w-5 text-emerald-600' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  );
+}
+
+// ── Add Modal ──────────────────────────────────────────────────
+
+function AddHealthRecordModal({ livestock, onClose, onSuccess }: { livestock: Livestock[]; onClose: () => void; onSuccess: () => void }) {
+  const [form, setForm] = useState({ livestockId: '', type: 'checkup', description: '', date: new Date().toISOString().split('T')[0], veterinarian: '', medication: '', dosage: '', nextCheckup: '' });
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,135 +264,77 @@ function AddHealthRecordModal({ livestock, onClose, onSuccess }: {
     setSaving(true);
     try {
       await healthRecordService.create({
-        ...formData,
-        date: new Date(formData.date),
-        nextCheckup: formData.nextCheckup ? new Date(formData.nextCheckup) : undefined,
+        ...form,
+        date: new Date(form.date),
+        nextCheckup: form.nextCheckup ? new Date(form.nextCheckup) : undefined,
         status: 'completed',
       } as Omit<HealthRecord, 'id' | 'createdAt'>);
       onSuccess();
       onClose();
-    } catch (error) {
-      console.error('Error adding record:', error);
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add Health Record</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Livestock *</label>
-              <select
-                required
-                value={formData.livestockId}
-                onChange={(e) => setFormData({ ...formData, livestockId: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              >
-                <option value="">Select animal</option>
-                {livestock.map((animal) => (
-                  <option key={animal.id} value={animal.id}>{animal.tagId} - {animal.breed}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Type *</label>
-              <select
-                required
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              >
-                <option value="checkup">🩺 Checkup</option>
-                <option value="vaccination">💉 Vaccination</option>
-                <option value="treatment">💊 Treatment</option>
-                <option value="diagnosis">🔍 Diagnosis</option>
-              </select>
-            </div>
-          </div>
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-white rounded-[28px] shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description *</label>
-            <textarea
-              required
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={2}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder="Describe the health record..."
-            />
+            <h2 className="text-lg font-bold text-slate-900">Add Health Record</h2>
+            <p className="text-sm text-slate-500">Log pemeriksaan atau rawatan ternakan</p>
           </div>
-
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl hover:bg-slate-100 transition text-slate-500">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Date *</label>
-              <input
-                type="date"
-                required
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600">Livestock *</label>
+              <select required value={form.livestockId} onChange={(e) => setForm({ ...form, livestockId: e.target.value })} className={ic}>
+                <option value="">Select animal</option>
+                {livestock.map((a) => <option key={a.id} value={a.id}>{a.tagId} — {a.breed}</option>)}
+              </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Veterinarian</label>
-              <input
-                type="text"
-                value={formData.veterinarian}
-                onChange={(e) => setFormData({ ...formData, veterinarian: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="Dr. Name"
-              />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600">Type *</label>
+              <select required value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={ic}>
+                <option value="checkup">Checkup</option>
+                <option value="vaccination">Vaccination</option>
+                <option value="treatment">Treatment</option>
+                <option value="diagnosis">Diagnosis</option>
+              </select>
             </div>
           </div>
-
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-600">Description *</label>
+            <textarea required rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe the health record..." className={ic} />
+          </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Medication</label>
-              <input
-                type="text"
-                value={formData.medication}
-                onChange={(e) => setFormData({ ...formData, medication: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="Medication name"
-              />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600">Date *</label>
+              <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={ic} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Next Checkup</label>
-              <input
-                type="date"
-                value={formData.nextCheckup}
-                onChange={(e) => setFormData({ ...formData, nextCheckup: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600">Veterinarian</label>
+              <input type="text" value={form.veterinarian} onChange={(e) => setForm({ ...form, veterinarian: e.target.value })} placeholder="Dr. Name" className={ic} />
             </div>
           </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Add Record'}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600">Medication</label>
+              <input type="text" value={form.medication} onChange={(e) => setForm({ ...form, medication: e.target.value })} placeholder="Medication name" className={ic} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600">Next Checkup</label>
+              <input type="date" value={form.nextCheckup} onChange={(e) => setForm({ ...form, nextCheckup: e.target.value })} className={ic} />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={saving} className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60">
+              {saving ? 'Saving...' : 'Save Record'}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-            >
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
               Cancel
             </button>
           </div>

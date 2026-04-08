@@ -2,19 +2,38 @@
 
 import { useState } from 'react';
 import { migrateAnimalIds, verifyMigration, MigrationResult } from '@/utils/migrate-animal-ids';
+import { seedFirestore, SeedResult } from '@/utils/seed-data';
 import { collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
+const db = getFirebaseDb();
 import { COLLECTIONS } from '@/utils/constants';
 
 export default function AdminToolsPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MigrationResult | null>(null);
+  const [seedResult, setSeedResult] = useState<SeedResult | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [animals, setAnimals] = useState<any[]>([]);
   const [showAnimals, setShowAnimals] = useState(false);
 
   const addLog = (message: string) => {
     setLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${message}`]);
+  };
+
+  const handleSeed = async (skipExisting: boolean) => {
+    if (!confirm(`This will insert sample data into Firestore.\n\nAnimals: ${skipExisting ? 'skip existing' : 'insert all (may duplicate)'}\n\nProceed?`)) return;
+    setLoading(true);
+    setLogs([]);
+    setSeedResult(null);
+    try {
+      const res = await seedFirestore({ skipExistingAnimals: skipExisting });
+      setSeedResult(res);
+      res.logs.forEach((l) => addLog(l));
+    } catch (err) {
+      addLog(`❌ Seed failed: ${err}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMigration = async () => {
@@ -177,6 +196,50 @@ export default function AdminToolsPage() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Seed Data */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Seed Sample Data</h2>
+          <p className="text-sm text-gray-500 mt-1">Insert sample animals, vaccinations, feedings, and health records into Firestore for testing.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="p-4 bg-violet-50 rounded-xl">
+            <h3 className="font-semibold text-violet-900 mb-1">Smart Seed</h3>
+            <p className="text-sm text-violet-700 mb-4">Skip animals yang dah ada (by animalId). Selamat untuk run berkali-kali.</p>
+            <button
+              onClick={() => handleSeed(true)}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Inserting...' : 'Run Smart Seed'}
+            </button>
+          </div>
+
+          <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <h3 className="font-semibold text-orange-900 mb-1">Force Seed</h3>
+            <p className="text-sm text-orange-700 mb-4">Insert semua data tanpa check existing. Boleh menyebabkan duplikasi.</p>
+            <button
+              onClick={() => handleSeed(false)}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Inserting...' : 'Force Insert All'}
+            </button>
+          </div>
+        </div>
+
+        {seedResult && (
+          <div className="p-4 bg-emerald-50 rounded-xl text-sm space-y-1">
+            <p className="font-semibold text-emerald-900 mb-2">Seed Result</p>
+            <p className="text-gray-700">🐄 Animals inserted: <strong>{seedResult.animalsInserted}</strong> (skipped: {seedResult.animalsSkipped})</p>
+            <p className="text-gray-700">💉 Vaccinations: <strong>{seedResult.vaccinationsInserted}</strong></p>
+            <p className="text-gray-700">🌿 Feedings: <strong>{seedResult.feedingsInserted}</strong></p>
+            <p className="text-gray-700">🏥 Health records: <strong>{seedResult.healthInserted}</strong></p>
           </div>
         )}
       </div>

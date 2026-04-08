@@ -12,7 +12,8 @@
  */
 
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
+const db = getFirebaseDb();
 import { COLLECTIONS } from '@/utils/constants';
 
 export interface MigrationResult {
