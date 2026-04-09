@@ -104,7 +104,7 @@ export default function HealthPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((record) => (
-              <HealthRow key={record.id} record={record} />
+              <HealthRow key={record.id} record={record} livestock={livestock} />
             ))}
           </div>
         )}
@@ -117,7 +117,9 @@ export default function HealthPage() {
   );
 }
 
-function HealthRow({ record }: { record: HealthRecord }) {
+function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Livestock[] }) {
+  const animal = livestock.find((l) => l.id === record.livestockId);
+  const displayId = animal?.animalId ?? record.livestockId;
   const typeConfig = {
     vaccination: { icon: <VaccineIcon className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-50', label: 'Vaccination' },
     treatment: { icon: <PillIcon className="h-5 w-5 text-red-500" />, bg: 'bg-red-50', label: 'Treatment' },
@@ -144,7 +146,7 @@ function HealthRow({ record }: { record: HealthRecord }) {
       {/* Main info */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <span className="font-semibold text-slate-900 text-sm">{record.livestockId}</span>
+          <span className="font-semibold text-slate-900 text-sm">{displayId}</span>
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusStyle[record.status] ?? 'bg-slate-100 text-slate-600'}`}>
             {record.status}
           </span>

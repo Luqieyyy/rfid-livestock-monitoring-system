@@ -22,6 +22,7 @@ const HEALTH_COLORS = ['#10b981', '#f59e0b', '#f97316', '#64748b'];
 export default function AdminDashboard() {
   const {
     stats,
+    livestock,
     recentLivestock,
     recentFeedings,
     upcomingCheckups,
@@ -395,7 +396,9 @@ export default function AdminDashboard() {
                   <CalendarIcon />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">{checkup.livestockId}</p>
+                  <p className="font-semibold text-slate-900">
+                    {livestock.find((l) => l.id === checkup.livestockId)?.animalId ?? checkup.livestockId}
+                  </p>
                   <p className="text-sm capitalize text-slate-500">{checkup.type}</p>
                 </div>
               </div>

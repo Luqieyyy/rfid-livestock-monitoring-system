@@ -28,6 +28,7 @@ export interface RfidScanEvent {
 
 export interface DashboardRealtimeData {
   stats: DashboardStats | null;
+  livestock: Livestock[];
   recentLivestock: Livestock[];
   recentFeedings: FeedingActivity[];
   upcomingCheckups: HealthRecord[];
@@ -265,6 +266,7 @@ export function useDashboardRealtime(): DashboardRealtimeData {
 
   return {
     stats,
+    livestock,
     recentLivestock: livestock.slice(0, 5),
     recentFeedings,
     upcomingCheckups,

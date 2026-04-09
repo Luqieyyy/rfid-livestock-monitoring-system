@@ -7,7 +7,7 @@ import { getFirebaseDb, getFirebaseStorage } from '@/lib/firebase';
 import type { Livestock } from '@/types/livestock.types';
 import type { Kandang } from '@/types/farm.types';
 import { COW_BREEDS, GOAT_BREEDS } from '@/utils/constants';
-import { generateAnimalId, formatAnimalDisplayName } from '@/utils/helpers';
+import { formatAnimalDisplayName } from '@/utils/helpers';
 import ManageBreedsModal from '@/components/livestock/ManageBreedsModal';
 
 export default function LivestockPage() {
@@ -594,12 +594,8 @@ function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, ge
         setUploading(false);
       }
 
-      // Auto-generate animalId based on type
-      const animalId = generateAnimalId(existingLivestock, formData.type);
-
       await livestockService.create({
         ...formData,
-        animalId, // Add auto-generated animalId
         weight: parseFloat(formData.weight),
         dateOfBirth: new Date(formData.dateOfBirth),
         photoUrl,

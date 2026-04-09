@@ -130,13 +130,10 @@ export const livestockService = {
 
   async create(data: Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
-    
-    // Auto-generate animalId if not provided
-    let animalId = data.animalId;
-    if (!animalId || animalId === 'N/A') {
-      animalId = await this.generateAnimalId();
-    }
-    
+
+    // Always generate a fresh ID from Firestore filtered by type to avoid stale in-memory issues
+    const animalId = await this.generateAnimalId(data.type);
+
     const docRef = await addDoc(livestockRef, {
       ...data,
       animalId,
@@ -146,30 +143,30 @@ export const livestockService = {
     return docRef.id;
   },
 
-  // Generate sequential animal ID
-  async generateAnimalId(): Promise<string> {
+  // Generate sequential animal ID scoped per animal type
+  async generateAnimalId(animalType?: string): Promise<string> {
     try {
       const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
-      const snapshot = await getDocs(livestockRef);
-      
-      // Find highest existing animalId
+      const snapshot = animalType
+        ? await getDocs(query(livestockRef, where('type', '==', animalType)))
+        : await getDocs(livestockRef);
+
       let maxId = 0;
-      snapshot.docs.forEach(doc => {
-        const data = doc.data();
-        if (data.animalId) {
-          const numericId = parseInt(data.animalId);
-          if (!isNaN(numericId) && numericId > maxId) {
-            maxId = numericId;
+      snapshot.docs.forEach((d) => {
+        const raw = d.data().animalId;
+        if (raw) {
+          // Strip any type prefix like "goat_", "cow_" before parsing
+          const numeric = parseInt(String(raw).replace(/^[a-z]+_/i, ''), 10);
+          if (!isNaN(numeric) && numeric > maxId) {
+            maxId = numeric;
           }
         }
       });
-      
-      // Generate next ID with leading zeros
-      const nextId = maxId + 1;
-      return String(nextId).padStart(6, '0');
+
+      return String(maxId + 1).padStart(5, '0');
     } catch (error) {
       console.error('Error generating animal ID:', error);
-      return String(Date.now()).slice(-6); // Fallback to timestamp-based ID
+      return String(Date.now()).slice(-5);
     }
   },
 

@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
+import type { Livestock, HealthRecord } from '@/types/livestock.types';
 
 // New navigation structure with groups
 const navigation = [
@@ -99,11 +100,149 @@ function ToolsIcon({ className }: { className?: string }) {
   );
 }
 
+type NotifItem = { id: string; type: 'sick' | 'checkup' | 'overdue'; title: string; subtitle: string; href: string };
+
+function NotificationDropdown({
+  notifRef, open, onToggle, unreadAlerts, livestock, upcomingCheckups,
+}: {
+  notifRef: React.RefObject<HTMLDivElement>;
+  open: boolean;
+  onToggle: () => void;
+  unreadAlerts: number;
+  livestock: Livestock[];
+  upcomingCheckups: HealthRecord[];
+}) {
+  const today = new Date();
+  const in7Days = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const notifications: NotifItem[] = [
+    // Sick / quarantine animals
+    ...livestock
+      .filter(l => l.status === 'sick' || l.status === 'quarantine')
+      .map(l => ({
+        id: `sick-${l.id}`,
+        type: 'sick' as const,
+        title: `${l.animalId} needs attention`,
+        subtitle: `Status: ${l.status} — ${l.type}`,
+        href: '/admin/health',
+      })),
+    // Overdue checkups
+    ...upcomingCheckups
+      .filter(r => r.nextCheckup && new Date(r.nextCheckup) < today && r.status !== 'completed')
+      .map(r => ({
+        id: `overdue-${r.id}`,
+        type: 'overdue' as const,
+        title: `Overdue checkup`,
+        subtitle: `Animal ${r.livestockId} — was due ${new Date(r.nextCheckup!).toLocaleDateString('en-MY')}`,
+        href: '/admin/health',
+      })),
+    // Upcoming checkups within 7 days
+    ...upcomingCheckups
+      .filter(r => r.nextCheckup && new Date(r.nextCheckup) >= today && new Date(r.nextCheckup) <= in7Days && r.status !== 'completed')
+      .map(r => ({
+        id: `upcoming-${r.id}`,
+        type: 'checkup' as const,
+        title: `Checkup due soon`,
+        subtitle: `Animal ${r.livestockId} — ${new Date(r.nextCheckup!).toLocaleDateString('en-MY')}`,
+        href: '/admin/health',
+      })),
+  ];
+
+  const typeStyle = {
+    sick:    { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-600',    icon: '🩺' },
+    overdue: { dot: 'bg-orange-500', badge: 'bg-orange-50 text-orange-600', icon: '⚠️' },
+    checkup: { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-600',   icon: '📅' },
+  };
+
+  return (
+    <div className="relative" ref={notifRef}>
+      <button
+        onClick={onToggle}
+        className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        {unreadAlerts > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            {unreadAlerts > 9 ? '9+' : unreadAlerts}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+            <p className="text-sm font-semibold text-slate-900">Notifications</p>
+            {notifications.length > 0 && (
+              <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+                {notifications.length} new
+              </span>
+            )}
+          </div>
+
+          {/* List */}
+          <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
+            {notifications.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                <p className="text-2xl mb-2">✅</p>
+                <p className="text-sm font-medium text-slate-700">All clear!</p>
+                <p className="text-xs text-slate-400 mt-1">No alerts right now.</p>
+              </div>
+            ) : (
+              notifications.map(n => {
+                const s = typeStyle[n.type];
+                return (
+                  <Link
+                    key={n.id}
+                    href={n.href}
+                    onClick={onToggle}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className={`mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-sm ${s.badge}`}>
+                      {s.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{n.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 truncate">{n.subtitle}</p>
+                    </div>
+                    <div className={`mt-2 h-2 w-2 flex-shrink-0 rounded-full ${s.dot}`} />
+                  </Link>
+                );
+              })
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-slate-100 px-4 py-2.5">
+            <Link href="/admin/health" onClick={onToggle} className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+              View all health records →
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const { unreadAlerts } = useDashboardRealtime();
+  const { unreadAlerts, livestock, upcomingCheckups } = useDashboardRealtime();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     'Livestock Management': true,
   });
@@ -347,16 +486,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/admin/health" className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all" title={`${unreadAlerts} animal(s) need attention`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {unreadAlerts > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                    {unreadAlerts > 9 ? '9+' : unreadAlerts}
-                  </span>
-                )}
-              </Link>
+              <NotificationDropdown
+                notifRef={notifRef}
+                open={notifOpen}
+                onToggle={() => setNotifOpen(v => !v)}
+                unreadAlerts={unreadAlerts}
+                livestock={livestock}
+                upcomingCheckups={upcomingCheckups}
+              />
               <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold">
                   {user?.displayName?.charAt(0).toUpperCase() || 'A'}
