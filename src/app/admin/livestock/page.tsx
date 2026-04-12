@@ -9,6 +9,7 @@ import type { Kandang } from '@/services/farm.service';
 import { COW_BREEDS, GOAT_BREEDS } from '@/utils/constants';
 import { formatAnimalDisplayName } from '@/utils/helpers';
 import ManageBreedsModal from '@/components/livestock/ManageBreedsModal';
+import AnimalProfileModal from '@/components/livestock/AnimalProfileModal';
 
 export default function LivestockPage() {
   const [livestock, setLivestock] = useState<Livestock[]>([]);
@@ -400,9 +401,9 @@ export default function LivestockPage() {
 
       {/* Detail Modal */}
       {selectedAnimal && (
-        <AnimalDetailModal 
-          animal={selectedAnimal} 
-          onClose={() => setSelectedAnimal(null)} 
+        <AnimalProfileModal
+          animal={selectedAnimal}
+          onClose={() => setSelectedAnimal(null)}
           onEdit={() => {
             setEditingAnimal(selectedAnimal);
             setSelectedAnimal(null);
@@ -465,66 +466,6 @@ function StatusBadge({ status }: { status: string }) {
     <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${styles[status] || styles.healthy}`}>
       {status}
     </span>
-  );
-}
-
-function AnimalDetailModal({ animal, onClose, onEdit }: { animal: Livestock; onClose: () => void; onEdit: () => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Animal Details</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-6 space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center">
-              <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
-              <p className="text-gray-500">{animal.breed} • {animal.type}</p>
-              <StatusBadge status={animal.status} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <DetailItem label="Weight" value={`${animal.weight} kg`} />
-            <DetailItem label="Gender" value={animal.gender} />
-            <DetailItem label="Location" value={animal.location} />
-            <DetailItem label="Date of Birth" value={new Date(animal.dateOfBirth).toLocaleDateString()} />
-            {animal.purchasePrice && <DetailItem label="Purchase Price" value={`$${animal.purchasePrice}`} />}
-            {animal.purchaseDate && <DetailItem label="Purchase Date" value={new Date(animal.purchaseDate).toLocaleDateString()} />}
-          </div>
-
-          {animal.notes && (
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs text-gray-500 mb-2">Notes</p>
-              <p className="text-gray-700">{animal.notes}</p>
-            </div>
-          )}
-        </div>
-        <div className="p-6 border-t border-gray-100 flex gap-3">
-          <button 
-            onClick={onEdit}
-            className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
-          >
-            Edit Animal
-          </button>
-          <button onClick={onClose} className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

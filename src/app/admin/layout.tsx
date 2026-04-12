@@ -4,106 +4,54 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useRef, useState } from 'react';
-import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
+import { useLayoutAlerts } from '@/hooks/useLayoutAlerts';
 import type { Livestock, HealthRecord } from '@/types/livestock.types';
+
+function NavIcon({ src, size = 18, opacity = 1 }: { src: string; size?: number; opacity?: number }) {
+  return (
+    <img
+      src={src}
+      alt=""
+      width={size}
+      height={size}
+      style={{ filter: 'brightness(0) invert(1)', opacity, flexShrink: 0 }}
+    />
+  );
+}
 
 // New navigation structure with groups
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: DashboardIcon, type: 'single' },
+  { name: 'Dashboard', href: '/admin', iconSrc: '/icon/dashboard.png', type: 'single' },
   {
     name: 'Livestock Management',
-    icon: LivestockIcon,
+    iconSrc: '/icon/livestockmanagement.png',
     type: 'group',
     children: [
-      { name: 'Livestock Registry', href: '/admin/livestock', icon: LivestockIcon },
-      { name: 'Health Records', href: '/admin/health', icon: HealthIcon },
-      { name: 'Vaccination', href: '/admin/vaccination', icon: VaccineIcon },
-      { name: 'Breeding', href: '/admin/breeding', icon: BreedingIcon },
-      { name: 'Feeding', href: '/admin/feeding', icon: FeedingIcon },
-      { name: 'Condition Logs', href: '/admin/condition-logs', icon: ConditionLogIcon },
+      { name: 'Livestock Registry', href: '/admin/livestock', iconSrc: '/icon/livestockregistry.png' },
+      { name: 'Health Records',     href: '/admin/health',     iconSrc: '/icon/healthrecords.png' },
+      { name: 'Vaccination',        href: '/admin/vaccination', iconSrc: '/icon/vaccination.png' },
+      { name: 'Breeding',           href: '/admin/breeding',   iconSrc: '/icon/breeding.png' },
+      { name: 'Feeding',            href: '/admin/feeding',    iconSrc: '/icon/feeding.png' },
+      { name: 'Condition Logs',     href: '/admin/condition-logs', iconSrc: '/icon/conditionlogs.png' },
     ],
   },
-  { name: 'Sales', href: '/admin/sales', icon: SalesIcon, type: 'single' },
-  { name: 'User Management', href: '/admin/staff', icon: StaffIcon, type: 'single' },
-  { name: 'Admin Tools', href: '/admin/tools', icon: ToolsIcon, type: 'single' },
+  { name: 'Sales',            href: '/admin/sales',  iconSrc: '/icon/sales.png', type: 'single' },
+  { name: 'User Management', href: '/admin/staff',  iconSrc: null, type: 'single' },
+  { name: 'Admin Tools',     href: '/admin/tools',  iconSrc: null, type: 'single' },
 ];
 
-function DashboardIcon({ className }: { className?: string }) {
+// Fallback SVG icons for items without PNG assets
+function StaffOrToolIcon({ name, active }: { name: string; active: boolean }) {
+  const cls = `w-[18px] h-[18px] shrink-0 ${active ? 'text-white' : 'text-emerald-500/70'}`;
+  if (name === 'User Management') {
+    return (
+      <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    );
+  }
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-    </svg>
-  );
-}
-
-function LivestockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-    </svg>
-  );
-}
-
-function HealthIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>
-  );
-}
-
-function BreedingIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-    </svg>
-  );
-}
-
-function SalesIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
-function FeedingIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-    </svg>
-  );
-}
-
-function ConditionLogIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-
-function VaccineIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-    </svg>
-  );
-}
-
-function StaffIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
-  );
-}
-
-function ToolsIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
@@ -240,7 +188,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const { unreadAlerts, livestock, upcomingCheckups } = useDashboardRealtime();
+  const { unreadAlerts, livestock, upcomingCheckups } = useLayoutAlerts();
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -330,99 +278,112 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-64 bg-emerald-950 border-r border-emerald-900 z-40 transition-transform duration-300 ease-in-out
+        className={`fixed left-0 top-0 bottom-0 w-72 z-40 transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+        style={{ background: 'linear-gradient(180deg, #052e16 0%, #064e3b 60%, #065f46 100%)' }}
       >
-        <div className="flex flex-col h-full">
+        {/* Subtle top glow */}
+        <div className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
+
+        <div className="relative flex flex-col h-full">
+
           {/* Logo */}
-          <div className="p-6 border-b border-emerald-800">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
-                <img
-                  src="/farmsenselogo.png"
-                  alt="FarmSense Logo"
-                  className="w-full h-full object-contain"
-                />
+          <div className="px-5 pt-6 pb-5">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/10 ring-1 ring-white/10 flex items-center justify-center shrink-0">
+                <img src="/farmsenselogo.png" alt="FarmSense" className="w-full h-full object-contain" />
               </div>
               <div>
-                <span className="text-lg font-bold text-white">Farm</span>
-                <span className="text-lg font-bold text-emerald-400">Sense</span>
-                <p className="text-xs text-emerald-400/70">Admin Panel</p>
+                <p className="text-[15px] font-bold leading-tight">
+                  <span className="text-white">Farm</span>
+                  <span className="text-emerald-400">Sense</span>
+                </p>
+                <p className="text-[11px] text-emerald-400/60 font-medium tracking-wide mt-0.5">Admin Panel</p>
               </div>
             </Link>
           </div>
 
+          {/* Divider */}
+          <div className="mx-5 h-px bg-gradient-to-r from-transparent via-emerald-700/50 to-transparent mb-3" />
+
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-emerald-800">
             {navigation.map((item) => {
-              // Single nav item
+
               if (item.type === 'single') {
                 const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.name}
                     href={item.href!}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150 ${
                       isActive
-                        ? 'bg-emerald-700/50 text-emerald-200'
-                        : 'text-emerald-100/70 hover:bg-emerald-800/50 hover:text-emerald-100'
+                        ? 'bg-emerald-500/20 text-white'
+                        : 'text-white/55 hover:text-white hover:bg-white/8'
                     }`}
+                    style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.25)' } : {}}
                   >
-                    <item.icon className={`w-5 h-5 ${isActive ? 'text-emerald-300' : 'text-emerald-500'}`} />
-                    {item.name}
+                    {/* Active left bar */}
                     {isActive && (
-                      <div className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-emerald-400" />
                     )}
+                    {item.iconSrc ? (
+                      <NavIcon src={item.iconSrc} size={17} opacity={isActive ? 1 : 0.55} />
+                    ) : (
+                      <StaffOrToolIcon name={item.name} active={isActive} />
+                    )}
+                    <span className="flex-1">{item.name}</span>
                   </Link>
                 );
               }
 
-              // Group with collapsible children
               if (item.type === 'group' && item.children) {
                 const isOpen = openGroups[item.name];
                 const groupActive = isGroupActive(item.children);
-                
+
                 return (
-                  <div key={item.name} className="space-y-1">
+                  <div key={item.name}>
                     <button
                       onClick={() => toggleGroup(item.name)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        groupActive
-                          ? 'bg-emerald-700/50 text-emerald-200'
-                          : 'text-emerald-100/70 hover:bg-emerald-800/50 hover:text-emerald-100'
+                      className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150 ${
+                        groupActive || isOpen
+                          ? 'text-white/90 bg-white/5'
+                          : 'text-white/55 hover:text-white hover:bg-white/8'
                       }`}
                     >
-                      <item.icon className={`w-5 h-5 ${groupActive ? 'text-emerald-300' : 'text-emerald-500'}`} />
+                      {item.iconSrc && <NavIcon src={item.iconSrc} size={17} opacity={groupActive ? 0.9 : 0.55} />}
                       <span className="flex-1 text-left">{item.name}</span>
                       <svg
-                        className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 opacity-40 ${isOpen ? 'rotate-90' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
-                    
+
                     {isOpen && (
-                      <div className="ml-4 space-y-1 border-l-2 border-emerald-700 pl-4">
+                      <div className="mt-0.5 ml-[22px] pl-3 border-l border-emerald-700/40 space-y-0.5 mb-1">
                         {item.children.map((child) => {
                           const isActive = pathname === child.href;
                           return (
                             <Link
                               key={child.name}
                               href={child.href}
-                              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                              className={`group relative flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-all duration-150 ${
                                 isActive
-                                  ? 'text-emerald-200 bg-emerald-700/50'
-                                  : 'text-emerald-100/60 hover:bg-emerald-800/50 hover:text-emerald-100'
+                                  ? 'text-white bg-emerald-500/20 font-semibold'
+                                  : 'text-white/45 hover:text-white hover:bg-white/8 font-medium'
                               }`}
+                              style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.2)' } : {}}
                             >
-                              <child.icon className={`w-4 h-4 ${isActive ? 'text-emerald-300' : 'text-emerald-600'}`} />
-                              {child.name}
                               {isActive && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-emerald-400" />
                               )}
+                              {child.iconSrc && (
+                                <NavIcon src={child.iconSrc} size={15} opacity={isActive ? 1 : 0.45} />
+                              )}
+                              <span className="flex-1">{child.name}</span>
                             </Link>
                           );
                         })}
@@ -436,66 +397,52 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
 
-          {/* Bottom Section */}
-          <div className="p-4 border-t border-emerald-800 space-y-2">
-            <Link
-              href="/buyer"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-emerald-100/60 hover:bg-emerald-800/50 transition-all"
-            >
-            </Link>
+          {/* Divider */}
+          <div className="mx-5 h-px bg-gradient-to-r from-transparent via-emerald-700/40 to-transparent" />
+
+          {/* Bottom — user info + sign out */}
+          <div className="px-3 py-4 space-y-1">
+            {/* User chip */}
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white/90 truncate">{user?.displayName || 'Admin'}</p>
+                <p className="text-[11px] text-emerald-400/70 truncate">Farm Manager</p>
+              </div>
+            </div>
+
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-900/30 transition-all"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-white/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-150"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-[17px] h-[17px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               Sign Out
             </button>
           </div>
+
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="md:pl-64">
+      <div className="md:pl-72">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-          <div className="flex items-center justify-between px-4 sm:px-8 py-4">
-            <div className="flex items-center gap-3">
-              {/* Hamburger — mobile only */}
-              <button
-                className="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-all"
-                onClick={() => setSidebarOpen((v) => !v)}
-                aria-label="Open menu"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                {(() => {
-                  // Check single items first
-                  const singleItem = navigation.find(n => n.type === 'single' && n.href === pathname);
-                  if (singleItem) return singleItem.name;
-                  
-                  // Check group children
-                  for (const item of navigation) {
-                    if (item.type === 'group' && item.children) {
-                      const child = item.children.find(c => c.href === pathname);
-                      if (child) return child.name;
-                    }
-                  }
-                  
-                  return 'Dashboard';
-                })()}
-              </h1>
-              <p className="text-sm text-gray-500 hidden sm:block">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-            </div>
-            </div>
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3">
+            {/* Hamburger — mobile only */}
+            <button
+              className="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-all"
+              onClick={() => setSidebarOpen((v) => !v)}
+              aria-label="Open menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-4 ml-auto">
               <NotificationDropdown
                 notifRef={notifRef}
                 open={notifOpen}
@@ -504,15 +451,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 livestock={livestock}
                 upcomingCheckups={upcomingCheckups}
               />
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold">
-                  {user?.displayName?.charAt(0).toUpperCase() || 'A'}
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{user?.displayName || 'Admin User'}</p>
-                  <p className="text-xs text-gray-500">Farm Manager</p>
-                </div>
-              </div>
             </div>
           </div>
         </header>

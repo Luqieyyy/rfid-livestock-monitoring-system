@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
 import {
   collection,
   query,
@@ -9,9 +10,13 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  getDocs,
+  where,
   Timestamp,
 } from 'firebase/firestore';
 import Image from 'next/image';
+import AnimalProfileModal from '@/components/livestock/AnimalProfileModal';
+import type { Livestock } from '@/types/livestock.types';
 
 interface ConditionLog {
   id: string;
@@ -37,6 +42,44 @@ export default function ConditionLogsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'Good' | 'Monitor' | 'Sick' | 'unreviewed'>('all');
   const [selectedLog, setSelectedLog] = useState<ConditionLog | null>(null);
+  const [viewingAnimal, setViewingAnimal] = useState<Livestock | null>(null);
+  const [loadingAnimal, setLoadingAnimal] = useState<string | null>(null);
+
+  const openAnimalProfile = async (e: React.MouseEvent, animalId: string) => {
+    e.stopPropagation();
+    setLoadingAnimal(animalId);
+    try {
+      const db2 = getFirebaseDb();
+      const q = query(collection(db2, 'animals'), where('animalId', '==', animalId));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const docData = snap.docs[0];
+        const raw = docData.data();
+        const animal: Livestock = {
+          id: docData.id,
+          animalId: raw.animalId,
+          tagId: raw.tagId || '',
+          type: raw.type,
+          breed: raw.breed || '',
+          dateOfBirth: raw.dateOfBirth?.toDate ? raw.dateOfBirth.toDate() : new Date(raw.dateOfBirth || Date.now()),
+          gender: raw.gender || 'male',
+          status: raw.status || 'healthy',
+          weight: raw.weight || 0,
+          location: raw.location || '',
+          purchaseDate: raw.purchaseDate?.toDate ? raw.purchaseDate.toDate() : undefined,
+          purchasePrice: raw.purchasePrice,
+          notes: raw.notes,
+          createdAt: raw.createdAt?.toDate ? raw.createdAt.toDate() : new Date(),
+          updatedAt: raw.updatedAt?.toDate ? raw.updatedAt.toDate() : new Date(),
+          photoUrl: raw.photoUrl,
+          rfid: raw.rfid || '',
+        };
+        setViewingAnimal(animal);
+      }
+    } finally {
+      setLoadingAnimal(null);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'condition_logs'), orderBy('timestamp', 'desc'));
@@ -202,7 +245,24 @@ export default function ConditionLogsPage() {
                     </p>
                   )}
 
-                  <p className="mt-3 text-[11px] text-slate-400">{formatTime(log.timestamp)}</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <p className="text-[11px] text-slate-400">{formatTime(log.timestamp)}</p>
+                    <button
+                      onClick={(e) => openAnimalProfile(e, log.animalId)}
+                      disabled={loadingAnimal === log.animalId}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-full transition disabled:opacity-50"
+                    >
+                      {loadingAnimal === log.animalId ? (
+                        <span className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin inline-block" />
+                      ) : (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                      View Animal
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -271,6 +331,14 @@ export default function ConditionLogsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Animal Profile Modal */}
+      {viewingAnimal && (
+        <AnimalProfileModal
+          animal={viewingAnimal}
+          onClose={() => setViewingAnimal(null)}
+        />
       )}
     </div>
   );

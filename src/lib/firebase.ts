@@ -61,15 +61,6 @@ export const getFirebaseStorage = () => {
   return firebaseStorage;
 };
 
-const createLazyProxy = <T extends object>(resolver: () => T): T => {
-  return new Proxy({} as T, {
-    get: (_, property) => Reflect.get(resolver(), property),
-    has: (_, property) => property in resolver(),
-    ownKeys: () => Reflect.ownKeys(resolver()),
-    getOwnPropertyDescriptor: (_, property) => Object.getOwnPropertyDescriptor(resolver(), property),
-  });
-};
-
-export const db = createLazyProxy(getFirebaseDb);
-export const auth = createLazyProxy(getFirebaseAuth);
-export const storage = createLazyProxy(getFirebaseStorage);
+export const db = getFirebaseDb();
+export const auth = getFirebaseAuth();
+export const storage = getFirebaseStorage();
