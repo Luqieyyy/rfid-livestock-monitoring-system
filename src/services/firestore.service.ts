@@ -239,15 +239,11 @@ export const livestockService = {
   async getAvailableForSale(): Promise<Livestock[]> {
     try {
       const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
-      const q = query(
-        livestockRef,
-        where('status', 'in', ['healthy', 'Healthy'])
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) => adaptFirebaseToLivestock({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      // Fetch all and filter client-side to handle any status casing/variation
+      const snapshot = await getDocs(livestockRef);
+      const all = snapshot.docs.map((doc) => adaptFirebaseToLivestock({ id: doc.id, ...doc.data() }));
+      // Only show animals that are healthy (after normalization)
+      return all.filter((l) => l.status === 'healthy');
     } catch (error) {
       console.error('❌ Error fetching available livestock:', error);
       return [];

@@ -20,6 +20,7 @@ const navigation = [
       { name: 'Vaccination', href: '/admin/vaccination', icon: VaccineIcon },
       { name: 'Breeding', href: '/admin/breeding', icon: BreedingIcon },
       { name: 'Feeding', href: '/admin/feeding', icon: FeedingIcon },
+      { name: 'Condition Logs', href: '/admin/condition-logs', icon: ConditionLogIcon },
     ],
   },
   { name: 'Sales', href: '/admin/sales', icon: SalesIcon, type: 'single' },
@@ -71,6 +72,15 @@ function FeedingIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  );
+}
+
+function ConditionLogIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
 }
@@ -320,24 +330,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 z-40 transition-transform duration-300 ease-in-out
+        className={`fixed left-0 top-0 bottom-0 w-64 bg-emerald-950 border-r border-emerald-900 z-40 transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b border-gray-100">
+          <div className="p-6 border-b border-emerald-800">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
-                <img 
-                  src="/farmsenselogo.png" 
+                <img
+                  src="/farmsenselogo.png"
                   alt="FarmSense Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
               <div>
-                <span className="text-lg font-bold text-gray-900">Farm</span>
-                <span className="text-lg font-bold text-emerald-600">Sense</span>
-                <p className="text-xs text-gray-500">Admin Panel</p>
+                <span className="text-lg font-bold text-white">Farm</span>
+                <span className="text-lg font-bold text-emerald-400">Sense</span>
+                <p className="text-xs text-emerald-400/70">Admin Panel</p>
               </div>
             </Link>
           </div>
@@ -354,14 +364,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     href={item.href!}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-emerald-700/50 text-emerald-200'
+                        : 'text-emerald-100/70 hover:bg-emerald-800/50 hover:text-emerald-100'
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                    <item.icon className={`w-5 h-5 ${isActive ? 'text-emerald-300' : 'text-emerald-500'}`} />
                     {item.name}
                     {isActive && (
-                      <div className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                      <div className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
                     )}
                   </Link>
                 );
@@ -378,11 +388,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       onClick={() => toggleGroup(item.name)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                         groupActive
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-emerald-700/50 text-emerald-200'
+                          : 'text-emerald-100/70 hover:bg-emerald-800/50 hover:text-emerald-100'
                       }`}
                     >
-                      <item.icon className={`w-5 h-5 ${groupActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                      <item.icon className={`w-5 h-5 ${groupActive ? 'text-emerald-300' : 'text-emerald-500'}`} />
                       <span className="flex-1 text-left">{item.name}</span>
                       <svg
                         className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
@@ -395,7 +405,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </button>
                     
                     {isOpen && (
-                      <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
+                      <div className="ml-4 space-y-1 border-l-2 border-emerald-700 pl-4">
                         {item.children.map((child) => {
                           const isActive = pathname === child.href;
                           return (
@@ -404,14 +414,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                               href={child.href}
                               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                                 isActive
-                                  ? 'text-emerald-700 bg-emerald-50'
-                                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                  ? 'text-emerald-200 bg-emerald-700/50'
+                                  : 'text-emerald-100/60 hover:bg-emerald-800/50 hover:text-emerald-100'
                               }`}
                             >
-                              <child.icon className={`w-4 h-4 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                              <child.icon className={`w-4 h-4 ${isActive ? 'text-emerald-300' : 'text-emerald-600'}`} />
                               {child.name}
                               {isActive && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                                <div className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
                               )}
                             </Link>
                           );
@@ -427,15 +437,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
 
           {/* Bottom Section */}
-          <div className="p-4 border-t border-gray-100 space-y-2">
+          <div className="p-4 border-t border-emerald-800 space-y-2">
             <Link
               href="/buyer"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-emerald-100/60 hover:bg-emerald-800/50 transition-all"
             >
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-900/30 transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

@@ -95,7 +95,7 @@ function BuyerPortalContent() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-500">Loading available livestock...</p>
         </div>
       </div>
@@ -105,29 +105,35 @@ function BuyerPortalContent() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-white">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-30"></div>
+      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 rounded-3xl p-8 md:p-12 text-white">
+        {/* subtle leaf pattern overlay */}
+        <div className="absolute inset-0 opacity-10"
+          style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M40 0 Q60 20 40 40 Q20 20 40 0Z' fill='%23ffffff'/%3E%3C/svg%3E\")", backgroundSize: '80px 80px'}}
+        />
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative z-10">
           <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Premium Livestock Marketplace
+            <span className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
+              FarmSense Marketplace
+            </span>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">
+              Ternakan Berkualiti, <br className="hidden md:block" />Terus dari Ladang
             </h1>
-            <p className="text-lg text-cyan-100 mb-8">
-              Browse our collection of health-verified, fully documented livestock. 
-              Each animal comes with complete traceability records.
+            <p className="text-base text-emerald-100 mb-8 leading-relaxed">
+              Setiap haiwan telah disahkan sihat dan dilengkapi rekod penuh. Beli dengan yakin.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-5 py-3">
+            <div className="flex flex-wrap gap-3">
+              <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3">
                 <p className="text-2xl font-bold">{livestock.length}</p>
-                <p className="text-sm text-cyan-100">Available Now</p>
+                <p className="text-xs text-emerald-200 mt-0.5">Tersedia Sekarang</p>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-5 py-3">
+              <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3">
                 <p className="text-2xl font-bold">100%</p>
-                <p className="text-sm text-cyan-100">Health Verified</p>
+                <p className="text-xs text-emerald-200 mt-0.5">Disahkan Sihat</p>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-5 py-3">
-                <p className="text-2xl font-bold">✓</p>
-                <p className="text-sm text-cyan-100">Full Records</p>
+              <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3">
+                <p className="text-2xl font-bold">RFID</p>
+                <p className="text-xs text-emerald-200 mt-0.5">Rekod Penuh</p>
               </div>
             </div>
           </div>
@@ -146,13 +152,13 @@ function BuyerPortalContent() {
             onClick={() => setSelectedType(category.type)}
             className={`p-5 rounded-2xl border-2 transition-all ${
               selectedType === category.type
-                ? 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-300 shadow-lg shadow-cyan-500/20'
-                : 'bg-white border-gray-100 hover:border-cyan-200 hover:shadow-md'
+                ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-lg shadow-emerald-500/20'
+                : 'bg-white border-gray-100 hover:border-emerald-200 hover:shadow-md'
             }`}
           >
             <div className="mb-3 flex justify-center">
               <div className={`w-20 h-20 rounded-xl overflow-hidden shadow-sm ${
-                selectedType === category.type ? 'ring-2 ring-cyan-400 ring-offset-2' : ''
+                selectedType === category.type ? 'ring-2 ring-emerald-400 ring-offset-2' : ''
               }`}>
                 <img 
                   src={category.image} 
@@ -181,13 +187,13 @@ function BuyerPortalContent() {
               placeholder="Search by animal ID or breed..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
             />
           </div>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-3 bg-gray-50 border-0 rounded-xl text-sm font-medium text-gray-600 focus:ring-2 focus:ring-cyan-500"
+            className="px-4 py-3 bg-gray-50 border-0 rounded-xl text-sm font-medium text-gray-600 focus:ring-2 focus:ring-emerald-500"
           >
             <option value="newest">Newest First</option>
             <option value="weight-desc">Weight: High to Low</option>
@@ -201,7 +207,7 @@ function BuyerPortalContent() {
             Showing <span className="font-medium text-gray-900">{filteredLivestock.length}</span> of {livestock.length} animals
           </p>
           {selectedType !== 'all' && (
-            <button onClick={() => setSelectedType('all')} className="text-sm text-cyan-600 hover:text-cyan-700 font-medium">
+            <button onClick={() => setSelectedType('all')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
               Clear Filter
             </button>
           )}
@@ -215,9 +221,9 @@ function BuyerPortalContent() {
             <div
               key={animal.id}
               onClick={() => setSelectedAnimal(animal)}
-              className="bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer group hover:shadow-xl hover:border-cyan-200 transition-all"
+              className="bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer group hover:shadow-xl hover:border-emerald-200 transition-all"
             >
-              <div className="relative h-48 bg-gradient-to-r from-slate-100 to-cyan-50 overflow-hidden">
+              <div className="relative h-48 bg-gradient-to-r from-emerald-50 to-teal-50 overflow-hidden">
                 <div className="absolute top-4 right-4 z-10">
                   <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
@@ -270,7 +276,7 @@ function BuyerPortalContent() {
                     </svg>
                     Health Certified
                   </div>
-                  <span className="text-cyan-600 font-medium text-sm group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                  <span className="text-emerald-600 font-medium text-sm group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                     View Profile
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -290,7 +296,7 @@ function BuyerPortalContent() {
           <p className="text-gray-500 mb-6">Try adjusting your search or filter criteria</p>
           <button
             onClick={() => { setSelectedType('all'); setSearchQuery(''); }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-50 text-cyan-700 rounded-xl font-medium hover:bg-cyan-100 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors"
           >
             Clear All Filters
           </button>
@@ -314,7 +320,7 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-8 text-white relative">
+        <div className="bg-gradient-to-r from-emerald-700 to-teal-600 p-8 text-white relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -339,8 +345,8 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
                 <h2 className="text-2xl font-bold">{animal.animalId}</h2>
                 <span className="bg-emerald-400 text-emerald-900 px-3 py-1 rounded-full text-xs font-semibold">Verified</span>
               </div>
-              <p className="text-cyan-100 capitalize text-lg">{animal.breed} • {animal.type}</p>
-              <p className="text-cyan-200 text-sm mt-1">RFID: {animal.rfid || 'N/A'}</p>
+              <p className="text-emerald-100 capitalize text-lg">{animal.breed} • {animal.type}</p>
+              <p className="text-emerald-200 text-sm mt-1">RFID: {animal.rfid || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -349,7 +355,7 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
         <div className="p-8">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 text-center border border-blue-100">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 text-center border border-emerald-100">
               <p className="text-xs text-gray-500 mb-1">Weight</p>
               <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
             </div>
@@ -379,6 +385,48 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
               <InfoRow label="Breed" value={animal.breed} valueClass="capitalize" />
             </div>
           </div>
+
+          {/* Yield Estimation */}
+          {animal.weight && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6">
+              <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Estimated Yield ({animal.type === 'cow' ? 'Lembu' : 'Kambing'})
+              </h4>
+              <p className="text-xs text-slate-500 mb-4">Based on live weight of <span className="font-semibold text-slate-700">{animal.weight} kg</span></p>
+              <div className="grid grid-cols-3 gap-3">
+                {(() => {
+                  const w = Number(animal.weight);
+                  const isCow = animal.type === 'cow';
+                  const daging = +(w * (isCow ? 0.385 : 0.30)).toFixed(1);
+                  const tulang = +(w * 0.11).toFixed(1);
+                  const lemak  = +(w * (isCow ? 0.065 : 0.07)).toFixed(1);
+                  return (
+                    <>
+                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
+                        <p className="text-xs text-slate-500 mb-1">Daging</p>
+                        <p className="text-xl font-bold text-emerald-600">{daging}</p>
+                        <p className="text-xs text-slate-400">kg</p>
+                      </div>
+                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
+                        <p className="text-xs text-slate-500 mb-1">Tulang</p>
+                        <p className="text-xl font-bold text-amber-500">{tulang}</p>
+                        <p className="text-xs text-slate-400">kg</p>
+                      </div>
+                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
+                        <p className="text-xs text-slate-500 mb-1">Lemak</p>
+                        <p className="text-xl font-bold text-orange-400">{lemak}</p>
+                        <p className="text-xs text-slate-400">kg</p>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+              <p className="text-xs text-slate-400 mt-3">* Anggaran sahaja. Hasil sebenar bergantung kepada pemotongan dan kondisi haiwan.</p>
+            </div>
+          )}
 
           {/* Health Certification */}
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-6">
@@ -448,7 +496,7 @@ export default function BuyerPortal() {
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-500">Loading...</p>
         </div>
       </div>

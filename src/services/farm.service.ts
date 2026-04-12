@@ -13,7 +13,22 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 const db = getFirebaseDb();
-import { Kandang, Animal, Position3D, Size3D } from '@/types/farm.types';
+
+export interface Kandang {
+  id?: string;
+  name: string;
+  type: string;
+  capacity: number;
+  location?: string;
+  foodSpot?: string;
+  waterSpot?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface Position3D { x: number; y: number; z: number; }
+interface Size3D { width: number; height: number; depth: number; }
+interface Animal { id?: string; kandangId?: string; position?: Position3D; [key: string]: any; }
 
 const COLLECTIONS = {
   KANDANG: 'kandang',

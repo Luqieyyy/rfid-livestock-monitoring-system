@@ -5,7 +5,7 @@ import { livestockService } from '@/services/firestore.service';
 import { kandangService } from '@/services/farm.service';
 import { getFirebaseDb, getFirebaseStorage } from '@/lib/firebase';
 import type { Livestock } from '@/types/livestock.types';
-import type { Kandang } from '@/types/farm.types';
+import type { Kandang } from '@/services/farm.service';
 import { COW_BREEDS, GOAT_BREEDS } from '@/utils/constants';
 import { formatAnimalDisplayName } from '@/utils/helpers';
 import ManageBreedsModal from '@/components/livestock/ManageBreedsModal';
