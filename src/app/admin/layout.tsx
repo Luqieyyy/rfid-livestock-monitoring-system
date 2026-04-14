@@ -217,6 +217,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return children.some(child => pathname === child.href);
   };
 
+  const pageMap: Record<string, { label: string; section: string }> = {
+    '/admin':               { section: 'Overview',           label: 'Dashboard' },
+    '/admin/livestock':     { section: 'Livestock Management', label: 'Livestock Registry' },
+    '/admin/health':        { section: 'Livestock Management', label: 'Health Records' },
+    '/admin/vaccination':   { section: 'Livestock Management', label: 'Vaccination Tracker' },
+    '/admin/breeding':      { section: 'Livestock Management', label: 'Breeding Records' },
+    '/admin/feeding':       { section: 'Livestock Management', label: 'Feeding Schedule' },
+    '/admin/condition-logs':{ section: 'Livestock Management', label: 'Condition Logs' },
+    '/admin/sales':         { section: 'Finance',            label: 'Sales' },
+    '/admin/staff':         { section: 'Settings',           label: 'User Management' },
+    '/admin/tools':         { section: 'Settings',           label: 'Admin Tools' },
+    '/admin/profile':       { section: 'Settings',           label: 'Profile & Security' },
+  };
+  const currentPage = pageMap[pathname] ?? { section: 'Admin', label: 'FarmSense' };
+
   // TEMPORARY: Development mode - bypass auth for testing
   const isDevelopment = process.env.NODE_ENV === 'development';
   const bypassAuth = isDevelopment && pathname.startsWith('/admin');
@@ -288,11 +303,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
 
+        {/* Centered collapse/expand toggle on right edge */}
+        <button
+          onClick={() => setSidebarCollapsed(v => !v)}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-50 w-6 h-6 items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all"
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {sidebarCollapsed
+              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+              : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+            }
+          </svg>
+        </button>
+
         <div className="relative flex flex-col h-full">
 
           {/* Logo */}
           <div className={`pt-6 pb-5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/admin" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/10 ring-1 ring-white/10 flex items-center justify-center shrink-0">
                 <img src="/farmsenselogo.png" alt="FarmSense" className="w-full h-full object-contain" />
               </div>
@@ -306,18 +335,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               )}
             </Link>
-            {/* Desktop collapse toggle */}
-            {!sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(true)}
-                className="hidden md:flex p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                title="Collapse sidebar"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
-                </svg>
-              </button>
-            )}
           </div>
 
           {/* Divider */}
@@ -450,21 +467,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className={`py-4 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {/* User chip */}
             {sidebarCollapsed ? (
-              <div className="flex justify-center mb-1">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0" title={user?.displayName || 'Admin'}>
-                  {user?.displayName?.charAt(0).toUpperCase() || 'A'}
-                </div>
-              </div>
+              <Link href="/admin/profile" className="flex justify-center mb-1 group" title="Profile settings">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Profile" className="w-9 h-9 rounded-lg object-cover ring-2 ring-white/10 group-hover:ring-emerald-400/50 transition-all" />
+                ) : (
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0 group-hover:ring-2 group-hover:ring-emerald-400/50 transition-all">
+                    {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                )}
+              </Link>
             ) : (
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 mb-1">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {user?.displayName?.charAt(0).toUpperCase() || 'A'}
-                </div>
-                <div className="min-w-0">
+              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 mb-1 transition-all group">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-lg object-cover shrink-0 ring-1 ring-white/10" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-semibold text-white/90 truncate">{user?.displayName || 'Admin'}</p>
                   <p className="text-[11px] text-emerald-400/70 truncate">Farm Manager</p>
                 </div>
-              </div>
+                <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             )}
 
             <button
@@ -480,18 +508,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {!sidebarCollapsed && 'Sign Out'}
             </button>
 
-            {/* Expand button when collapsed */}
-            {sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(false)}
-                title="Expand sidebar"
-                className="hidden md:flex w-full justify-center px-2 py-2.5 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
           </div>
 
         </div>
@@ -501,18 +517,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'md:pl-[68px]' : 'md:pl-72'}`}>
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3">
-            {/* Hamburger — mobile only */}
-            <button
-              className="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-all"
-              onClick={() => setSidebarOpen((v) => !v)}
-              aria-label="Open menu"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 h-[56px]">
+            {/* Left — hamburger (mobile) + page title */}
+            <div className="flex items-center gap-3">
+              <button
+                className="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-all"
+                onClick={() => setSidebarOpen((v) => !v)}
+                aria-label="Open menu"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="hidden md:flex items-center gap-2 text-sm">
+                <span className="text-gray-400 font-medium">{currentPage.section}</span>
+                <svg className="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                <span className="text-gray-800 font-semibold">{currentPage.label}</span>
+              </div>
+            </div>
+            {/* Right — notifications */}
+            <div className="flex items-center gap-4">
               <NotificationDropdown
                 notifRef={notifRef}
                 open={notifOpen}

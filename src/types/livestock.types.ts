@@ -30,7 +30,7 @@ export interface Livestock {
   breed: string;
   dateOfBirth: Date;
   gender: 'male' | 'female';
-  status: 'healthy' | 'sick' | 'quarantine' | 'deceased';
+  status: 'healthy' | 'sick' | 'quarantine' | 'deceased' | 'sold';
   weight: number;
   location: string;
   purchaseDate?: Date;

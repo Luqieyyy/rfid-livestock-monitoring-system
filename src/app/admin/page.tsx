@@ -172,6 +172,9 @@ export default function AdminDashboard() {
         ))}
       </section>
 
+      {/* ── IoT Smart Farm Monitor ───────────────────────────── */}
+      <IoTMonitorSection />
+
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
         <div className="rounded-[28px] border border-slate-200 bg-white p-6 card-shadow">
           <div className="mb-6 flex items-start justify-between gap-4">
@@ -479,6 +482,261 @@ export default function AdminDashboard() {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IoT Smart Farm Monitor — dummy data, ready to swap with live Firebase reads
+// ─────────────────────────────────────────────────────────────────────────────
+
+type SensorReading = {
+  temp: number;       // °C
+  humidity: number;   // %
+  nh3: number;        // ppm
+  feedLevel: number;  // % remaining
+  weight: number;     // kg (latest smart-lane reading)
+  lastSeen: Date;
+  online: boolean;
+};
+
+type AlertLevel = 'normal' | 'warning' | 'critical';
+
+function getSensorAlert(reading: SensorReading): { level: AlertLevel; messages: string[] } {
+  const msgs: string[] = [];
+  let level: AlertLevel = 'normal';
+
+  if (reading.temp > 35) { msgs.push(`Suhu terlalu tinggi (${reading.temp}°C)`); level = 'critical'; }
+  else if (reading.temp > 32) { msgs.push(`Suhu melebihi had selesa (${reading.temp}°C)`); if (level === 'normal') level = 'warning'; }
+
+  if (reading.humidity > 85) { msgs.push(`Kelembapan tinggi (${reading.humidity}%)`); if (level !== 'critical') level = 'warning'; }
+
+  if (reading.nh3 > 35) { msgs.push(`NH₃ bahaya (${reading.nh3} ppm) — perlu ventilasi segera`); level = 'critical'; }
+  else if (reading.nh3 > 20) { msgs.push(`NH₃ tinggi (${reading.nh3} ppm) — kandang perlu dibersihkan`); if (level === 'normal') level = 'warning'; }
+
+  if (reading.feedLevel < 15) { msgs.push(`Feed hampir habis (${reading.feedLevel}%)`); if (level === 'normal') level = 'warning'; }
+
+  return { level, messages: msgs };
+}
+
+const DUMMY_SENSORS: Record<string, SensorReading> = {
+  'Kandang A': { temp: 29.4, humidity: 72, nh3: 12, feedLevel: 68, weight: 184.2, lastSeen: new Date(), online: true },
+  'Kandang B': { temp: 33.1, humidity: 88, nh3: 26, feedLevel: 11, weight: 176.5, lastSeen: new Date(), online: true },
+  'Kandang C': { temp: 27.8, humidity: 65, nh3: 8,  feedLevel: 54, weight: 201.0, lastSeen: new Date(), online: true },
+};
+
+function IoTMonitorSection() {
+  const [sensors, setSensors] = useState<Record<string, SensorReading>>(DUMMY_SENSORS);
+  const [tick, setTick] = useState(0);
+
+  // Simulate live fluctuation — swap this with real Firestore listener later
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSensors(prev => {
+        const next = { ...prev };
+        for (const key of Object.keys(next)) {
+          const s = next[key];
+          next[key] = {
+            ...s,
+            temp:     +(s.temp     + (Math.random() - 0.5) * 0.4).toFixed(1),
+            humidity: Math.min(100, Math.max(40, +(s.humidity + (Math.random() - 0.5) * 1.0).toFixed(0))),
+            nh3:      Math.max(0, +(s.nh3 + (Math.random() - 0.5) * 1.5).toFixed(1)),
+            lastSeen: new Date(),
+          };
+        }
+        return next;
+      });
+      setTick(t => t + 1);
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
+
+  const allAlerts = Object.entries(sensors).flatMap(([name, s]) =>
+    getSensorAlert(s).messages.map(m => ({ kandang: name, msg: m, level: getSensorAlert(s).level }))
+  );
+
+  const criticalCount = allAlerts.filter(a => a.level === 'critical').length;
+  const warningCount  = allAlerts.filter(a => a.level === 'warning').length;
+
+  return (
+    <section className="space-y-4">
+      {/* Section header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 shadow-sm">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">IoT Smart Farm Monitor</h3>
+            <p className="text-xs text-slate-400">DHT22 · MQ-137 NH₃ · Smart Feed · Smart Weigh Lane</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {criticalCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-700">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+              </span>
+              {criticalCount} Critical
+            </span>
+          )}
+          {warningCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-700">
+              ⚠ {warningCount} Warning
+            </span>
+          )}
+          {criticalCount === 0 && warningCount === 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              </span>
+              All Normal
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Alert banner */}
+      {allAlerts.length > 0 && (
+        <div className={`rounded-2xl border px-5 py-4 flex flex-col gap-2 ${
+          criticalCount > 0
+            ? 'bg-red-50 border-red-200'
+            : 'bg-amber-50 border-amber-200'
+        }`}>
+          <p className={`text-xs font-semibold uppercase tracking-wider ${criticalCount > 0 ? 'text-red-600' : 'text-amber-600'}`}>
+            {criticalCount > 0 ? '🚨 Tindakan segera diperlukan' : '⚠️ Perhatian diperlukan'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {allAlerts.map((a, i) => (
+              <span key={i} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+                a.level === 'critical'
+                  ? 'bg-red-100 text-red-700 border border-red-200'
+                  : 'bg-amber-100 text-amber-700 border border-amber-200'
+              }`}>
+                <span className="font-semibold">{a.kandang}:</span> {a.msg}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sensor cards */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Object.entries(sensors).map(([name, s]) => {
+          const { level } = getSensorAlert(s);
+          return <SensorCard key={name} name={name} reading={s} level={level} />;
+        })}
+      </div>
+    </section>
+  );
+}
+
+function SensorCard({ name, reading: s, level }: { name: string; reading: SensorReading; level: AlertLevel }) {
+  const borderMap = { normal: 'border-slate-200', warning: 'border-amber-300', critical: 'border-red-300' };
+  const glowMap   = { normal: '', warning: 'shadow-amber-100', critical: 'shadow-red-100' };
+
+  const tempColor  = s.temp > 35 ? 'text-red-600' : s.temp > 32 ? 'text-amber-600' : 'text-emerald-600';
+  const humColor   = s.humidity > 85 ? 'text-amber-600' : 'text-sky-600';
+  const nh3Color   = s.nh3 > 35 ? 'text-red-600' : s.nh3 > 20 ? 'text-amber-600' : 'text-emerald-600';
+  const feedColor  = s.feedLevel < 15 ? 'text-red-600' : s.feedLevel < 30 ? 'text-amber-600' : 'text-emerald-600';
+
+  return (
+    <div className={`rounded-2xl border bg-white p-5 shadow-sm transition-all ${borderMap[level]} ${glowMap[level]}`}>
+      {/* Card header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${s.online ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+          <span className="text-sm font-semibold text-slate-800">{name}</span>
+        </div>
+        <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
+          level === 'critical' ? 'bg-red-100 text-red-600'
+          : level === 'warning' ? 'bg-amber-100 text-amber-600'
+          : 'bg-emerald-100 text-emerald-600'
+        }`}>
+          {level === 'normal' ? 'Normal' : level === 'warning' ? 'Warning' : 'Critical'}
+        </span>
+      </div>
+
+      {/* Sensor rows */}
+      <div className="space-y-3">
+        {/* Temp + Humidity row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+            <p className="text-[10px] text-slate-400 font-medium mb-0.5">TEMPERATURE</p>
+            <p className={`text-xl font-bold tabular-nums ${tempColor}`}>{s.temp}°C</p>
+            <TrendBar value={s.temp} min={20} max={40} color={s.temp > 35 ? '#ef4444' : s.temp > 32 ? '#f59e0b' : '#10b981'} />
+          </div>
+          <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+            <p className="text-[10px] text-slate-400 font-medium mb-0.5">HUMIDITY</p>
+            <p className={`text-xl font-bold tabular-nums ${humColor}`}>{s.humidity}%</p>
+            <TrendBar value={s.humidity} min={30} max={100} color={s.humidity > 85 ? '#f59e0b' : '#0ea5e9'} />
+          </div>
+        </div>
+
+        {/* NH3 */}
+        <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[10px] text-slate-400 font-medium">NH₃ AMMONIA</p>
+            <span className={`text-[10px] font-semibold ${nh3Color}`}>
+              {s.nh3 > 35 ? 'BAHAYA' : s.nh3 > 20 ? 'TINGGI' : 'SELAMAT'}
+            </span>
+          </div>
+          <div className="flex items-end gap-2">
+            <p className={`text-xl font-bold tabular-nums ${nh3Color}`}>{s.nh3}</p>
+            <p className="text-xs text-slate-400 mb-0.5">ppm</p>
+          </div>
+          {/* NH3 segmented bar */}
+          <div className="mt-2 flex gap-0.5 h-1.5 rounded-full overflow-hidden">
+            <div className="flex-1 bg-emerald-400 rounded-l-full" />
+            <div className={`flex-1 ${s.nh3 > 20 ? 'bg-amber-400' : 'bg-slate-200'}`} />
+            <div className={`flex-1 ${s.nh3 > 35 ? 'bg-red-500' : 'bg-slate-200'} rounded-r-full`} />
+          </div>
+          <div className="flex justify-between text-[9px] text-slate-300 mt-0.5">
+            <span>0</span><span>20</span><span>35+</span>
+          </div>
+        </div>
+
+        {/* Feed level + Weight */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+            <p className="text-[10px] text-slate-400 font-medium mb-0.5">SMART FEED</p>
+            <p className={`text-xl font-bold tabular-nums ${feedColor}`}>{s.feedLevel}%</p>
+            <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${
+                  s.feedLevel < 15 ? 'bg-red-500' : s.feedLevel < 30 ? 'bg-amber-400' : 'bg-emerald-500'
+                }`}
+                style={{ width: `${s.feedLevel}%` }}
+              />
+            </div>
+          </div>
+          <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+            <p className="text-[10px] text-slate-400 font-medium mb-0.5">WEIGH LANE</p>
+            <p className="text-xl font-bold tabular-nums text-violet-600">{s.weight}</p>
+            <p className="text-[10px] text-slate-400">kg avg</p>
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-[10px] text-slate-300 text-right">
+        Kemaskini {s.lastSeen.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+      </p>
+    </div>
+  );
+}
+
+function TrendBar({ value, min, max, color }: { value: number; min: number; max: number; color: string }) {
+  const pct = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+  return (
+    <div className="mt-1.5 h-1 w-full rounded-full bg-slate-200 overflow-hidden">
+      <div
+        className="h-full rounded-full transition-all duration-700"
+        style={{ width: `${pct}%`, backgroundColor: color }}
+      />
     </div>
   );
 }

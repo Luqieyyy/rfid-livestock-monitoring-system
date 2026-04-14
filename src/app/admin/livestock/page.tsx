@@ -461,6 +461,7 @@ function StatusBadge({ status }: { status: string }) {
     sick: 'bg-red-100 text-red-700',
     quarantine: 'bg-amber-100 text-amber-700',
     deceased: 'bg-gray-100 text-gray-600',
+    sold: 'bg-blue-100 text-blue-700',
   };
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${styles[status] || styles.healthy}`}>

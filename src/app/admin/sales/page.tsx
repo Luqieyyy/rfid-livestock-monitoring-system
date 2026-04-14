@@ -332,6 +332,12 @@ function AddSaleModal({ livestock, onClose, onSuccess }: {
         price: parseFloat(formData.price),
         saleDate: new Date(formData.saleDate),
       } as Omit<SalesRecord, 'id' | 'createdAt'>);
+
+      // Mark livestock as sold when payment is completed
+      if (formData.paymentStatus === 'completed' && formData.livestockId) {
+        await livestockService.update(formData.livestockId, { status: 'sold' });
+      }
+
       onSuccess();
       onClose();
     } catch (error) {
@@ -512,6 +518,21 @@ function EditSaleModal({ sale, livestock, onClose, onSuccess }: {
         price: parseFloat(formData.price),
         saleDate: new Date(formData.saleDate),
       });
+
+      // Sync livestock status based on payment status change
+      if (formData.livestockId) {
+        const wasCompleted = sale.paymentStatus === 'completed';
+        const isNowCompleted = formData.paymentStatus === 'completed';
+
+        if (!wasCompleted && isNowCompleted) {
+          // Payment just completed → mark sold
+          await livestockService.update(formData.livestockId, { status: 'sold' });
+        } else if (wasCompleted && !isNowCompleted) {
+          // Payment reverted (e.g. cancelled) → revert to healthy
+          await livestockService.update(formData.livestockId, { status: 'healthy' });
+        }
+      }
+
       onSuccess();
       onClose();
     } catch (error) {

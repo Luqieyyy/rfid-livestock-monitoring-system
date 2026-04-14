@@ -81,6 +81,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const { getFirebaseAuth } = await import('@/lib/firebase');
+      const firebaseUser = getFirebaseAuth().currentUser;
+      if (!firebaseUser) return;
+      const profile = await getUserProfile(firebaseUser.uid);
+      if (profile) setUser(profile);
+    } catch {}
+  }, []);
+
   const value: AuthContextType = {
     user,
     loading,
@@ -90,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginWithGoogle,
     logout,
     clearError,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
