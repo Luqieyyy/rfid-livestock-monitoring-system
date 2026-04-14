@@ -32,6 +32,7 @@ export interface AuthContextType {
   error: string | null;
   login: (credentials: LoginCredentials, role: UserRole) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }

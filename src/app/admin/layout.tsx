@@ -205,6 +205,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     'Livestock Management': true,
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Toggle group open/close
   const toggleGroup = (groupName: string) => {
@@ -278,8 +279,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-72 z-40 transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+        className={`fixed left-0 top-0 bottom-0 z-40 transition-all duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+          ${sidebarCollapsed ? 'md:w-[68px]' : 'w-72'}`}
         style={{ background: 'linear-gradient(180deg, #052e16 0%, #064e3b 60%, #065f46 100%)' }}
       >
         {/* Subtle top glow */}
@@ -289,26 +291,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="relative flex flex-col h-full">
 
           {/* Logo */}
-          <div className="px-5 pt-6 pb-5">
+          <div className={`pt-6 pb-5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
             <Link href="/" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/10 ring-1 ring-white/10 flex items-center justify-center shrink-0">
                 <img src="/farmsenselogo.png" alt="FarmSense" className="w-full h-full object-contain" />
               </div>
-              <div>
-                <p className="text-[15px] font-bold leading-tight">
-                  <span className="text-white">Farm</span>
-                  <span className="text-emerald-400">Sense</span>
-                </p>
-                <p className="text-[11px] text-emerald-400/60 font-medium tracking-wide mt-0.5">Admin Panel</p>
-              </div>
+              {!sidebarCollapsed && (
+                <div>
+                  <p className="text-[15px] font-bold leading-tight">
+                    <span className="text-white">Farm</span>
+                    <span className="text-emerald-400">Sense</span>
+                  </p>
+                  <p className="text-[11px] text-emerald-400/60 font-medium tracking-wide mt-0.5">Admin Panel</p>
+                </div>
+              )}
             </Link>
+            {/* Desktop collapse toggle */}
+            {!sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="hidden md:flex p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                title="Collapse sidebar"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Divider */}
           <div className="mx-5 h-px bg-gradient-to-r from-transparent via-emerald-700/50 to-transparent mb-3" />
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-emerald-800">
+          <nav className={`flex-1 space-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-emerald-800 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {navigation.map((item) => {
 
               if (item.type === 'single') {
@@ -317,15 +333,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link
                     key={item.name}
                     href={item.href!}
-                    className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150 ${
+                    title={sidebarCollapsed ? item.name : undefined}
+                    className={`group relative flex items-center gap-3 rounded-xl text-[13.5px] font-medium transition-all duration-150 ${
+                      sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
+                    } ${
                       isActive
                         ? 'bg-emerald-500/20 text-white'
                         : 'text-white/55 hover:text-white hover:bg-white/8'
                     }`}
                     style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.25)' } : {}}
                   >
-                    {/* Active left bar */}
-                    {isActive && (
+                    {isActive && !sidebarCollapsed && (
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-emerald-400" />
                     )}
                     {item.iconSrc ? (
@@ -333,7 +351,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     ) : (
                       <StaffOrToolIcon name={item.name} active={isActive} />
                     )}
-                    <span className="flex-1">{item.name}</span>
+                    {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
                   </Link>
                 );
               }
@@ -341,6 +359,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               if (item.type === 'group' && item.children) {
                 const isOpen = openGroups[item.name];
                 const groupActive = isGroupActive(item.children);
+
+                // Collapsed: show icons of children directly (no group header)
+                if (sidebarCollapsed) {
+                  return (
+                    <div key={item.name} className="space-y-0.5">
+                      {item.children.map((child) => {
+                        const isActive = pathname === child.href;
+                        return (
+                          <Link
+                            key={child.name}
+                            href={child.href}
+                            title={child.name}
+                            className={`flex items-center justify-center px-2 py-2.5 rounded-xl transition-all duration-150 ${
+                              isActive
+                                ? 'bg-emerald-500/20 text-white'
+                                : 'text-white/45 hover:text-white hover:bg-white/8'
+                            }`}
+                            style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.2)' } : {}}
+                          >
+                            {child.iconSrc && (
+                              <NavIcon src={child.iconSrc} size={17} opacity={isActive ? 1 : 0.45} />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  );
+                }
 
                 return (
                   <div key={item.name}>
@@ -401,34 +447,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="mx-5 h-px bg-gradient-to-r from-transparent via-emerald-700/40 to-transparent" />
 
           {/* Bottom — user info + sign out */}
-          <div className="px-3 py-4 space-y-1">
+          <div className={`py-4 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {/* User chip */}
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+            {sidebarCollapsed ? (
+              <div className="flex justify-center mb-1">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0" title={user?.displayName || 'Admin'}>
+                  {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-white/90 truncate">{user?.displayName || 'Admin'}</p>
-                <p className="text-[11px] text-emerald-400/70 truncate">Farm Manager</p>
+            ) : (
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 mb-1">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold text-white/90 truncate">{user?.displayName || 'Admin'}</p>
+                  <p className="text-[11px] text-emerald-400/70 truncate">Farm Manager</p>
+                </div>
               </div>
-            </div>
+            )}
 
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-white/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-150"
+              title={sidebarCollapsed ? 'Sign Out' : undefined}
+              className={`w-full flex items-center rounded-xl text-[13.5px] font-medium text-white/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-150 ${
+                sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
+              }`}
             >
               <svg className="w-[17px] h-[17px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              Sign Out
+              {!sidebarCollapsed && 'Sign Out'}
             </button>
+
+            {/* Expand button when collapsed */}
+            {sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+                className="hidden md:flex w-full justify-center px-2 py-2.5 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
           </div>
 
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="md:pl-72">
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'md:pl-[68px]' : 'md:pl-72'}`}>
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3">

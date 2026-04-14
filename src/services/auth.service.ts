@@ -4,6 +4,8 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
   User,
 } from 'firebase/auth';
 import {
@@ -111,6 +113,35 @@ export const authService = {
       email: user.email,
       displayName,
       role,
+      photoURL: user.photoURL,
+    };
+  },
+
+  // Google Sign In — buyer only
+  async loginWithGoogle(): Promise<AuthUser> {
+    const auth = getFirebaseAuth();
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const user = userCredential.user;
+
+    // Check if profile exists
+    const existingProfile = await getUserProfile(user.uid);
+    if (existingProfile) {
+      // If already registered as admin, block
+      if (existingProfile.role !== 'buyer') {
+        await signOut(auth);
+        throw new Error(`Access denied. This Google account is registered as ${existingProfile.role}.`);
+      }
+      return existingProfile;
+    }
+
+    // New user — create buyer profile
+    await createUserProfile(user, 'buyer', user.displayName || undefined);
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      role: 'buyer',
       photoURL: user.photoURL,
     };
   },

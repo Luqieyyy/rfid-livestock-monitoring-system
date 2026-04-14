@@ -50,6 +50,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const authUser = await authService.loginWithGoogle();
+      setUser(authUser);
+    } catch (err: any) {
+      const errorMessage = getAuthErrorMessage(err.code || err.message);
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       setLoading(true);
@@ -72,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     error,
     login,
     register,
+    loginWithGoogle,
     logout,
     clearError,
   };
