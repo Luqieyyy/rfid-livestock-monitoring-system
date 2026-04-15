@@ -10,12 +10,35 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'FarmSense - Premium Livestock Marketplace',
-  description: 'Find premium cattle and goats with complete health records. Your trusted partner for quality livestock investment.',
-  keywords: 'farmsense, livestock, farm, cattle, goats, marketplace, premium livestock, health certified',
+  title: 'FarmSense — Smart Livestock Management',
+  description: 'Urus ternakan anda dengan teknologi pintar. Rekod kesihatan, pembiakan, IoT monitoring & marketplace lembu kambing premium.',
+  keywords: 'farmsense, livestock, farm, cattle, goats, marketplace, premium livestock, health certified, ternakan, lembu, kambing',
+  metadataBase: new URL('https://farmsense.my'),
   icons: {
     icon: '/FarmSense.jpg',
     apple: '/FarmSense.jpg',
+  },
+  openGraph: {
+    title: 'FarmSense — Smart Livestock Management',
+    description: 'Urus ternakan anda dengan teknologi pintar. Rekod kesihatan, pembiakan, IoT monitoring & marketplace lembu kambing premium.',
+    url: 'https://farmsense.my',
+    siteName: 'FarmSense',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'FarmSense — Smart Livestock Management',
+      },
+    ],
+    type: 'website',
+    locale: 'ms_MY',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FarmSense — Smart Livestock Management',
+    description: 'Urus ternakan anda dengan teknologi pintar. Rekod kesihatan, pembiakan, IoT monitoring & marketplace.',
+    images: ['/og-image.jpg'],
   },
 };
 
