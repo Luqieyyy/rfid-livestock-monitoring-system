@@ -30,6 +30,26 @@ import type {
   PushNotification,
 } from '@/types/livestock.types';
 
+// ─── Simple TTL cache ───────────────────────────────────────────────────────
+// Avoids re-fetching Firestore on every page navigation.
+// Invalidated automatically on any create/update/delete.
+const TTL_MS = 30_000; // 30 seconds
+type CacheEntry<T> = { data: T; ts: number };
+const _cache: Record<string, CacheEntry<any>> = {};
+
+function cacheGet<T>(key: string): T | null {
+  const entry = _cache[key];
+  if (entry && Date.now() - entry.ts < TTL_MS) return entry.data as T;
+  return null;
+}
+function cacheSet<T>(key: string, data: T) {
+  _cache[key] = { data, ts: Date.now() };
+}
+function cacheInvalidate(...keys: string[]) {
+  keys.forEach(k => delete _cache[k]);
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 // Helper function to convert Firestore Timestamp to Date
 const convertTimestamp = (data: DocumentData): any => {
   const converted: any = { ...data };
@@ -110,17 +130,15 @@ export const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
 
 export const livestockService = {
   async getAll(): Promise<Livestock[]> {
+    const cached = cacheGet<Livestock[]>('livestock:all');
+    if (cached) return cached;
     try {
       const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
       const snapshot = await getDocs(livestockRef);
-      
-      const livestock = snapshot.docs.map((doc) => {
-        return adaptFirebaseToLivestock({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
+      const livestock = snapshot.docs.map((doc) =>
+        adaptFirebaseToLivestock({ id: doc.id, ...doc.data() })
+      );
+      cacheSet('livestock:all', livestock);
       return livestock;
     } catch (error) {
       console.error('Error fetching livestock:', error);
@@ -130,16 +148,14 @@ export const livestockService = {
 
   async create(data: Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const livestockRef = collection(db, COLLECTIONS.LIVESTOCK);
-
-    // Always generate a fresh ID from Firestore filtered by type to avoid stale in-memory issues
     const animalId = await this.generateAnimalId(data.type);
-
     const docRef = await addDoc(livestockRef, {
       ...data,
       animalId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+    cacheInvalidate('livestock:all');
     return docRef.id;
   },
 
@@ -173,16 +189,15 @@ export const livestockService = {
   // Update livestock
   async update(id: string, data: Partial<Livestock>): Promise<void> {
     const docRef = doc(db, COLLECTIONS.LIVESTOCK, id);
-    await updateDoc(docRef, {
-      ...data,
-      updatedAt: serverTimestamp(),
-    });
+    await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+    cacheInvalidate('livestock:all');
   },
 
   // Delete livestock
   async delete(id: string): Promise<void> {
     const docRef = doc(db, COLLECTIONS.LIVESTOCK, id);
     await deleteDoc(docRef);
+    cacheInvalidate('livestock:all');
   },
 
   // Get livestock by ID
@@ -253,37 +268,34 @@ export const livestockService = {
 
 // Health Records Services
 export const healthRecordService = {
-  // Get all health records
   async getAll(): Promise<HealthRecord[]> {
+    const cached = cacheGet<HealthRecord[]>('health:all');
+    if (cached) return cached;
     const healthRef = collection(db, 'health_records');
     const q = query(healthRef, orderBy('date', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as HealthRecord[];
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...convertTimestamp(doc.data()) })) as HealthRecord[];
+    cacheSet('health:all', data);
+    return data;
   },
 
-  // Create new health record
   async create(data: Omit<HealthRecord, 'id' | 'createdAt'>): Promise<string> {
     const healthRef = collection(db, 'health_records');
-    const docRef = await addDoc(healthRef, {
-      ...data,
-      createdAt: serverTimestamp(),
-    });
+    const docRef = await addDoc(healthRef, { ...data, createdAt: serverTimestamp() });
+    cacheInvalidate('health:all');
     return docRef.id;
   },
 
-  // Update health record
   async update(id: string, data: Partial<HealthRecord>): Promise<void> {
     const docRef = doc(db, 'health_records', id);
     await updateDoc(docRef, data);
+    cacheInvalidate('health:all');
   },
 
-  // Delete health record
   async delete(id: string): Promise<void> {
     const docRef = doc(db, 'health_records', id);
     await deleteDoc(docRef);
+    cacheInvalidate('health:all');
   },
 
   // Get all health records for a specific livestock
@@ -339,38 +351,34 @@ export const healthRecordService = {
 
 // Breeding Records Services
 export const breedingRecordService = {
-  // Get all breeding records
   async getAll(): Promise<BreedingRecord[]> {
+    const cached = cacheGet<BreedingRecord[]>('breeding:all');
+    if (cached) return cached;
     const breedingRef = collection(db, 'breeding_records');
     const q = query(breedingRef, orderBy('breedingDate', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as BreedingRecord[];
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...convertTimestamp(doc.data()) })) as BreedingRecord[];
+    cacheSet('breeding:all', data);
+    return data;
   },
 
-  // Create new breeding record
   async create(data: Omit<BreedingRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const breedingRef = collection(db, 'breeding_records');
-    const docRef = await addDoc(breedingRef, {
-      ...data,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    const docRef = await addDoc(breedingRef, { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    cacheInvalidate('breeding:all');
     return docRef.id;
   },
 
-  // Update breeding record
   async update(id: string, data: Partial<BreedingRecord>): Promise<void> {
     const docRef = doc(db, 'breeding_records', id);
     await updateDoc(docRef, data);
+    cacheInvalidate('breeding:all');
   },
 
-  // Delete breeding record
   async delete(id: string): Promise<void> {
     const docRef = doc(db, 'breeding_records', id);
     await deleteDoc(docRef);
+    cacheInvalidate('breeding:all');
   },
 
   // Get breeding records by status
@@ -406,37 +414,34 @@ export const breedingRecordService = {
 
 // Sales Records Services
 export const salesRecordService = {
-  // Get all sales records
   async getAll(): Promise<SalesRecord[]> {
+    const cached = cacheGet<SalesRecord[]>('sales:all');
+    if (cached) return cached;
     const salesRef = collection(db, 'sales');
     const q = query(salesRef, orderBy('saleDate', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamp(doc.data()),
-    })) as SalesRecord[];
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...convertTimestamp(doc.data()) })) as SalesRecord[];
+    cacheSet('sales:all', data);
+    return data;
   },
 
-  // Create new sales record
   async create(data: Omit<SalesRecord, 'id' | 'createdAt'>): Promise<string> {
     const salesRef = collection(db, 'sales');
-    const docRef = await addDoc(salesRef, {
-      ...data,
-      createdAt: serverTimestamp(),
-    });
+    const docRef = await addDoc(salesRef, { ...data, createdAt: serverTimestamp() });
+    cacheInvalidate('sales:all', 'livestock:all');
     return docRef.id;
   },
 
-  // Update sales record
   async update(id: string, data: Partial<SalesRecord>): Promise<void> {
     const docRef = doc(db, 'sales', id);
     await updateDoc(docRef, data);
+    cacheInvalidate('sales:all', 'livestock:all');
   },
 
-  // Delete sales record
   async delete(id: string): Promise<void> {
     const docRef = doc(db, 'sales', id);
     await deleteDoc(docRef);
+    cacheInvalidate('sales:all', 'livestock:all');
   },
 
   // Get recent sales (last 30 days)

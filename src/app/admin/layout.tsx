@@ -36,8 +36,16 @@ const navigation = [
     ],
   },
   { name: 'Sales',            href: '/admin/sales',  iconSrc: '/icon/sales.png', type: 'single' },
-  { name: 'User Management', href: '/admin/staff',  iconSrc: null, type: 'single' },
-  { name: 'Admin Tools',     href: '/admin/tools',  iconSrc: null, type: 'single' },
+  { name: 'User Management', href: '/admin/staff', iconSrc: null, type: 'single' },
+  {
+    name: 'Admin Tools',
+    iconSrc: null,
+    type: 'group',
+    children: [
+      { name: 'Tools & Migration', href: '/admin/tools',            iconSrc: null },
+      { name: 'IoT Wiring Arch',   href: '/admin/tools/iot-wiring', iconSrc: '/icon/conditionlogs.png' },
+    ],
+  },
 ];
 
 // Fallback SVG icons for items without PNG assets
@@ -50,10 +58,25 @@ function StaffOrToolIcon({ name, active }: { name: string; active: boolean }) {
       </svg>
     );
   }
+  if (name === 'Admin Tools') {
+    return (
+      <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    );
+  }
+  if (name === 'Tools & Migration') {
+    return (
+      <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6M9 8h6M9 16h4" />
+      </svg>
+    );
+  }
   return (
     <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
     </svg>
   );
 }
@@ -227,8 +250,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/condition-logs':{ section: 'Livestock Management', label: 'Condition Logs' },
     '/admin/sales':         { section: 'Finance',            label: 'Sales' },
     '/admin/staff':         { section: 'Settings',           label: 'User Management' },
-    '/admin/tools':         { section: 'Settings',           label: 'Admin Tools' },
-    '/admin/profile':       { section: 'Settings',           label: 'Profile & Security' },
+    '/admin/tools':             { section: 'Settings', label: 'Tools & Migration' },
+    '/admin/tools/iot-wiring':  { section: 'Admin Tools', label: 'IoT Wiring Architecture' },
+    '/admin/profile':           { section: 'Settings', label: 'Profile & Security' },
   };
   const currentPage = pageMap[pathname] ?? { section: 'Admin', label: 'FarmSense' };
 
@@ -320,18 +344,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="relative flex flex-col h-full">
 
           {/* Logo */}
-          <div className={`pt-6 pb-5 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
+          <div className={`pt-5 pb-4 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-center px-4'}`}>
             <Link href="/admin" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/10 ring-1 ring-white/10 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/20 ring-2 ring-white/20 group-hover:ring-emerald-400/50 flex items-center justify-center shrink-0 shadow-lg transition-all">
                 <img src="/farmsenselogo.png" alt="FarmSense" className="w-full h-full object-contain" />
               </div>
               {!sidebarCollapsed && (
                 <div>
-                  <p className="text-[15px] font-bold leading-tight">
+                  <p className="text-[16px] font-extrabold leading-tight tracking-tight drop-shadow-sm">
                     <span className="text-white">Farm</span>
-                    <span className="text-emerald-400">Sense</span>
+                    <span className="text-emerald-300">Sense</span>
                   </p>
-                  <p className="text-[11px] text-emerald-400/60 font-medium tracking-wide mt-0.5">Admin Panel</p>
+                  <p className="text-[10px] text-emerald-300/70 font-semibold tracking-[0.15em] uppercase mt-0.5">Admin Panel</p>
                 </div>
               )}
             </Link>
@@ -477,19 +501,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
               </Link>
             ) : (
-              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 mb-1 transition-all group">
+              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 hover:border-emerald-400/30 mb-1 transition-all group">
                 {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-lg object-cover shrink-0 ring-1 ring-white/10" />
+                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-lg object-cover shrink-0 ring-2 ring-emerald-400/40" />
                 ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-400 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
                     {user?.displayName?.charAt(0).toUpperCase() || 'A'}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-white/90 truncate">{user?.displayName || 'Admin'}</p>
-                  <p className="text-[11px] text-emerald-400/70 truncate">Farm Manager</p>
+                  <p className="text-[13px] font-semibold text-white truncate">{user?.displayName || 'Admin'}</p>
+                  <p className="text-[11px] text-emerald-300/80 truncate">Farm Manager</p>
                 </div>
-                <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-white/40 group-hover:text-emerald-300 shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
@@ -498,7 +522,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               onClick={handleLogout}
               title={sidebarCollapsed ? 'Sign Out' : undefined}
-              className={`w-full flex items-center rounded-xl text-[13.5px] font-medium text-white/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-150 ${
+              className={`w-full flex items-center rounded-xl text-[13.5px] font-medium text-white/60 hover:text-red-300 hover:bg-red-500/15 transition-all duration-150 ${
                 sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
               }`}
             >

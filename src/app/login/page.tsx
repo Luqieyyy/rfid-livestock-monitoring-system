@@ -47,7 +47,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex relative overflow-hidden" style={{width: '65%'}}>
         {/* Background Image with 3D Parallax Effect */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 via-emerald-800/30 to-teal-900/40 z-10"></div>
