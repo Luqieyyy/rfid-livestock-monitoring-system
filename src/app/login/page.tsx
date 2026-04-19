@@ -51,8 +51,8 @@ export default function LoginPage() {
         {/* Background Image with 3D Parallax Effect */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/40 via-emerald-800/30 to-teal-900/40 z-10"></div>
-          <img 
-            src="/livestockfarming_farmerwallpaper.jpeg"
+          <img
+            src="/indexpage.jpg"
             alt="Farm Background"
             className="absolute inset-0 w-full h-full object-cover animate-slow-zoom"
           />

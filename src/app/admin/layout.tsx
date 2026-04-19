@@ -29,6 +29,7 @@ const navigation = [
     children: [
       { name: 'Livestock Registry', href: '/admin/livestock', iconSrc: '/icon/livestockregistry.png' },
       { name: 'Health Records',     href: '/admin/health',     iconSrc: '/icon/healthrecords.png' },
+      { name: 'Disease Detection',  href: '/admin/disease-detection', iconSrc: '/icon/healthrecords.png' },
       { name: 'Vaccination',        href: '/admin/vaccination', iconSrc: '/icon/vaccination.png' },
       { name: 'Breeding',           href: '/admin/breeding',   iconSrc: '/icon/breeding.png' },
       { name: 'Feeding',            href: '/admin/feeding',    iconSrc: '/icon/feeding.png' },
@@ -244,6 +245,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin':               { section: 'Overview',           label: 'Dashboard' },
     '/admin/livestock':     { section: 'Livestock Management', label: 'Livestock Registry' },
     '/admin/health':        { section: 'Livestock Management', label: 'Health Records' },
+    '/admin/disease-detection': { section: 'Livestock Management', label: 'Disease Detection Analysis' },
     '/admin/vaccination':   { section: 'Livestock Management', label: 'Vaccination Tracker' },
     '/admin/breeding':      { section: 'Livestock Management', label: 'Breeding Records' },
     '/admin/feeding':       { section: 'Livestock Management', label: 'Feeding Schedule' },
@@ -346,8 +348,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Logo */}
           <div className={`pt-5 pb-4 flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-center px-4'}`}>
             <Link href="/admin" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/20 ring-2 ring-white/20 group-hover:ring-emerald-400/50 flex items-center justify-center shrink-0 shadow-lg transition-all">
-                <img src="/farmsenselogo.png" alt="FarmSense" className="w-full h-full object-contain" />
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-white flex items-center justify-center shrink-0 shadow-lg transition-all">
+                <img src="/farmsenselogo.png" alt="FarmSense" className="w-full h-full object-contain p-1" />
               </div>
               {!sidebarCollapsed && (
                 <div>

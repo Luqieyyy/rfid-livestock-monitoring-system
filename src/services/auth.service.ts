@@ -163,7 +163,11 @@ export const authService = {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const profile = await getUserProfile(firebaseUser.uid);
-        callback(profile);
+        // Guard against race condition: signOut() may have been called while
+        // getUserProfile() was still in-flight, causing stale profile to overwrite null
+        if (auth.currentUser?.uid === firebaseUser.uid) {
+          callback(profile);
+        }
       } else {
         callback(null);
       }

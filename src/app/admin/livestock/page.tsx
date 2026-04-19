@@ -24,6 +24,12 @@ export default function LivestockPage() {
   const [selectedAnimal, setSelectedAnimal] = useState<Livestock | null>(null);
   const [editingAnimal, setEditingAnimal] = useState<Livestock | null>(null);
   const [customBreeds, setCustomBreeds] = useState<{ cow: string[]; goat: string[] }>({ cow: [], goat: [] });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     loadData();
@@ -399,6 +405,22 @@ export default function LivestockPage() {
         </div>
       )}
 
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-lg text-white text-sm font-medium transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+          {toast.type === 'success' ? (
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          )}
+          {toast.message}
+        </div>
+      )}
+
       {/* Detail Modal */}
       {selectedAnimal && (
         <AnimalProfileModal
@@ -413,9 +435,9 @@ export default function LivestockPage() {
 
       {/* Add Modal Placeholder */}
       {showAddModal && (
-        <AddLivestockModal 
-          onClose={() => setShowAddModal(false)} 
-          onSuccess={loadLivestock}
+        <AddLivestockModal
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => { loadLivestock(); showToast('Livestock added successfully!'); }}
           kandangs={kandangs}
           existingLivestock={livestock}
           getAllBreeds={getAllBreeds}
@@ -424,10 +446,10 @@ export default function LivestockPage() {
 
       {/* Edit Modal */}
       {editingAnimal && (
-        <EditLivestockModal 
-          animal={editingAnimal} 
-          onClose={() => setEditingAnimal(null)} 
-          onSuccess={loadLivestock}
+        <EditLivestockModal
+          animal={editingAnimal}
+          onClose={() => setEditingAnimal(null)}
+          onSuccess={() => { loadLivestock(); setEditingAnimal(null); showToast('Livestock updated successfully!'); }}
           kandangs={kandangs}
           getAllBreeds={getAllBreeds}
         />
