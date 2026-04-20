@@ -101,7 +101,7 @@ export default function LandingPage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white/20 border border-white/30 text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-6 backdrop-blur-sm">
               <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              Malaysia's Trusted Livestock Marketplace
+              Malaysia&apos;s Trusted Livestock Marketplace
             </div>
 
             <h1 className="text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight drop-shadow-lg">
@@ -437,7 +437,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-600 leading-relaxed text-sm italic">"{r.comment}"</p>
+                <p className="text-gray-600 leading-relaxed text-sm italic">&quot;{r.comment}&quot;</p>
               </div>
             </motion.div>
           ))}

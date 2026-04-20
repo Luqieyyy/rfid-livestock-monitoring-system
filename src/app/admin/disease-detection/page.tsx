@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { diseaseDetectionService } from '@/services/disease-detection.service';
+import { useAuth } from '@/context/AuthContext';
 import type {
   DiseaseDetectionSubmission,
   DiseaseSubmissionDetailsResponse,
@@ -15,6 +16,7 @@ const inputClass =
 type StatusFilter = DiseaseSubmissionStatus | 'all';
 
 export default function DiseaseDetectionPage() {
+  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState<DiseaseDetectionSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +34,17 @@ export default function DiseaseDetectionPage() {
   const [reviewNote, setReviewNote] = useState('');
 
   const loadList = async () => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      setLoading(false);
+      setItems([]);
+      setError('Please sign in as admin to load disease submissions.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -42,16 +55,23 @@ export default function DiseaseDetectionPage() {
       });
       setItems(submissions);
     } catch (e: any) {
-      setError(e?.message || 'Failed to load submissions');
+      const rawMessage = e?.message || 'Failed to load submissions';
+      if (rawMessage.toLowerCase().includes('no authenticated user')) {
+        setError('Session is not authenticated. Please sign in again.');
+      } else {
+        setError(rawMessage);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadList();
+    if (!authLoading) {
+      loadList();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, animalType]);
+  }, [status, animalType, authLoading, user?.uid]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
