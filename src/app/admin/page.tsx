@@ -4,9 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
+  CartesianGrid,
   Cell,
+  Legend,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -141,6 +147,9 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
+      {/* ── IoT Smart Farm Monitor ── TOP SECTION ──────────────── */}
+      <IoTMonitorSection />
+
       {/* Hero KPI Cards */}
       <section className="grid gap-4 sm:grid-cols-3">
         <HeroMetric
@@ -172,8 +181,8 @@ export default function AdminDashboard() {
         ))}
       </section>
 
-      {/* ── IoT Smart Farm Monitor ───────────────────────────── */}
-      <IoTMonitorSection />
+      {/* ── Sales & Farm Analytics ───────────────────────────── */}
+      <SalesAnalyticsSection totalRevenue={stats?.totalRevenue || 0} totalLivestock={totalLivestock} healthyCount={stats?.healthyCount || 0} sickCount={stats?.sickCount || 0} />
 
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
         <div className="rounded-[28px] border border-slate-200 bg-white p-6 card-shadow">
@@ -525,13 +534,43 @@ const DUMMY_SENSORS: Record<string, SensorReading> = {
   'Kandang C': { temp: 27.8, humidity: 65, nh3: 8,  feedLevel: 54, weight: 201.0, lastSeen: new Date(), online: true },
 };
 
+type HistoryPoint = {
+  time: string;
+  tempA: number; tempB: number; tempC: number;
+  humA: number; humB: number; humC: number;
+  nh3A: number; nh3B: number; nh3C: number;
+};
+
+const HISTORY_MAX = 20;
+
+function buildSeedHistory(): HistoryPoint[] {
+  const now = Date.now();
+  return Array.from({ length: 15 }, (_, i) => {
+    const t = new Date(now - (14 - i) * 4000);
+    return {
+      time: t.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      tempA: +(29.4 + (Math.random() - 0.5) * 1.5).toFixed(1),
+      tempB: +(33.1 + (Math.random() - 0.5) * 1.5).toFixed(1),
+      tempC: +(27.8 + (Math.random() - 0.5) * 1.5).toFixed(1),
+      humA: Math.round(72 + (Math.random() - 0.5) * 4),
+      humB: Math.round(88 + (Math.random() - 0.5) * 4),
+      humC: Math.round(65 + (Math.random() - 0.5) * 4),
+      nh3A: +(12 + (Math.random() - 0.5) * 3).toFixed(1),
+      nh3B: +(26 + (Math.random() - 0.5) * 3).toFixed(1),
+      nh3C: +(8 + (Math.random() - 0.5) * 3).toFixed(1),
+    };
+  });
+}
+
 function IoTMonitorSection() {
   const [sensors, setSensors] = useState<Record<string, SensorReading>>(DUMMY_SENSORS);
-  const [tick, setTick] = useState(0);
+  const [history, setHistory] = useState<HistoryPoint[]>(buildSeedHistory);
+  const [activeMetric, setActiveMetric] = useState<'temp' | 'humidity' | 'nh3'>('temp');
 
   // Simulate live fluctuation — swap this with real Firestore listener later
   useEffect(() => {
     const id = setInterval(() => {
+      const timeStr = new Date().toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setSensors(prev => {
         const next = { ...prev };
         for (const key of Object.keys(next)) {
@@ -544,9 +583,24 @@ function IoTMonitorSection() {
             lastSeen: new Date(),
           };
         }
+        setHistory(h => {
+          const entry: HistoryPoint = {
+            time: timeStr,
+            tempA: +next['Kandang A'].temp.toFixed(1),
+            tempB: +next['Kandang B'].temp.toFixed(1),
+            tempC: +next['Kandang C'].temp.toFixed(1),
+            humA: next['Kandang A'].humidity,
+            humB: next['Kandang B'].humidity,
+            humC: next['Kandang C'].humidity,
+            nh3A: +next['Kandang A'].nh3.toFixed(1),
+            nh3B: +next['Kandang B'].nh3.toFixed(1),
+            nh3C: +next['Kandang C'].nh3.toFixed(1),
+          };
+          const updated = [...h, entry];
+          return updated.length > HISTORY_MAX ? updated.slice(-HISTORY_MAX) : updated;
+        });
         return next;
       });
-      setTick(t => t + 1);
     }, 4000);
     return () => clearInterval(id);
   }, []);
@@ -630,6 +684,212 @@ function IoTMonitorSection() {
           const { level } = getSensorAlert(s);
           return <SensorCard key={name} name={name} reading={s} level={level} />;
         })}
+      </div>
+
+      {/* Sensor Trend Charts */}
+      <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h4 className="font-semibold text-slate-900">Sensor Trend Analytics</h4>
+            <p className="text-xs text-slate-400">Real-time sensor history — updates every 4 saat · semua kandang dalam satu graf</p>
+          </div>
+          <div className="flex gap-1.5">
+            {(['temp', 'humidity', 'nh3'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setActiveMetric(m)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  activeMetric === m
+                    ? 'bg-cyan-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {m === 'temp' ? 'Suhu °C' : m === 'humidity' ? 'Humidity %' : 'NH₃ ppm'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={history} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgba(15,23,42,0.08)' }}
+              />
+              <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              {activeMetric === 'temp' && <>
+                <Line type="monotone" dataKey="tempA" name="Kandang A" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="tempB" name="Kandang B" stroke="#f59e0b" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="tempC" name="Kandang C" stroke="#0ea5e9" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+              </>}
+              {activeMetric === 'humidity' && <>
+                <Line type="monotone" dataKey="humA" name="Kandang A" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="humB" name="Kandang B" stroke="#f59e0b" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="humC" name="Kandang C" stroke="#0ea5e9" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+              </>}
+              {activeMetric === 'nh3' && <>
+                <Line type="monotone" dataKey="nh3A" name="Kandang A" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="nh3B" name="Kandang B" stroke="#f59e0b" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="nh3C" name="Kandang C" stroke="#0ea5e9" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+              </>}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sales & Farm Analytics Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MONTHLY_SALES_SEED = [
+  { month: 'Nov', revenue: 3200, livestock: 48 },
+  { month: 'Dis', revenue: 4150, livestock: 51 },
+  { month: 'Jan', revenue: 2900, livestock: 49 },
+  { month: 'Feb', revenue: 5400, livestock: 54 },
+  { month: 'Mac', revenue: 4800, livestock: 53 },
+  { month: 'Apr', revenue: 6100, livestock: 59 },
+];
+
+function SalesAnalyticsSection({
+  totalRevenue,
+  totalLivestock,
+  healthyCount,
+  sickCount,
+}: {
+  totalRevenue: number;
+  totalLivestock: number;
+  healthyCount: number;
+  sickCount: number;
+}) {
+  const [activeTab, setActiveTab] = useState<'revenue' | 'livestock'>('revenue');
+
+  const bestMonth = MONTHLY_SALES_SEED.reduce((best, m) => m.revenue > best.revenue ? m : best, MONTHLY_SALES_SEED[0]);
+  const avgRevenue = Math.round(MONTHLY_SALES_SEED.reduce((s, m) => s + m.revenue, 0) / MONTHLY_SALES_SEED.length);
+  const growthPct = MONTHLY_SALES_SEED.length >= 2
+    ? Math.round(((MONTHLY_SALES_SEED.at(-1)!.revenue - MONTHLY_SALES_SEED.at(-2)!.revenue) / MONTHLY_SALES_SEED.at(-2)!.revenue) * 100)
+    : 0;
+
+  return (
+    <section className="rounded-[28px] border border-slate-200 bg-white p-6 card-shadow">
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Farm Analytics</h3>
+          <p className="mt-1 text-sm text-slate-500">Track jualan bulanan, trend ternakan dan prestasi ladang secara keseluruhan.</p>
+        </div>
+        <div className="flex gap-1.5">
+          {(['revenue', 'livestock'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                activeTab === tab
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {tab === 'revenue' ? 'Revenue (MYR)' : 'Livestock Count'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+          <p className="text-xs text-emerald-600 font-medium">Total Revenue</p>
+          <p className="mt-1 text-xl font-bold text-emerald-700">MYR {totalRevenue.toLocaleString('en-MY')}</p>
+        </div>
+        <div className="rounded-2xl bg-sky-50 border border-sky-100 px-4 py-3">
+          <p className="text-xs text-sky-600 font-medium">Avg / Bulan</p>
+          <p className="mt-1 text-xl font-bold text-sky-700">MYR {avgRevenue.toLocaleString('en-MY')}</p>
+        </div>
+        <div className="rounded-2xl bg-violet-50 border border-violet-100 px-4 py-3">
+          <p className="text-xs text-violet-600 font-medium">Best Month</p>
+          <p className="mt-1 text-xl font-bold text-violet-700">{bestMonth.month} · MYR {bestMonth.revenue.toLocaleString('en-MY')}</p>
+        </div>
+        <div className={`rounded-2xl px-4 py-3 border ${growthPct >= 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+          <p className={`text-xs font-medium ${growthPct >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>MoM Growth</p>
+          <p className={`mt-1 text-xl font-bold ${growthPct >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+            {growthPct >= 0 ? '+' : ''}{growthPct}%
+          </p>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="h-[260px]">
+        <ResponsiveContainer width="100%" height="100%">
+          {activeTab === 'revenue' ? (
+            <AreaChart data={MONTHLY_SALES_SEED} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip
+                contentStyle={{ borderRadius: '14px', border: '1px solid #e2e8f0', fontSize: 13, boxShadow: '0 8px 24px rgba(15,23,42,0.08)' }}
+                formatter={(v: number) => [`MYR ${v.toLocaleString('en-MY')}`, 'Revenue']}
+              />
+              <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fill="url(#revenueGrad)" dot={{ fill: '#10b981', r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
+            </AreaChart>
+          ) : (
+            <AreaChart data={MONTHLY_SALES_SEED} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="livestockGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+              <Tooltip
+                contentStyle={{ borderRadius: '14px', border: '1px solid #e2e8f0', fontSize: 13, boxShadow: '0 8px 24px rgba(15,23,42,0.08)' }}
+                formatter={(v: number) => [v, 'Livestock']}
+              />
+              <Area type="monotone" dataKey="livestock" stroke="#0ea5e9" strokeWidth={2.5} fill="url(#livestockGrad)" dot={{ fill: '#0ea5e9', r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
+            </AreaChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+
+      {/* Health breakdown mini bar */}
+      <div className="mt-5 rounded-2xl bg-slate-50 px-5 py-4">
+        <div className="mb-3 flex items-center justify-between text-sm">
+          <span className="font-medium text-slate-700">Livestock Health Breakdown</span>
+          <span className="text-slate-400 text-xs">{totalLivestock} total</span>
+        </div>
+        <div className="flex h-3 w-full overflow-hidden rounded-full gap-0.5">
+          {totalLivestock > 0 && <>
+            <div className="bg-emerald-500 rounded-l-full transition-all" style={{ width: `${(healthyCount / totalLivestock) * 100}%` }} title={`Healthy: ${healthyCount}`} />
+            <div className="bg-amber-400 transition-all" style={{ width: `${(sickCount / totalLivestock) * 100}%` }} title={`Sick: ${sickCount}`} />
+            <div className="bg-slate-300 rounded-r-full flex-1" title="Others" />
+          </>}
+        </div>
+        <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-slate-500">
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" />Healthy {healthyCount}</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-400" />Treatment {sickCount}</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" />Others {Math.max(0, totalLivestock - healthyCount - sickCount)}</span>
+        </div>
       </div>
     </section>
   );
