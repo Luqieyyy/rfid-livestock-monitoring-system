@@ -881,3 +881,30 @@ export const notificationSettingsService = {
     }
   },
 };
+
+// ── IoT Feed Dispenser Command (Realtime Database) ─────────────
+import { getFirebaseRtdb } from '@/lib/firebase';
+import { ref as rtdbRef, set, onValue, off } from 'firebase/database';
+
+export const iotFeedService = {
+  // Trigger manual feed — writes to RTDB path /iotCommands/feedDispenser
+  async triggerFeedNow(): Promise<void> {
+    const rtdb = getFirebaseRtdb();
+    await set(rtdbRef(rtdb, 'iotCommands/feedDispenser'), {
+      action: 'FEED_NOW',
+      status: 'pending',
+      triggeredAt: Date.now(),
+      triggeredBy: 'farmer_dashboard',
+    });
+  },
+
+  // Realtime listener — ESP32 will update status to 'done'
+  onStatusChange(callback: (status: 'pending' | 'done' | 'idle' | null) => void): () => void {
+    const rtdb = getFirebaseRtdb();
+    const nodeRef = rtdbRef(rtdb, 'iotCommands/feedDispenser/status');
+    onValue(nodeRef, (snap) => {
+      callback(snap.exists() ? snap.val() : null);
+    });
+    return () => off(nodeRef);
+  },
+};

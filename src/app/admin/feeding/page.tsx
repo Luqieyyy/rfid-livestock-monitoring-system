@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { feedingScheduleService, feedingActivityService, livestockService } from '@/services/firestore.service';
+import { feedingScheduleService, feedingActivityService, livestockService, iotFeedService } from '@/services/firestore.service';
 import type { FeedingSchedule, FeedingActivity, Livestock } from '@/types/livestock.types';
 
 const ic = 'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 transition';
@@ -13,8 +13,24 @@ export default function FeedingManagement() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'schedules' | 'activities'>('schedules');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [feedStatus, setFeedStatus] = useState<'idle' | 'pending' | 'done' | null>(null);
+  const [feedTriggering, setFeedTriggering] = useState(false);
 
   useEffect(() => { loadData(); }, []);
+
+  // Realtime listener for ESP32 feed status
+  useEffect(() => {
+    const unsub = iotFeedService.onStatusChange((s) => setFeedStatus(s as typeof feedStatus));
+    return () => unsub();
+  }, []);
+
+  const handleFeedNow = async () => {
+    if (feedStatus === 'pending' || feedTriggering) return;
+    setFeedTriggering(true);
+    try { await iotFeedService.triggerFeedNow(); }
+    catch (e) { console.error(e); }
+    finally { setFeedTriggering(false); }
+  };
 
   const loadData = async () => {
     try {
@@ -48,15 +64,54 @@ export default function FeedingManagement() {
           <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Feeding Management</h2>
           <p className="mt-0.5 text-sm text-slate-500">Jadual dan rekod aktiviti pemberian makanan ternakan.</p>
         </div>
-        <button
-          onClick={() => setShowScheduleModal(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 self-start sm:self-auto"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Schedule
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          {/* Feed Now Button */}
+          <button
+            onClick={handleFeedNow}
+            disabled={feedStatus === 'pending' || feedTriggering}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition
+              ${feedStatus === 'pending'
+                ? 'bg-amber-100 text-amber-700 cursor-not-allowed'
+                : feedStatus === 'done'
+                  ? 'bg-sky-100 text-sky-700 hover:bg-sky-200'
+                  : 'bg-orange-500 text-white hover:bg-orange-600'
+              }`}
+          >
+            {feedStatus === 'pending' ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                </svg>
+                Dispensing...
+              </>
+            ) : feedStatus === 'done' ? (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Fed!
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Feed Now
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => setShowScheduleModal(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Schedule
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

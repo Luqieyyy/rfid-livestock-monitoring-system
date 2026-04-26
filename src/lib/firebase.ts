@@ -2,12 +2,14 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getDatabase, Database } from 'firebase/database';
 import { firebaseConfig } from '@/config/firebase.config';
 
 let app: FirebaseApp | null = null;
 let firebaseDb: Firestore | null = null;
 let firebaseAuth: Auth | null = null;
 let firebaseStorage: FirebaseStorage | null = null;
+let firebaseRtdb: Database | null = null;
 
 const requiredKeys = ['apiKey', 'authDomain', 'projectId'] as const;
 
@@ -61,6 +63,14 @@ export const getFirebaseStorage = () => {
   return firebaseStorage;
 };
 
+export const getFirebaseRtdb = () => {
+  if (!firebaseRtdb) {
+    firebaseRtdb = getDatabase(ensureFirebaseApp());
+  }
+  return firebaseRtdb;
+};
+
 export const db = getFirebaseDb();
 export const auth = getFirebaseAuth();
 export const storage = getFirebaseStorage();
+export const rtdb = getFirebaseRtdb();
