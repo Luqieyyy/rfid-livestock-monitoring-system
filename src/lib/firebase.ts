@@ -19,18 +19,21 @@ export const getMissingFirebaseConfigKeys = () => {
 
 export const isFirebaseConfigured = () => getMissingFirebaseConfigKeys().length === 0;
 
-// Validate Firebase configuration
+// Validate Firebase configuration — only throws on client, silent on server/build
 const validateConfig = () => {
   const missingKeys = getMissingFirebaseConfigKeys();
-  
-  if (missingKeys.length > 0) {
-    throw new Error(`Missing Firebase config: ${missingKeys.join(', ')}`);
+  if (missingKeys.length === 0) return;
+  if (typeof window === 'undefined') {
+    // SSR / build time — skip silently, app initializes properly at runtime
+    return;
   }
+  throw new Error(`Missing Firebase config: ${missingKeys.join(', ')}`);
 };
 
 const ensureFirebaseApp = () => {
   if (!isFirebaseConfigured()) {
     validateConfig();
+    return null; // SSR/build — return null, Firebase not needed server-side
   }
 
   if (!app) {
@@ -43,34 +46,36 @@ const ensureFirebaseApp = () => {
 export const getFirebaseApp = () => ensureFirebaseApp();
 
 export const getFirebaseDb = () => {
-  if (!firebaseDb) {
-    firebaseDb = getFirestore(ensureFirebaseApp());
-  }
+  const app = ensureFirebaseApp();
+  if (!app) return null as unknown as Firestore;
+  if (!firebaseDb) firebaseDb = getFirestore(app);
   return firebaseDb;
 };
 
 export const getFirebaseAuth = () => {
-  if (!firebaseAuth) {
-    firebaseAuth = getAuth(ensureFirebaseApp());
-  }
+  const app = ensureFirebaseApp();
+  if (!app) return null as unknown as Auth;
+  if (!firebaseAuth) firebaseAuth = getAuth(app);
   return firebaseAuth;
 };
 
 export const getFirebaseStorage = () => {
-  if (!firebaseStorage) {
-    firebaseStorage = getStorage(ensureFirebaseApp());
-  }
+  const app = ensureFirebaseApp();
+  if (!app) return null as unknown as FirebaseStorage;
+  if (!firebaseStorage) firebaseStorage = getStorage(app);
   return firebaseStorage;
 };
 
 export const getFirebaseRtdb = () => {
-  if (!firebaseRtdb) {
-    firebaseRtdb = getDatabase(ensureFirebaseApp());
-  }
+  const app = ensureFirebaseApp();
+  if (!app) return null as unknown as Database;
+  if (!firebaseRtdb) firebaseRtdb = getDatabase(app);
   return firebaseRtdb;
 };
 
-export const db = getFirebaseDb();
-export const auth = getFirebaseAuth();
+// Module-level exports — safe now that ensureFirebaseApp returns null during build
+// (no throw during SSR/prerender; real init happens client-side at runtime)
+export const db      = getFirebaseDb();
+export const auth    = getFirebaseAuth();
 export const storage = getFirebaseStorage();
-export const rtdb = getFirebaseRtdb();
+export const rtdb    = getFirebaseRtdb();
