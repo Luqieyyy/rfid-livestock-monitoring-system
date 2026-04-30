@@ -34,6 +34,7 @@ const navigation = [
       { name: 'Breeding',           href: '/admin/breeding',   iconSrc: '/icon/breeding.png' },
       { name: 'Feeding',            href: '/admin/feeding',    iconSrc: '/icon/feeding.png' },
       { name: 'Condition Logs',     href: '/admin/condition-logs', iconSrc: '/icon/conditionlogs.png' },
+      { name: 'RFID Activity',      href: '/admin/rfid-activity', iconSrc: '/icon/conditionlogs.png' },
     ],
   },
   { name: 'Sales',            href: '/admin/sales',  iconSrc: '/icon/sales.png', type: 'single' },
@@ -255,6 +256,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/breeding':      { section: 'Livestock Management', label: 'Breeding Records' },
     '/admin/feeding':       { section: 'Livestock Management', label: 'Feeding Schedule' },
     '/admin/condition-logs':{ section: 'Livestock Management', label: 'Condition Logs' },
+    '/admin/rfid-activity': { section: 'Livestock Management', label: 'RFID Activity Log' },
     '/admin/sales':         { section: 'Finance',            label: 'Sales' },
     '/admin/staff':         { section: 'Settings',           label: 'User Management' },
     '/admin/tools':             { section: 'Settings', label: 'Tools & Migration' },
@@ -627,3 +629,4 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
+

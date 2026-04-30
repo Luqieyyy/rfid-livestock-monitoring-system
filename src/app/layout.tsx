@@ -3,6 +3,9 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 
+// All pages require Firebase auth at runtime — disable static prerendering
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ 
   subsets: ['latin'],
   display: 'swap',

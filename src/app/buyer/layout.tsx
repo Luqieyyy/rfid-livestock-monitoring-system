@@ -87,31 +87,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
               </Link>
             </div>
 
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-1">
-              <Link
-                href="/buyer"
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  pathname === '/buyer'
-                    ? 'bg-cyan-50 text-cyan-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                Browse All
-              </Link>
-              <Link
-                href="/buyer?type=cows"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
-              >
-                Cows
-              </Link>
-              <Link
-                href="/buyer?type=goat"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
-              >
-                Goats
-              </Link>
-            </div>
+            <div className="hidden md:block" />
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
@@ -149,9 +125,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
           {mobileMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col gap-2">
-                <Link href="/buyer" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Browse All</Link>
-                <Link href="/buyer?type=cows" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cows</Link>
-                <Link href="/buyer?type=goat" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Goats</Link>
+                <Link href="/buyer" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Marketplace</Link>
                 <Link href="/admin" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Admin Portal</Link>
               </div>
             </div>

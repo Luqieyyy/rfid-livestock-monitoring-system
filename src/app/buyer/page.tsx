@@ -107,80 +107,51 @@ function BuyerPortalContent() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 rounded-3xl p-8 md:p-12 text-white">
-        {/* subtle leaf pattern overlay */}
-        <div className="absolute inset-0 opacity-10"
-          style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M40 0 Q60 20 40 40 Q20 20 40 0Z' fill='%23ffffff'/%3E%3C/svg%3E\")", backgroundSize: '80px 80px'}}
-        />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-        <div className="relative z-10">
-          <div className="max-w-2xl">
-            <span className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
-              FarmSense Marketplace
-            </span>
-            <h1 className="text-3xl md:text-4xl font-bold mb-3">
-              Ternakan Berkualiti, <br className="hidden md:block" />Terus dari Ladang
-            </h1>
-            <p className="text-base text-emerald-100 mb-8 leading-relaxed">
-              Setiap haiwan telah disahkan sihat dan dilengkapi rekod penuh. Beli dengan yakin.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3">
-                <p className="text-2xl font-bold">{livestock.length}</p>
-                <p className="text-xs text-emerald-200 mt-0.5">Tersedia Sekarang</p>
-              </div>
-              <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3">
-                <p className="text-2xl font-bold">100%</p>
-                <p className="text-xs text-emerald-200 mt-0.5">Disahkan Sihat</p>
-              </div>
-              <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3">
-                <p className="text-2xl font-bold">RFID</p>
-                <p className="text-xs text-emerald-200 mt-0.5">Rekod Penuh</p>
-              </div>
-            </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">FarmSense Marketplace</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">Browse Livestock</h1>
+          <p className="mt-1 text-sm text-slate-500">{livestock.length} animals available with verified health records.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg border border-slate-200 px-4 py-2">
+            <p className="font-bold text-slate-900">{typeStats.all}</p>
+            <p className="text-xs text-slate-500">All</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 px-4 py-2">
+            <p className="font-bold text-slate-900">{typeStats.cows}</p>
+            <p className="text-xs text-slate-500">Cows</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 px-4 py-2">
+            <p className="font-bold text-slate-900">{typeStats.goat}</p>
+            <p className="text-xs text-slate-500">Goats</p>
           </div>
         </div>
       </div>
 
-      {/* Category Quick Filters */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { type: 'all', label: 'All Animals', image: '/stat-cow.png' },
-          { type: 'cows', label: 'Cows', image: '/cow.jpg' },
-          { type: 'goat', label: 'Goats', image: '/goat.png' },
-        ].map((category) => (
-          <button
-            key={category.type}
-            onClick={() => setSelectedType(category.type)}
-            className={`p-5 rounded-2xl border-2 transition-all ${
-              selectedType === category.type
-                ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-lg shadow-emerald-500/20'
-                : 'bg-white border-gray-100 hover:border-emerald-200 hover:shadow-md'
-            }`}
-          >
-            <div className="mb-3 flex justify-center">
-              <div className={`w-20 h-20 rounded-xl overflow-hidden shadow-sm ${
-                selectedType === category.type ? 'ring-2 ring-emerald-400 ring-offset-2' : ''
-              }`}>
-                <img 
-                  src={category.image} 
-                  alt={category.label} 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </div>
-            <p className="font-bold text-gray-900 mb-1">{category.label}</p>
-            <p className="text-sm text-gray-500">
-              {typeStats[category.type as keyof typeof typeStats]} available
-            </p>
-          </button>
-        ))}
-      </div>
-
       {/* Search and Sort */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <div className="mb-4 flex flex-wrap gap-2">
+          {[
+            { type: 'all', label: 'All Animals', count: typeStats.all },
+            { type: 'cows', label: 'Cows', count: typeStats.cows },
+            { type: 'goat', label: 'Goats', count: typeStats.goat },
+          ].map((category) => (
+            <button
+              key={category.type}
+              onClick={() => setSelectedType(category.type)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                selectedType === category.type
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              {category.label}
+              <span className={`ml-2 ${selectedType === category.type ? 'text-emerald-100' : 'text-slate-400'}`}>{category.count}</span>
+            </button>
+          ))}
+        </div>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,17 +193,17 @@ function BuyerPortalContent() {
 
       {/* Livestock Grid */}
       {filteredLivestock.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 2xl:grid-cols-6">
           {filteredLivestock.map((animal) => (
             <div
               key={animal.id}
               onClick={() => setSelectedAnimal(animal)}
-              className="bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer group hover:shadow-xl hover:border-emerald-200 transition-all"
+              className="group cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white transition-all hover:border-emerald-200 hover:shadow-lg"
             >
-              <div className="relative h-48 bg-gradient-to-r from-emerald-50 to-teal-50 overflow-hidden">
-                <div className="absolute top-4 right-4 z-10">
-                  <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+              <div className="relative h-32 overflow-hidden bg-gradient-to-r from-emerald-50 to-teal-50 sm:h-36">
+                <div className="absolute right-2 top-2 z-10">
+                  <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                     Verified
                   </span>
                 </div>
@@ -240,57 +211,57 @@ function BuyerPortalContent() {
                   <img 
                     src={animal.photoUrl} 
                     alt={animal.breed}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <img 
                       src={animal.type === 'cow' ? '/cow.jpg' : '/goat.png'} 
                       alt={animal.type}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                 )}
               </div>
-              <div className="p-6">
-                <div className="mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
+              <div className="p-3">
+                <div className="mb-3">
+                  <h3 className="truncate text-base font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
                   <p className="text-gray-500 capitalize">{animal.breed} • {animal.type}</p>
                 </div>
                 {animal.price != null && (
-                  <div className="mb-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl px-4 py-3">
-                    <p className="text-xs text-emerald-600 font-medium">Harga</p>
-                    <p className="text-2xl font-bold text-emerald-700">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+                  <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                    <p className="text-[11px] font-medium text-emerald-600">Harga</p>
+                    <p className="truncate text-base font-bold text-emerald-700">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-400 mb-1">Weight</p>
-                    <p className="font-bold text-gray-900">{animal.weight} kg</p>
+                <div className="mb-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg bg-gray-50 p-2">
+                    <p className="mb-0.5 text-[11px] text-gray-400">Weight</p>
+                    <p className="truncate text-sm font-bold text-gray-900">{animal.weight} kg</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-400 mb-1">Age</p>
-                    <p className="font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
+                  <div className="rounded-lg bg-gray-50 p-2">
+                    <p className="mb-0.5 text-[11px] text-gray-400">Age</p>
+                    <p className="truncate text-sm font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-400 mb-1">Gender</p>
-                    <p className="font-bold text-gray-900 capitalize">{animal.gender}</p>
+                  <div className="rounded-lg bg-gray-50 p-2">
+                    <p className="mb-0.5 text-[11px] text-gray-400">Gender</p>
+                    <p className="truncate text-sm font-bold capitalize text-gray-900">{animal.gender}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-400 mb-1">Location</p>
-                    <p className="font-bold text-gray-900">{animal.location}</p>
+                  <div className="rounded-lg bg-gray-50 p-2">
+                    <p className="mb-0.5 text-[11px] text-gray-400">Location</p>
+                    <p className="truncate text-sm font-bold text-gray-900">{animal.location}</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-emerald-600 text-sm">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                  <div className="flex min-w-0 items-center gap-1.5 text-xs text-emerald-600">
+                    <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Health Certified
+                    <span className="truncate">Certified</span>
                   </div>
-                  <span className="text-emerald-600 font-medium text-sm group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                    View Profile
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 transition-transform group-hover:translate-x-0.5">
+                    View
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </span>
