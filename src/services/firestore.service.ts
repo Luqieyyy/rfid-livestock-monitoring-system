@@ -113,6 +113,7 @@ export const adaptFirebaseToLivestock = (firebaseData: any): Livestock => {
     gender: (firebaseData.gender || 'male').toLowerCase() as 'male' | 'female',
     status: normalizedStatus as any,
     weight: parseFloat(firebaseData.weight) || 0,
+    price: firebaseData.price != null ? parseFloat(firebaseData.price) : undefined,
     location: firebaseData.location || firebaseData.name || 'Farm',
     createdAt: firebaseData.timestamp ? 
       (firebaseData.timestamp instanceof Timestamp ? firebaseData.timestamp.toDate() : new Date(firebaseData.timestamp)) : 

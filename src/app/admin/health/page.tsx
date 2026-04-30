@@ -61,17 +61,17 @@ export default function HealthPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Records" value={stats.total} tone="slate" icon={<ClipboardIcon />} />
         <StatCard label="Vaccinations" value={stats.vaccinations} tone="blue" icon={<VaccineIcon />} />
-        <StatCard label="Treatments" value={stats.treatments} tone="red" icon={<PillIcon />} />
+        <StatCard label="Treatments" value={stats.treatments} tone="rose" icon={<PillIcon />} />
         <StatCard label="Checkups" value={stats.checkups} tone="emerald" icon={<StethIcon />} />
       </div>
 
       {/* Filter tabs + records */}
-      <div className="rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         {/* Tabs bar */}
-        <div className="flex items-center gap-1 border-b border-slate-100 px-6 pt-5 pb-0 overflow-x-auto">
+        <div className="flex items-center gap-1 border-b border-slate-200 px-5 pt-4 overflow-x-auto">
           {([
             { value: 'all', label: 'All Records' },
             { value: 'vaccination', label: 'Vaccinations' },
@@ -82,10 +82,10 @@ export default function HealthPage() {
             <button
               key={tab.value}
               onClick={() => setFilter(tab.value)}
-              className={`flex-shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px ${
+              className={`flex-shrink-0 border-b-2 px-3.5 py-3 text-sm font-medium transition-colors ${
                 filter === tab.value
-                  ? 'border-emerald-500 text-emerald-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                  ? 'border-emerald-600 text-emerald-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               {tab.label}
@@ -121,10 +121,10 @@ function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Liv
   const animal = livestock.find((l) => l.id === record.livestockId);
   const displayId = animal?.animalId ?? record.livestockId;
   const typeConfig = {
-    vaccination: { icon: <VaccineIcon className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-50', label: 'Vaccination' },
-    treatment: { icon: <PillIcon className="h-5 w-5 text-red-500" />, bg: 'bg-red-50', label: 'Treatment' },
-    checkup: { icon: <StethIcon className="h-5 w-5 text-emerald-600" />, bg: 'bg-emerald-50', label: 'Checkup' },
-    diagnosis: { icon: <ClipboardIcon className="h-5 w-5 text-amber-600" />, bg: 'bg-amber-50', label: 'Diagnosis' },
+    vaccination: { icon: <VaccineIcon className="h-[18px] w-[18px] text-blue-600" />,   bg: 'bg-blue-50',   ring: 'ring-blue-100',   label: 'Vaccination', labelCls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'   },
+    treatment:   { icon: <PillIcon className="h-[18px] w-[18px] text-rose-500" />,      bg: 'bg-rose-50',   ring: 'ring-rose-100',   label: 'Treatment',   labelCls: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'   },
+    checkup:     { icon: <StethIcon className="h-[18px] w-[18px] text-emerald-600" />,  bg: 'bg-emerald-50',ring: 'ring-emerald-100',label: 'Checkup',     labelCls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'},
+    diagnosis:   { icon: <DiagnosisIcon className="h-[18px] w-[18px] text-amber-600" />,bg: 'bg-amber-50',  ring: 'ring-amber-100',  label: 'Diagnosis',   labelCls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'  },
   };
   const cfg = typeConfig[record.type as keyof typeof typeConfig] ?? typeConfig.checkup;
 
@@ -137,37 +137,41 @@ function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Liv
   const isOverdue = record.nextCheckup && new Date(record.nextCheckup) < new Date() && record.status !== 'completed';
 
   return (
-    <div className="flex flex-col gap-4 px-6 py-5 hover:bg-slate-50/60 transition-colors sm:flex-row sm:items-center">
-      {/* Type icon */}
-      <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${cfg.bg}`}>
-        {cfg.icon}
-      </div>
-
-      {/* Main info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 mb-1">
-          <span className="font-semibold text-slate-900 text-sm">{displayId}</span>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusStyle[record.status] ?? 'bg-slate-100 text-slate-600'}`}>
-            {record.status}
-          </span>
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 capitalize">
-            {cfg.label}
-          </span>
+    <div className="grid gap-4 px-5 py-4 transition-colors hover:bg-slate-50 lg:grid-cols-[minmax(360px,1fr)_160px_150px_190px_128px] lg:items-center">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ring-1 ${cfg.bg} ${cfg.ring}`}>
+          {cfg.icon}
         </div>
-        <p className="text-sm text-slate-500 line-clamp-1">{record.description}</p>
+
+        <div className="min-w-0">
+          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="font-mono text-sm font-bold tracking-tight text-slate-950">{displayId}</span>
+            <span className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${statusStyle[record.status] ?? 'bg-slate-100 text-slate-600'}`}>
+              {record.status}
+            </span>
+            <span className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${cfg.labelCls}`}>
+              {cfg.label}
+            </span>
+          </div>
+          <p className="max-w-3xl text-sm leading-6 text-slate-600 lg:line-clamp-1">{record.description}</p>
+        </div>
       </div>
 
-      {/* Meta */}
-      <div className="flex flex-wrap items-center gap-5 text-sm flex-shrink-0">
+      <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 lg:contents">
         <MetaItem label="Date" value={new Date(record.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })} />
-        {record.veterinarian && <MetaItem label="Vet" value={record.veterinarian} />}
-        {record.medication && <MetaItem label="Medication" value={record.medication} />}
-        {record.nextCheckup && (
-          <div className={`rounded-xl px-3 py-2 text-center ${isOverdue ? 'bg-red-50' : 'bg-amber-50'}`}>
-            <p className={`text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-amber-600'}`}>Next Checkup</p>
-            <p className={`text-sm font-semibold ${isOverdue ? 'text-red-700' : 'text-amber-700'}`}>
+        <MetaItem label="Vet" value={record.veterinarian || '-'} />
+        <MetaItem label="Medication" value={record.medication || '-'} />
+        {record.nextCheckup ? (
+          <div className={`rounded-lg px-3 py-2 text-left ring-1 ${isOverdue ? 'bg-red-50 text-red-700 ring-red-100' : 'bg-amber-50 text-amber-700 ring-amber-100'}`}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide opacity-75">Next Checkup</p>
+            <p className="mt-0.5 text-sm font-bold">
               {new Date(record.nextCheckup).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
             </p>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-slate-50 px-3 py-2 text-left text-slate-400 ring-1 ring-slate-100">
+            <p className="text-[11px] font-semibold uppercase tracking-wide">Next Checkup</p>
+            <p className="mt-0.5 text-sm font-semibold">-</p>
           </div>
         )}
       </div>
@@ -177,26 +181,32 @@ function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Liv
 
 function MetaItem({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-xs text-slate-400 mb-0.5">{label}</p>
-      <p className="font-medium text-slate-800">{value}</p>
+    <div className="min-w-0 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-100 lg:bg-transparent lg:px-0 lg:py-0 lg:ring-0">
+      <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="truncate text-sm font-semibold text-slate-800">{value}</p>
     </div>
   );
 }
 
-function StatCard({ label, value, tone, icon }: { label: string; value: number; tone: 'slate' | 'blue' | 'red' | 'emerald'; icon: React.ReactNode }) {
-  const tones = {
-    slate: { wrap: 'border-slate-200 bg-white', iconBg: 'bg-slate-100', val: 'text-slate-900' },
-    blue: { wrap: 'border-blue-100 bg-blue-50/50', iconBg: 'bg-blue-100', val: 'text-blue-700' },
-    red: { wrap: 'border-red-100 bg-red-50/50', iconBg: 'bg-red-100', val: 'text-red-700' },
-    emerald: { wrap: 'border-emerald-100 bg-emerald-50/50', iconBg: 'bg-emerald-100', val: 'text-emerald-700' },
+function StatCard({ label, value, tone, icon }: { label: string; value: number; tone: 'slate' | 'blue' | 'rose' | 'emerald'; icon: React.ReactNode }) {
+  const cfg = {
+    slate:   { iconBg: 'bg-slate-50',   iconRing: 'ring-slate-200',   val: 'text-slate-950',  sub: 'text-slate-500'  },
+    blue:    { iconBg: 'bg-blue-50',    iconRing: 'ring-blue-100',    val: 'text-blue-700',   sub: 'text-slate-500'   },
+    rose:    { iconBg: 'bg-rose-50',    iconRing: 'ring-rose-100',    val: 'text-rose-700',   sub: 'text-slate-500'   },
+    emerald: { iconBg: 'bg-emerald-50', iconRing: 'ring-emerald-100', val: 'text-emerald-700',sub: 'text-slate-500'},
   };
-  const t = tones[tone];
+  const c = cfg[tone];
   return (
-    <div className={`rounded-2xl border p-5 ${t.wrap}`}>
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${t.iconBg}`}>{icon}</div>
-      <p className={`mt-4 text-3xl font-bold tabular-nums ${t.val}`}>{value}</p>
-      <p className="mt-1 text-sm font-medium text-slate-600">{label}</p>
+    <div className="rounded-lg border border-slate-200 bg-white">
+      <div className="flex items-start justify-between gap-3 px-5 py-4">
+        <div>
+          <p className={`text-[11px] font-semibold uppercase tracking-widest ${c.sub}`}>{label}</p>
+          <p className={`mt-2 text-3xl font-bold tabular-nums leading-none ${c.val}`}>{value}</p>
+        </div>
+        <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1 ${c.iconBg} ${c.iconRing}`}>
+          {icon}
+        </div>
+      </div>
     </div>
   );
 }
@@ -226,31 +236,50 @@ function HealthSkeleton() {
 
 // ── Icons ──────────────────────────────────────────────────────
 
-function ClipboardIcon({ className = 'h-5 w-5 text-slate-600' }: { className?: string }) {
+// Document with lines — Total Records
+function ClipboardIcon({ className = 'h-5 w-5 text-slate-500' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
     </svg>
   );
 }
+
+// Shield with checkmark — Vaccination (immunity/protection)
 function VaccineIcon({ className = 'h-5 w-5 text-blue-600' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-3.036-1.116-5.8-2.944-7.893z" />
     </svg>
   );
 }
-function PillIcon({ className = 'h-5 w-5 text-red-500' }: { className?: string }) {
+
+// Medical cross in circle — Treatment
+function PillIcon({ className = 'h-5 w-5 text-rose-500' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }
+
+// Stethoscope — Checkup
 function StethIcon({ className = 'h-5 w-5 text-emerald-600' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3c-1.2 5.4-6 6-6 10a6 6 0 0012 0c0-4-4.8-4.6-6-10z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 19a3 3 0 006 0v-1" />
+      <circle cx="18" cy="18" r="1.5" strokeWidth={1.8} />
+    </svg>
+  );
+}
+
+// Magnifying glass + document — Diagnosis
+function DiagnosisIcon({ className = 'h-5 w-5 text-amber-600' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l4 4v5" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 17m-3 0a3 3 0 106 0 3 3 0 00-6 0M21 21l-1.5-1.5" />
     </svg>
   );
 }

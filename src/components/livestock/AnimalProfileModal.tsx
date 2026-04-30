@@ -28,13 +28,13 @@ interface Props {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    healthy: 'bg-emerald-100 text-emerald-700',
-    sick: 'bg-red-100 text-red-700',
-    quarantine: 'bg-amber-100 text-amber-700',
-    deceased: 'bg-gray-100 text-gray-600',
+    healthy: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    sick: 'bg-red-50 text-red-700 ring-red-200',
+    quarantine: 'bg-amber-50 text-amber-700 ring-amber-200',
+    deceased: 'bg-gray-50 text-gray-600 ring-gray-200',
   };
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${styles[status] || styles.healthy}`}>
+    <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold capitalize ring-1 ${styles[status] || styles.healthy}`}>
       {status}
     </span>
   );
@@ -42,9 +42,18 @@ function StatusBadge({ status }: { status: string }) {
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-gray-50 rounded-xl p-4">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className="font-semibold text-gray-900 capitalize">{value}</p>
+    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="truncate text-sm font-semibold capitalize text-slate-900">{value}</p>
+    </div>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold capitalize text-slate-900">{value}</p>
     </div>
   );
 }
@@ -59,7 +68,7 @@ function ModalSpinner() {
 
 function ModalEmpty({ label }: { label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 py-10 text-slate-400">
       <div className="text-3xl mb-2">📭</div>
       <p className="text-sm">{label}</p>
     </div>
@@ -132,14 +141,14 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-black/5">
 
         {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-lg font-bold text-gray-900">Animal Profile</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h2 className="text-base font-semibold text-slate-900">Animal Profile</h2>
+          <button onClick={onClose} className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -147,37 +156,47 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
 
         {/* Hero banner */}
         <div className="relative shrink-0">
-          <div className="h-28 overflow-hidden bg-gradient-to-r from-emerald-700 to-teal-600">
-            <img src={animalImgSrc} alt={animal.type} className="w-full h-full object-cover opacity-20" />
+          <div className="h-48 overflow-hidden bg-slate-100">
+            <img src={animalImgSrc} alt={animal.type} className="h-full w-full object-cover" />
           </div>
-          <div className="absolute left-6 bottom-0 translate-y-1/2">
-            <div className="w-[72px] h-[72px] rounded-2xl border-4 border-white overflow-hidden shadow-lg bg-white">
-              <img src={animalImgSrc} alt={animal.type} className="w-full h-full object-cover" />
+          <div className="absolute bottom-0 left-6 translate-y-1/2">
+            <div className="h-24 w-24 overflow-hidden rounded-xl border-4 border-white bg-white shadow-md">
+              <img src={animalImgSrc} alt={animal.type} className="h-full w-full object-cover" />
             </div>
           </div>
         </div>
 
         {/* Name row */}
-        <div className="pt-12 px-6 pb-3 shrink-0">
+        <div className="shrink-0 border-b border-slate-100 bg-white px-6 pb-4 pt-14">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
-              <p className="text-sm text-gray-500 mt-0.5">{animal.breed} • <span className="capitalize">{animal.type}</span></p>
+            <div className="min-w-0">
+              <h3 className="text-2xl font-bold tracking-tight text-slate-950">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
+              <p className="mt-1 text-sm text-slate-600">{animal.breed} / <span className="capitalize">{animal.type}</span></p>
             </div>
             <StatusBadge status={animal.status} />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <SummaryItem label="Weight" value={`${animal.weight} kg`} />
+            <SummaryItem label="Gender" value={animal.gender} />
+            <SummaryItem label="Location" value={animal.location} />
+            {animal.price != null ? (
+              <SummaryItem label="Price" value={`RM ${animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}`} />
+            ) : (
+              <SummaryItem label="Tag ID" value={animal.tagId || '-'} />
+            )}
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex px-6 border-b border-gray-100 shrink-0 gap-1">
+        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-slate-200 bg-white px-6">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
+              className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                 tab === t.key
                   ? 'border-emerald-600 text-emerald-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               {t.label}
@@ -186,11 +205,17 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
         </div>
 
         {/* Tab body */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto bg-slate-50 p-6">
 
           {tab === 'overview' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              {animal.price != null && (
+                <div className="rounded-xl border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 mb-1">Selling Price</p>
+                  <p className="text-2xl font-bold text-emerald-700">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <DetailItem label="Weight" value={`${animal.weight} kg`} />
                 <DetailItem label="Gender" value={animal.gender} />
                 <DetailItem label="Location" value={animal.location} />
@@ -201,8 +226,8 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
                 {animal.purchaseDate && <DetailItem label="Purchase Date" value={new Date(animal.purchaseDate).toLocaleDateString('en-MY')} />}
               </div>
               {animal.notes && (
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Notes</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</p>
                   <p className="text-sm text-slate-700 leading-relaxed">{animal.notes}</p>
                 </div>
               )}
@@ -330,7 +355,7 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
 
           {tab === 'yield' && (
             <div className="space-y-4">
-              <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+              <div className="rounded-xl border border-emerald-200 bg-white px-4 py-3 shadow-sm">
                 <p className="text-sm font-semibold text-emerald-800">
                   Berdasarkan berat hidup: <span className="font-bold">{animal.weight} kg</span>
                 </p>
@@ -343,7 +368,7 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
                   { label: 'Tulang', value: yieldCalc.tulang, pct: yieldCalc.tulangPct, color: 'border-slate-200 bg-slate-50', val: 'text-slate-700' },
                   { label: 'Lemak',  value: yieldCalc.lemak,  pct: yieldCalc.lemakPct,  color: 'border-amber-200 bg-amber-50',   val: 'text-amber-700' },
                 ].map((item) => (
-                  <div key={item.label} className={`rounded-xl border ${item.color} p-4 text-center`}>
+                  <div key={item.label} className={`rounded-xl border ${item.color} p-4 text-center shadow-sm`}>
                     <p className={`text-2xl font-bold ${item.val}`}>{item.value}</p>
                     <p className="text-xs text-slate-500 mt-1 font-medium">kg {item.label}</p>
                     <p className="text-[10px] text-slate-400 mt-0.5">{item.pct} yield</p>
@@ -351,7 +376,7 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
                 ))}
               </div>
 
-              <div className="rounded-xl bg-white border border-slate-200 p-4">
+              <div className="rounded-xl bg-white border border-slate-200 p-4 shadow-sm">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Usable Yield</p>
                 <div className="flex items-end gap-2">
                   <p className="text-3xl font-bold text-emerald-700">{yieldCalc.total}</p>
@@ -360,7 +385,7 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
                 <p className="text-xs text-slate-400 mt-1">{yieldCalc.totalPct}% daripada berat hidup</p>
               </div>
 
-              <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+              <div className="rounded-xl bg-white border border-slate-200 p-4 shadow-sm">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nota Anggaran</p>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Pengiraan berdasarkan kadar standard Malaysia untuk ternakan {animal.type}. Hasil sebenar bergantung kepada umur, pemakanan, dan kaedah penyembelihan.
@@ -372,18 +397,18 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-100 px-6 py-4 flex gap-3 shrink-0">
+        <div className="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4">
           {onEdit && (
             <button
               onClick={onEdit}
-              className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-colors text-sm"
+              className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
             >
               Edit Animal
             </button>
           )}
           <button
             onClick={onClose}
-            className={`py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-sm ${onEdit ? 'px-5' : 'flex-1'}`}
+            className="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
           >
             Close
           </button>

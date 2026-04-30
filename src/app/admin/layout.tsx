@@ -51,7 +51,7 @@ const navigation = [
 
 // Fallback SVG icons for items without PNG assets
 function StaffOrToolIcon({ name, active }: { name: string; active: boolean }) {
-  const cls = `w-[18px] h-[18px] shrink-0 ${active ? 'text-white' : 'text-emerald-500/70'}`;
+  const cls = `w-[18px] h-[18px] shrink-0 ${active ? 'text-white' : 'text-emerald-300/80'}`;
   if (name === 'User Management') {
     return (
       <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,7 +229,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     'Livestock Management': true,
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('fs-sidebar-collapsed');
+    if (saved !== null) setSidebarCollapsed(saved === 'true');
+  }, []);
 
   // Toggle group open/close
   const toggleGroup = (groupName: string) => {
@@ -257,6 +262,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/profile':           { section: 'Settings', label: 'Profile & Security' },
   };
   const currentPage = pageMap[pathname] ?? { section: 'Admin', label: 'FarmSense' };
+
+  useEffect(() => {
+    document.title = `${currentPage.label} | FarmSense`;
+  }, [currentPage.label]);
 
   // TEMPORARY: Development mode - bypass auth for testing
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -320,25 +329,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 z-40 transition-all duration-300 ease-in-out
+        className={`fixed left-0 top-0 bottom-0 z-40 transition-[width,transform] duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
-          ${sidebarCollapsed ? 'md:w-[68px]' : 'w-72'}`}
+          ${sidebarCollapsed ? 'md:w-[72px]' : 'w-72'}`}
         style={{ background: 'linear-gradient(180deg, #052e16 0%, #064e3b 60%, #065f46 100%)' }}
       >
         {/* Subtle top glow */}
         <div className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
 
-        {/* Centered collapse/expand toggle on right edge */}
+        {/* Collapse/expand toggle */}
         <button
-          onClick={() => setSidebarCollapsed(v => !v)}
+          onClick={() => setSidebarCollapsed(v => {
+            const next = !v;
+            localStorage.setItem('fs-sidebar-collapsed', String(next));
+            return next;
+          })}
           title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-50 w-6 h-6 items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all"
+          className="hidden md:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-50 w-7 h-7 items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-400 text-white shadow-xl border-2 border-emerald-900/40 transition-all hover:scale-110"
         >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {sidebarCollapsed
-              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
-              : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             }
           </svg>
         </button>
@@ -367,35 +380,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="mx-5 h-px bg-gradient-to-r from-transparent via-emerald-700/50 to-transparent mb-3" />
 
           {/* Navigation */}
-          <nav className={`flex-1 space-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-emerald-800 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
+          <nav className={`flex-1 space-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-emerald-800/60 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {navigation.map((item) => {
 
               if (item.type === 'single') {
                 const isActive = pathname === item.href;
                 return (
-                  <Link
-                    key={item.name}
-                    href={item.href!}
-                    title={sidebarCollapsed ? item.name : undefined}
-                    className={`group relative flex items-center gap-3 rounded-xl text-[13.5px] font-medium transition-all duration-150 ${
-                      sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'
-                    } ${
-                      isActive
-                        ? 'bg-emerald-500/20 text-white'
-                        : 'text-white/55 hover:text-white hover:bg-white/8'
-                    }`}
-                    style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.25)' } : {}}
-                  >
-                    {isActive && !sidebarCollapsed && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-emerald-400" />
+                  <div key={item.name} className="relative group/tooltip">
+                    <Link
+                      href={item.href!}
+                      className={`relative flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                        sidebarCollapsed ? 'justify-center px-2 py-3' : 'px-3 py-2.5'
+                      } ${
+                        isActive
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-white/70 hover:text-white hover:bg-white/8'
+                      }`}
+                    >
+                      {isActive && (
+                        <span className={`absolute bg-emerald-400 rounded-full ${sidebarCollapsed ? 'left-1 top-1/2 -translate-y-1/2 w-[3px] h-5' : 'left-0 top-1/2 -translate-y-1/2 w-[3px] h-5'}`} />
+                      )}
+                      {item.iconSrc ? (
+                        <NavIcon src={item.iconSrc} size={17} opacity={isActive ? 1 : 0.75} />
+                      ) : (
+                        <StaffOrToolIcon name={item.name} active={isActive} />
+                      )}
+                      {!sidebarCollapsed && <span className="flex-1 tracking-[-0.01em]">{item.name}</span>}
+                      {isActive && !sidebarCollapsed && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                      )}
+                    </Link>
+                    {/* Styled tooltip for collapsed mode */}
+                    {sidebarCollapsed && (
+                      <div className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 whitespace-nowrap rounded-lg bg-gray-900/95 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-150">
+                        {item.name}
+                        <span className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-900/95" />
+                      </div>
                     )}
-                    {item.iconSrc ? (
-                      <NavIcon src={item.iconSrc} size={17} opacity={isActive ? 1 : 0.55} />
-                    ) : (
-                      <StaffOrToolIcon name={item.name} active={isActive} />
-                    )}
-                    {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
-                  </Link>
+                  </div>
                 );
               }
 
@@ -403,28 +425,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 const isOpen = openGroups[item.name];
                 const groupActive = isGroupActive(item.children);
 
-                // Collapsed: show icons of children directly (no group header)
                 if (sidebarCollapsed) {
                   return (
-                    <div key={item.name} className="space-y-0.5">
+                    <div key={item.name} className="space-y-0.5 pt-1">
+                      <div className="mx-2 h-px bg-emerald-700/30 mb-1" />
                       {item.children.map((child) => {
                         const isActive = pathname === child.href;
                         return (
-                          <Link
-                            key={child.name}
-                            href={child.href}
-                            title={child.name}
-                            className={`flex items-center justify-center px-2 py-2.5 rounded-xl transition-all duration-150 ${
-                              isActive
-                                ? 'bg-emerald-500/20 text-white'
-                                : 'text-white/45 hover:text-white hover:bg-white/8'
-                            }`}
-                            style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.2)' } : {}}
-                          >
-                            {child.iconSrc && (
-                              <NavIcon src={child.iconSrc} size={17} opacity={isActive ? 1 : 0.45} />
-                            )}
-                          </Link>
+                          <div key={child.name} className="relative group/tooltip">
+                            <Link
+                              href={child.href}
+                              className={`relative flex items-center justify-center px-2 py-2.5 rounded-xl transition-all duration-150 ${
+                                isActive
+                                  ? 'bg-white/10 text-white'
+                                  : 'text-white/70 hover:text-white hover:bg-white/8'
+                              }`}
+                            >
+                              {isActive && (
+                                <span className="absolute left-1 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-full bg-emerald-400" />
+                              )}
+                              {child.iconSrc && (
+                                <NavIcon src={child.iconSrc} size={16} opacity={isActive ? 1 : 0.75} />
+                              )}
+                            </Link>
+                            <div className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 whitespace-nowrap rounded-lg bg-gray-900/95 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-150">
+                              {child.name}
+                              <span className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-900/95" />
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
@@ -432,47 +460,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }
 
                 return (
-                  <div key={item.name}>
+                  <div key={item.name} className="pt-2">
+                    {/* Section label */}
+                    <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-400/50 select-none">
+                      {item.name}
+                    </p>
                     <button
                       onClick={() => toggleGroup(item.name)}
-                      className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150 ${
+                      className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 ${
                         groupActive || isOpen
-                          ? 'text-white/90 bg-white/5'
-                          : 'text-white/55 hover:text-white hover:bg-white/8'
+                          ? 'text-white'
+                          : 'text-white/60 hover:text-white hover:bg-white/8'
                       }`}
                     >
-                      {item.iconSrc && <NavIcon src={item.iconSrc} size={17} opacity={groupActive ? 0.9 : 0.55} />}
-                      <span className="flex-1 text-left">{item.name}</span>
+                      {item.iconSrc && <NavIcon src={item.iconSrc} size={16} opacity={groupActive ? 1 : 0.7} />}
+                      <span className="flex-1 text-left tracking-[-0.01em]">{item.name}</span>
                       <svg
-                        className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 opacity-40 ${isOpen ? 'rotate-90' : ''}`}
+                        className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 text-white/50 ${isOpen ? 'rotate-90' : ''}`}
                         fill="none" stroke="currentColor" viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
 
                     {isOpen && (
-                      <div className="mt-0.5 ml-[22px] pl-3 border-l border-emerald-700/40 space-y-0.5 mb-1">
+                      <div className="mt-0.5 ml-3 pl-3 border-l border-emerald-700/30 space-y-0.5 mb-1">
                         {item.children.map((child) => {
                           const isActive = pathname === child.href;
                           return (
                             <Link
                               key={child.name}
                               href={child.href}
-                              className={`group relative flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-all duration-150 ${
+                              className={`relative flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[12.5px] transition-all duration-150 ${
                                 isActive
-                                  ? 'text-white bg-emerald-500/20 font-semibold'
-                                  : 'text-white/45 hover:text-white hover:bg-white/8 font-medium'
+                                  ? 'text-white font-semibold bg-white/10'
+                                  : 'text-white/65 hover:text-white hover:bg-white/8 font-medium'
                               }`}
-                              style={isActive ? { boxShadow: 'inset 0 0 0 1px rgba(52,211,153,0.2)' } : {}}
                             >
                               {isActive && (
-                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-emerald-400" />
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-4 rounded-full bg-emerald-400" />
                               )}
                               {child.iconSrc && (
-                                <NavIcon src={child.iconSrc} size={15} opacity={isActive ? 1 : 0.45} />
+                                <NavIcon src={child.iconSrc} size={14} opacity={isActive ? 1 : 0.65} />
                               )}
-                              <span className="flex-1">{child.name}</span>
+                              <span className="flex-1 tracking-[-0.01em]">{child.name}</span>
+                              {isActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />}
                             </Link>
                           );
                         })}
@@ -490,32 +522,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="mx-5 h-px bg-gradient-to-r from-transparent via-emerald-700/40 to-transparent" />
 
           {/* Bottom — user info + sign out */}
-          <div className={`py-4 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
-            {/* User chip */}
+          <div className={`py-3 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {sidebarCollapsed ? (
-              <Link href="/admin/profile" className="flex justify-center mb-1 group" title="Profile settings">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-9 h-9 rounded-lg object-cover ring-2 ring-white/10 group-hover:ring-emerald-400/50 transition-all" />
-                ) : (
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0 group-hover:ring-2 group-hover:ring-emerald-400/50 transition-all">
-                    {user?.displayName?.charAt(0).toUpperCase() || 'A'}
-                  </div>
-                )}
-              </Link>
-            ) : (
-              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 hover:border-emerald-400/30 mb-1 transition-all group">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-lg object-cover shrink-0 ring-2 ring-emerald-400/40" />
-                ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-400 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
-                    {user?.displayName?.charAt(0).toUpperCase() || 'A'}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-white truncate">{user?.displayName || 'Admin'}</p>
-                  <p className="text-[11px] text-emerald-300/80 truncate">Farm Manager</p>
+              <div className="relative group/tooltip flex justify-center mb-1">
+                <Link href="/admin/profile" className="relative block">
+                  {user?.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" className="w-9 h-9 rounded-xl object-cover ring-2 ring-white/10 hover:ring-emerald-400/60 transition-all" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold hover:ring-2 hover:ring-emerald-400/60 transition-all">
+                      {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+                    </div>
+                  )}
+                  {/* Online dot */}
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-emerald-900" />
+                </Link>
+                <div className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 whitespace-nowrap rounded-lg bg-gray-900/95 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-150">
+                  {user?.displayName || 'Admin'} · Profile
+                  <span className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-900/95" />
                 </div>
-                <svg className="w-3.5 h-3.5 text-white/40 group-hover:text-emerald-300 shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              </div>
+            ) : (
+              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/8 hover:bg-white/12 border border-white/8 hover:border-emerald-400/25 mb-1 transition-all group">
+                <div className="relative shrink-0">
+                  {user?.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-400 flex items-center justify-center text-white text-sm font-bold">
+                      {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+                    </div>
+                  )}
+                  {/* Online dot */}
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-emerald-900" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-semibold text-white truncate leading-tight">{user?.displayName || 'Admin'}</p>
+                  <p className="text-[10.5px] text-emerald-400/70 truncate">Farm Manager · Online</p>
+                </div>
+                <svg className="w-3 h-3 text-white/30 group-hover:text-emerald-400 shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
@@ -524,23 +567,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               onClick={handleLogout}
               title={sidebarCollapsed ? 'Sign Out' : undefined}
-              className={`w-full flex items-center rounded-xl text-[13.5px] font-medium text-white/60 hover:text-red-300 hover:bg-red-500/15 transition-all duration-150 ${
-                sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
+              className={`w-full flex items-center rounded-xl text-[12.5px] font-medium text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150 ${
+                sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2'
               }`}
             >
-              <svg className="w-[17px] h-[17px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               {!sidebarCollapsed && 'Sign Out'}
             </button>
-
           </div>
 
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'md:pl-[68px]' : 'md:pl-72'}`}>
+      <div className={`transition-[padding-left] duration-300 ease-in-out ${sidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-72'}`}>
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 h-[56px]">

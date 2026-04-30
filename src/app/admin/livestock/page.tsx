@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import NextImage from 'next/image';
 import { livestockService } from '@/services/firestore.service';
 import { kandangService } from '@/services/farm.service';
 import { getFirebaseDb, getFirebaseStorage } from '@/lib/firebase';
@@ -305,79 +306,50 @@ export default function LivestockPage() {
 
       {/* Livestock Grid */}
       {filteredLivestock.length > 0 ? (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
           {filteredLivestock.map((animal) => (
             <div
               key={animal.id}
               onClick={() => setSelectedAnimal(animal)}
-              className="bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group"
+              className="bg-white rounded-xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group"
             >
               {/* Animal Photo */}
-              <div className="relative h-48 bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden">
-                {animal.photoUrl ? (
-                  <img 
-                    src={animal.photoUrl} 
-                    alt={animal.animalId}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      // Fallback to emoji if image fails to load
-                      e.currentTarget.style.display = 'none';
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-6xl">${getAnimalEmoji(animal.type)}</div>`;
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl group-hover:scale-110 transition-transform">
-                    {getAnimalEmoji(animal.type)}
-                  </div>
-                )}
-                <div className="absolute top-3 right-3">
+              <div className="relative w-full aspect-square overflow-hidden">
+                <CardImage
+                  src={animal.photoUrl}
+                  alt={animal.animalId}
+                  emoji={getAnimalEmoji(animal.type)}
+                />
+                <div className="absolute top-2 right-2">
                   <StatusBadge status={animal.status} />
+                </div>
+                <div className="absolute bottom-2 left-2 bg-black/40 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  #{animal.animalId}
                 </div>
               </div>
 
               {/* Animal Info */}
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
-                    <p className="text-sm text-gray-500">{animal.breed}</p>
-                  </div>
-                  <div className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
-                    #{animal.animalId}
-                  </div>
-                </div>
+              <div className="p-3">
+                <h3 className="text-sm font-bold text-gray-900 truncate">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
+                <p className="text-xs text-gray-400 truncate mb-2">{animal.breed}</p>
 
-                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-100">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Age</p>
-                    <p className="text-sm font-semibold text-gray-700">{calculateAge(animal.dateOfBirth)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Weight</p>
-                    <p className="text-sm font-semibold text-gray-700">{animal.weight} kg</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Gender</p>
-                    <p className="text-sm font-semibold text-gray-700 capitalize">{animal.gender}</p>
-                  </div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>{calculateAge(animal.dateOfBirth)} · {animal.weight}kg · <span className="capitalize">{animal.gender}</span></span>
                 </div>
+                {animal.price != null && (
+                  <p className="text-sm font-bold text-emerald-600 mt-1">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+                )}
 
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                  <span className="text-[11px] text-gray-400 flex items-center gap-1 truncate">
+                    <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     {animal.location}
                   </span>
-                  <span className="text-emerald-600 text-sm font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                    Details
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                  <span className="text-emerald-600 text-[11px] font-semibold group-hover:translate-x-0.5 transition-transform shrink-0">
+                    Details →
                   </span>
                 </div>
               </div>
@@ -468,6 +440,30 @@ export default function LivestockPage() {
   );
 }
 
+function CardImage({ src, alt, emoji }: { src?: string; alt: string; emoji: JSX.Element }) {
+  const [error, setError] = useState(false);
+
+  if (!src || error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-5xl group-hover:scale-110 transition-transform bg-gradient-to-br from-slate-50 to-emerald-50/30">
+        {emoji}
+      </div>
+    );
+  }
+
+  return (
+    <NextImage
+      fill
+      src={src}
+      alt={alt}
+      className="object-cover group-hover:scale-105 transition-transform duration-300"
+      sizes="(max-width: 768px) 50vw, (max-width: 1280px) 25vw, 17vw"
+      quality={85}
+      onError={() => setError(true)}
+    />
+  );
+}
+
 function getAnimalEmoji(type: string): JSX.Element {
   const images: Record<string, string> = {
     cow: '/cow.jpg',
@@ -515,6 +511,7 @@ function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, ge
     dateOfBirth: '',
     gender: 'male' as 'male' | 'female',
     weight: '',
+    price: '',
     location: '',
     status: 'healthy' as 'healthy' | 'sick' | 'quarantine' | 'deceased',
     notes: '',
@@ -561,6 +558,7 @@ function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, ge
       await livestockService.create({
         ...formData,
         weight: parseFloat(formData.weight),
+        price: formData.price ? parseFloat(formData.price) : undefined,
         dateOfBirth: new Date(formData.dateOfBirth),
         photoUrl,
       } as Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>);
@@ -680,6 +678,22 @@ function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, ge
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Selling Price (RM)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">RM</span>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full pl-14 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., 5000.00"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Optional — visible to buyers in the marketplace</p>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Location (Kandang) *</label>
             <select
               required
@@ -789,6 +803,7 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs, getAllBreeds
     dateOfBirth: new Date(animal.dateOfBirth).toISOString().split('T')[0],
     gender: animal.gender as 'male' | 'female',
     weight: animal.weight.toString(),
+    price: animal.price != null ? animal.price.toString() : '',
     location: animal.location,
     status: animal.status as 'healthy' | 'sick' | 'quarantine' | 'deceased',
     notes: animal.notes || '',
@@ -835,6 +850,7 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs, getAllBreeds
       await livestockService.update(animal.id, {
         ...formData,
         weight: parseFloat(formData.weight),
+        price: formData.price ? parseFloat(formData.price) : undefined,
         dateOfBirth: new Date(formData.dateOfBirth),
         photoUrl,
       });
@@ -946,6 +962,22 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs, getAllBreeds
                 placeholder="e.g., 450"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Selling Price (RM)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">RM</span>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full pl-14 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder="e.g., 5000.00"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Optional — visible to buyers in the marketplace</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

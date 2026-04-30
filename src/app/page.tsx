@@ -2,11 +2,12 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { livestockService } from '@/services/firestore.service';
 import type { Livestock } from '@/types/livestock.types';
 import {
   ChevronRight,
+  ChevronLeft,
   MapPin,
   Phone,
   Clock,
@@ -24,6 +25,40 @@ import {
 export default function LandingPage() {
   const [livestock, setLivestock] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  useEffect(() => {
+    document.title = 'FarmSense';
+  }, []);
+
+  const scrollCarousel = (dir: 'left' | 'right') => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: dir === 'right' ? 380 : -380, behavior: 'smooth' });
+    }
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    isDragging.current = true;
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+    scrollRef.current.style.cursor = 'grabbing';
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    scrollRef.current.scrollLeft = scrollLeft.current - (x - startX.current);
+  };
+
+  const onMouseUp = () => {
+    isDragging.current = false;
+    if (scrollRef.current) scrollRef.current.style.cursor = 'grab';
+  };
 
   useEffect(() => {
     loadLivestock();
@@ -164,7 +199,7 @@ export default function LandingPage() {
 
 
       {/* Livestock Section */}
-      <section id="livestock" className="py-24 bg-gradient-to-b from-emerald-50/50 to-white overflow-hidden">
+      <section id="livestock" className="py-24 bg-gradient-to-b from-emerald-50/50 to-white">
         <div className="max-w-7xl mx-auto px-6 text-center mb-14">
           <h3 className="text-emerald-600 font-bold text-sm uppercase tracking-widest mb-3">Live Marketplace</h3>
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Senarai Ternakan Yang Tersedia</h2>
@@ -173,7 +208,32 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="flex overflow-x-auto gap-6 px-6 md:px-[calc((100vw-1280px)/2+24px)] no-scrollbar snap-x snap-mandatory pb-8">
+        <div className="relative">
+          {/* Left Arrow */}
+          <button
+            onClick={() => scrollCarousel('left')}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white shadow-xl border border-gray-200 rounded-full p-3 hover:bg-emerald-50 hover:border-emerald-300 hover:scale-110 transition-all"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-700" />
+          </button>
+
+          {/* Right Arrow */}
+          <button
+            onClick={() => scrollCarousel('right')}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white shadow-xl border border-gray-200 rounded-full p-3 hover:bg-emerald-50 hover:border-emerald-300 hover:scale-110 transition-all"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-700" />
+          </button>
+
+        <div
+          ref={scrollRef}
+          className="flex overflow-x-auto gap-6 px-10 md:px-[calc((100vw-1280px)/2+40px)] no-scrollbar snap-x snap-mandatory pb-8 select-none"
+          style={{ cursor: 'grab' }}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+        >
           {loading ? (
             [...Array(3)].map((_, i) => (
               <div key={i} className="min-w-[340px] h-[480px] bg-white rounded-3xl animate-pulse shadow-sm border border-gray-100" />
@@ -239,6 +299,7 @@ export default function LandingPage() {
           ) : (
             <div className="w-full text-center py-20 text-gray-400">No livestock available.</div>
           )}
+        </div>
         </div>
       </section>
 

@@ -10,7 +10,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'FarmSense — Smart Livestock Management',
+  title: {
+    default: 'FarmSense',
+    template: '%s | FarmSense',
+  },
   description: 'Urus ternakan anda dengan teknologi pintar. Rekod kesihatan, pembiakan, IoT monitoring & marketplace lembu kambing premium.',
   keywords: 'farmsense, livestock, farm, cattle, goats, marketplace, premium livestock, health certified, ternakan, lembu, kambing',
   metadataBase: new URL('https://farmsense.my'),

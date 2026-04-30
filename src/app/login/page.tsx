@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -16,6 +16,10 @@ export default function LoginPage() {
   const [displayName, setDisplayName] = useState('');
   const { login, register, loginWithGoogle } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    document.title = 'Sign In | FarmSense';
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

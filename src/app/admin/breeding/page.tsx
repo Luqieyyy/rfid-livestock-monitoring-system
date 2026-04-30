@@ -6,6 +6,59 @@ import type { BreedingRecord, Livestock } from '@/types/livestock.types';
 
 const ic = 'w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 transition';
 
+const DUMMY_RECORDS: BreedingRecord[] = [
+  {
+    id: 'demo-1', motherId: 'COW-00003', fatherId: 'COW-00007',
+    breedingDate: new Date('2026-01-15'),
+    expectedDeliveryDate: new Date('2026-10-22'),
+    status: 'pregnant',
+    notes: 'Natural mating confirmed. First pregnancy for this pair. Weekly monitoring in progress.',
+    createdAt: new Date(), updatedAt: new Date(),
+  },
+  {
+    id: 'demo-2', motherId: 'COW-00005', fatherId: 'COW-00009',
+    breedingDate: new Date('2025-11-10'),
+    expectedDeliveryDate: new Date('2026-08-17'),
+    actualDeliveryDate: new Date('2026-02-18'),
+    status: 'delivered', numberOfOffspring: 2,
+    notes: 'Twin calves delivered successfully. Both dam and calves in good condition.',
+    createdAt: new Date(), updatedAt: new Date(),
+  },
+  {
+    id: 'demo-3', motherId: 'COW-00008', fatherId: 'COW-00007',
+    breedingDate: new Date('2026-03-20'),
+    expectedDeliveryDate: new Date('2026-12-26'),
+    status: 'planned',
+    notes: 'Scheduled for supervised natural breeding. Vet clearance obtained.',
+    createdAt: new Date(), updatedAt: new Date(),
+  },
+  {
+    id: 'demo-4', motherId: 'COW-00002', fatherId: 'COW-00011',
+    breedingDate: new Date('2025-08-05'),
+    expectedDeliveryDate: new Date('2026-05-12'),
+    status: 'failed',
+    notes: 'No conception after 2 attempts. Veterinary consultation recommended before next cycle.',
+    createdAt: new Date(), updatedAt: new Date(),
+  },
+  {
+    id: 'demo-5', motherId: 'COW-00006', fatherId: 'COW-00007',
+    breedingDate: new Date('2026-02-01'),
+    expectedDeliveryDate: new Date('2026-11-08'),
+    status: 'pregnant',
+    notes: 'Second pregnancy. Previous calf (2025) weaned successfully.',
+    createdAt: new Date(), updatedAt: new Date(),
+  },
+  {
+    id: 'demo-6', motherId: 'COW-00004', fatherId: 'COW-00009',
+    breedingDate: new Date('2025-06-20'),
+    expectedDeliveryDate: new Date('2026-03-27'),
+    actualDeliveryDate: new Date('2025-12-28'),
+    status: 'delivered', numberOfOffspring: 1,
+    notes: 'Healthy single calf. Dam recovered well post-partum. Calf weight: 28kg.',
+    createdAt: new Date(), updatedAt: new Date(),
+  },
+];
+
 const STATUS_CFG = {
   planned: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100', dot: 'bg-sky-500', card: 'border-sky-100' },
   pregnant: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', dot: 'bg-amber-500', card: 'border-amber-100' },
@@ -31,14 +84,15 @@ export default function BreedingPage() {
     finally { setLoading(false); }
   };
 
-  const filtered = filter === 'all' ? records : records.filter((r) => r.status === filter);
+  const display = records.length > 0 ? records : DUMMY_RECORDS;
+  const filtered = filter === 'all' ? display : display.filter((r) => r.status === filter);
 
   const stats = {
-    total: records.length,
-    planned: records.filter((r) => r.status === 'planned').length,
-    pregnant: records.filter((r) => r.status === 'pregnant').length,
-    delivered: records.filter((r) => r.status === 'delivered').length,
-    failed: records.filter((r) => r.status === 'failed').length,
+    total: display.length,
+    planned: display.filter((r) => r.status === 'planned').length,
+    pregnant: display.filter((r) => r.status === 'pregnant').length,
+    delivered: display.filter((r) => r.status === 'delivered').length,
+    failed: display.filter((r) => r.status === 'failed').length,
   };
 
   if (loading) return <PageSkeleton />;

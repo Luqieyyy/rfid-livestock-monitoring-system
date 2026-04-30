@@ -282,8 +282,10 @@ export default function DiseaseDetectionPage() {
                         }`}
                       >
                         <td className="px-4 py-3 align-top">
-                          <p className="text-sm font-semibold text-slate-900">{item.id}</p>
-                          <p className="mt-1 text-xs text-slate-500">{formatDate(item.submittedAt)}</p>
+                          <p className="text-sm font-semibold text-slate-900 font-mono">
+                            #{item.id.slice(0, 8).toUpperCase()}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-400">{formatDate(item.submittedAt)}</p>
                         </td>
                         <td className="px-4 py-3 align-top">
                           <p className="text-sm font-medium text-slate-800">{item.farmerName || 'Unknown farmer'}</p>
@@ -291,7 +293,13 @@ export default function DiseaseDetectionPage() {
                         </td>
                         <td className="px-4 py-3 align-top">
                           <p className="text-sm font-medium capitalize text-slate-800">{item.animalType || 'Unknown type'}</p>
-                          <p className="mt-1 text-xs text-slate-500">{item.animalTag || item.animalId || 'No tag'}</p>
+                          <p className="mt-1 text-xs font-mono text-slate-500">
+                            {item.animalTag && item.animalTag.trim()
+                              ? item.animalTag
+                              : item.animalId
+                              ? `#${item.animalId.slice(0, 8)}`
+                              : 'No tag'}
+                          </p>
                         </td>
                         <td className="px-4 py-3 align-top">
                           <MediaCountsBadge
@@ -348,7 +356,10 @@ export default function DiseaseDetectionPage() {
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
                   <div>
                     <p className="text-xs text-slate-500">Submission ID</p>
-                    <p className="text-sm font-semibold text-slate-900">{detail.submission.id}</p>
+                    <p className="text-sm font-semibold font-mono text-slate-900">
+                      #{detail.submission.id.slice(0, 8).toUpperCase()}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 break-all">{detail.submission.id}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Submitted</p>
@@ -375,29 +386,29 @@ export default function DiseaseDetectionPage() {
                     description="This submission currently has no uploaded media for analysis."
                   />
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-3">
                     {detail.media.map((m) => (
                       <div key={m.id} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                         {m.mediaType === 'video' ? (
                           <video
-                            className="h-28 w-full object-cover"
+                            className="w-full max-h-[400px] object-contain bg-black"
                             controls
                             src={m.previewUrl || undefined}
                           />
                         ) : (
-                          <div className="relative h-28 w-full">
+                          <div className="relative w-full" style={{ aspectRatio: '16/10' }}>
                             <Image
                               fill
-                              className="object-cover"
+                              className="object-contain"
                               src={m.previewUrl || '/FarmSense.jpg'}
                               alt={m.fileName || 'media'}
                               unoptimized
                             />
                           </div>
                         )}
-                        <div className="flex items-center justify-between px-2 py-1 text-[11px] text-slate-500">
-                          <span className="capitalize">{m.mediaType}</span>
-                          <span>{m.status || 'unknown'}</span>
+                        <div className="flex items-center justify-between px-3 py-2 text-[11px] text-slate-500 border-t border-slate-100">
+                          <span className="capitalize font-medium">{m.mediaType}</span>
+                          <span className={m.status === 'uploaded' ? 'text-emerald-600 font-semibold' : ''}>{m.status || 'unknown'}</span>
                         </div>
                       </div>
                     ))}

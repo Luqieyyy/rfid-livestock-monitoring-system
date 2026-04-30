@@ -60,7 +60,11 @@ function BuyerPortalContent() {
       );
     }
 
-    if (sortBy === 'weight-asc') {
+    if (sortBy === 'price-asc') {
+      filtered.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+    } else if (sortBy === 'price-desc') {
+      filtered.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    } else if (sortBy === 'weight-asc') {
       filtered.sort((a, b) => a.weight - b.weight);
     } else if (sortBy === 'weight-desc') {
       filtered.sort((a, b) => b.weight - a.weight);
@@ -196,6 +200,8 @@ function BuyerPortalContent() {
             className="px-4 py-3 bg-gray-50 border-0 rounded-xl text-sm font-medium text-gray-600 focus:ring-2 focus:ring-emerald-500"
           >
             <option value="newest">Newest First</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
             <option value="weight-desc">Weight: High to Low</option>
             <option value="weight-asc">Weight: Low to High</option>
             <option value="age-desc">Age: Oldest First</option>
@@ -251,6 +257,12 @@ function BuyerPortalContent() {
                   <h3 className="text-xl font-bold text-gray-900">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
                   <p className="text-gray-500 capitalize">{animal.breed} • {animal.type}</p>
                 </div>
+                {animal.price != null && (
+                  <div className="mb-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl px-4 py-3">
+                    <p className="text-xs text-emerald-600 font-medium">Harga</p>
+                    <p className="text-2xl font-bold text-emerald-700">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-xl p-3">
                     <p className="text-xs text-gray-400 mb-1">Weight</p>
@@ -355,6 +367,12 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
         <div className="p-8">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {animal.price != null && (
+              <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-5 text-center border-2 border-emerald-200">
+                <p className="text-xs text-emerald-600 font-semibold mb-1">Harga Jualan</p>
+                <p className="text-3xl font-bold text-emerald-700">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+              </div>
+            )}
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 text-center border border-emerald-100">
               <p className="text-xs text-gray-500 mb-1">Weight</p>
               <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
@@ -456,9 +474,11 @@ function AnimalDetailModal({ animal, onClose, calculateAge }: {
             <button 
               type="button"
               onClick={() => {
-                // Open WhatsApp or messaging system
-                const message = `Hi, I'm interested in ${animal.breed} ${animal.type} (ID: ${animal.animalId}). Can we discuss further?`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                const typeName = animal.type === 'cow' ? 'lembu' : animal.type === 'goat' ? 'kambing' : animal.type;
+                const breedName = animal.breed;
+                const priceText = animal.price != null ? `\nHarga yang tertera: RM ${animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}` : '';
+                const message = `Assalamualaikum, saya berminat untuk membeli ${typeName} baka ${breedName} (ID: ${animal.animalId}).\n\nMaklumat haiwan:\n- Berat: ${animal.weight} kg\n- Jantina: ${animal.gender === 'male' ? 'Jantan' : 'Betina'}${priceText}\n\nBoleh saya dapatkan maklumat lanjut?\n\nTerima kasih.`;
+                const whatsappUrl = `https://wa.me/60173743683?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
               }}
               className="flex-1 px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"

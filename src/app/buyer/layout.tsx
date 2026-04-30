@@ -15,6 +15,10 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
   const isLoginPage = pathname === '/login';
 
   useEffect(() => {
+    document.title = 'Marketplace | FarmSense';
+  }, []);
+
+  useEffect(() => {
     if (!loading && !isLoginPage) {
       if (!user) {
         router.push('/login');

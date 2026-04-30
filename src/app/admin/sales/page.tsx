@@ -83,12 +83,19 @@ export default function SalesPage() {
     return styles[status] || styles.pending;
   };
 
+  const tabCounts: Record<string, number> = {
+    all: sales.length,
+    pending: sales.filter(s => s.paymentStatus === 'pending').length,
+    partial: sales.filter(s => s.paymentStatus === 'partial').length,
+    completed: sales.filter(s => s.paymentStatus === 'completed').length,
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading sales records...</p>
+          <div className="w-10 h-10 border-[3px] border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400 font-medium">Loading sales records...</p>
         </div>
       </div>
     );
@@ -96,188 +103,227 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sales Management</h1>
-          <p className="text-gray-500 mt-1">Track livestock sales, payments, and deliveries</p>
+          <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Finance</p>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Sales Management</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Track livestock sales, payments, and deliveries</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-emerald-500/30"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
           New Sale
         </button>
       </div>
 
-      {/* Revenue Cards */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">💰</span>
-            </div>
-            <span className="text-xs bg-white/20 px-3 py-1 rounded-full">Total</span>
+      {/* Stat Cards */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Revenue */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full" />
+          <div className="absolute -right-2 -bottom-6 w-16 h-16 bg-white/5 rounded-full" />
+          <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+            <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <p className="text-3xl font-bold">{formatMYR(stats.totalRevenue)}</p>
-          <p className="text-emerald-100 text-sm mt-1">Total Revenue</p>
+          <p className="text-2xl font-extrabold tracking-tight">{formatMYR(stats.totalRevenue)}</p>
+          <p className="text-emerald-100 text-xs font-medium mt-1">Total Revenue</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+
+        {/* Pending Revenue */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">⏳</span>
+            <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
+              <svg className="w-4.5 h-4.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{formatMYR(stats.pendingRevenue)}</p>
-          <p className="text-gray-500 text-sm mt-1">Pending Revenue</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">📊</span>
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-          <p className="text-gray-500 text-sm mt-1">Total Sales</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">📦</span>
-            </div>
-            {stats.pendingDeliveries > 0 && (
-              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium">
-                Action needed
-              </span>
+            {stats.pendingRevenue > 0 && (
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-wide">Pending</span>
             )}
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.pendingDeliveries}</p>
-          <p className="text-gray-500 text-sm mt-1">Pending Deliveries</p>
+          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{formatMYR(stats.pendingRevenue)}</p>
+          <p className="text-gray-400 text-xs font-medium mt-1">Pending Revenue</p>
+        </div>
+
+        {/* Total Sales */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+            <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{stats.total}</p>
+          <p className="text-gray-400 text-xs font-medium mt-1">Total Sales</p>
+        </div>
+
+        {/* Pending Deliveries */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
+              <svg className="w-4.5 h-4.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+            </div>
+            {stats.pendingDeliveries > 0 && (
+              <span className="text-[10px] font-bold bg-red-100 text-red-500 px-2 py-0.5 rounded-full uppercase tracking-wide">Action needed</span>
+            )}
+          </div>
+          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{stats.pendingDeliveries}</p>
+          <p className="text-gray-400 text-xs font-medium mt-1">Pending Deliveries</p>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4">
-        <div className="flex gap-2 flex-wrap">
-          {[
-            { value: 'all', label: 'All Sales' },
-            { value: 'pending', label: 'Pending Payment' },
-            { value: 'partial', label: 'Partial Payment' },
-            { value: 'completed', label: 'Completed' },
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setFilter(tab.value)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                filter === tab.value
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Table Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-      {/* Sales List */}
-      {filteredSales.length > 0 ? (
-        <div className="space-y-4">
-          {filteredSales.map((sale) => {
-            const deliveryInfo = getDeliveryBadge(sale.deliveryStatus);
-            return (
-              <div key={sale.id} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-emerald-200 transition-all">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                  {/* Main Info */}
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center text-2xl">
-                      💵
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-gray-900">Livestock: {getLivestockLabel(sale.livestockId)}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getPaymentBadge(sale.paymentStatus)}`}>
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { value: 'all', label: 'All' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'partial', label: 'Partial' },
+              { value: 'completed', label: 'Completed' },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setFilter(tab.value)}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  filter === tab.value
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {tab.label}
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                  filter === tab.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {tabCounts[tab.value]}
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 font-medium">{filteredSales.length} record{filteredSales.length !== 1 ? 's' : ''}</p>
+        </div>
+
+        {/* Table */}
+        {filteredSales.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Livestock</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Buyer</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="text-center px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Payment</th>
+                  <th className="text-center px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Delivery</th>
+                  <th className="px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredSales.map((sale) => {
+                  const deliveryInfo = getDeliveryBadge(sale.deliveryStatus);
+                  return (
+                    <tr key={sale.id} className="hover:bg-gray-50/70 transition-colors group">
+                      {/* Livestock */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 text-[13px]">{getLivestockLabel(sale.livestockId)}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Buyer */}
+                      <td className="px-5 py-4">
+                        <p className="font-semibold text-gray-800 text-[13px]">{sale.buyerName}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{sale.buyerContact}</p>
+                      </td>
+
+                      {/* Date */}
+                      <td className="px-5 py-4">
+                        <p className="text-gray-600 text-[13px]">
+                          {new Date(sale.saleDate).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </td>
+
+                      {/* Amount */}
+                      <td className="px-5 py-4 text-right">
+                        <p className="font-bold text-emerald-600 text-[15px] tracking-tight">{formatMYR(sale.price)}</p>
+                      </td>
+
+                      {/* Payment Badge */}
+                      <td className="px-5 py-4 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold capitalize ${getPaymentBadge(sale.paymentStatus)}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            sale.paymentStatus === 'completed' ? 'bg-emerald-500' :
+                            sale.paymentStatus === 'partial' ? 'bg-blue-500' : 'bg-amber-500'
+                          }`} />
                           {sale.paymentStatus}
                         </span>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Sold on {new Date(sale.saleDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
+                      </td>
 
-                  {/* Buyer Info */}
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-400 mb-1">Buyer</p>
-                    <p className="font-semibold text-gray-900">{sale.buyerName}</p>
-                    <p className="text-sm text-gray-500">{sale.buyerContact}</p>
-                  </div>
+                      {/* Delivery Badge */}
+                      <td className="px-5 py-4 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border capitalize ${deliveryInfo.bg}`}>
+                          <span>{deliveryInfo.icon}</span>
+                          {sale.deliveryStatus.replace('-', ' ')}
+                        </span>
+                      </td>
 
-                  {/* Price */}
-                  <div className="text-right lg:text-center">
-                    <p className="text-xs text-gray-400 mb-1">Amount</p>
-                    <p className="text-2xl font-bold text-emerald-600">{formatMYR(sale.price)}</p>
-                  </div>
-
-                  {/* Delivery Status */}
-                  <div className={`px-4 py-3 rounded-xl border ${deliveryInfo.bg} flex items-center gap-2`}>
-                    <span className="text-xl">{deliveryInfo.icon}</span>
-                    <div>
-                      <p className="text-xs opacity-70">Delivery</p>
-                      <p className="font-medium capitalize">{sale.deliveryStatus}</p>
-                    </div>
-                  </div>
-
-                  {/* Edit Button */}
-                  <button
-                    onClick={() => {
-                      setSelectedSale(sale);
-                      setShowEditModal(true);
-                    }}
-                    className="p-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors"
-                    title="Edit sale"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                </div>
-
-                {sale.notes && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-sm text-gray-500 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                      </svg>
-                      {sale.notes}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">💰</span>
+                      {/* Edit */}
+                      <td className="px-5 py-4 text-right">
+                        <button
+                          onClick={() => { setSelectedSale(sale); setShowEditModal(true); }}
+                          className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100"
+                          title="Edit sale"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No sales records found</h3>
-          <p className="text-gray-500 mb-6">Start tracking your sales by recording a new transaction</p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Record First Sale
-          </button>
-        </div>
-      )}
+        ) : (
+          <div className="py-20 text-center">
+            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">No records found</h3>
+            <p className="text-xs text-gray-400 mb-5">Record a new sale to get started</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              New Sale
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Add Modal */}
       {showAddModal && (

@@ -1,0 +1,78 @@
+
+> farmsense-management-system@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3003
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3s
+ ○ Compiling / ...
+ ✓ Compiled / in 6.1s (1733 modules)
+ GET / 200 in 7009ms
+ ✓ Compiled in 1017ms (718 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 877ms (1727 modules)
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 2.9s (2798 modules)
+ ○ Compiling /admin/disease-detection ...
+ ✓ Compiled /admin/health in 1809ms (2812 modules)
+ ○ Compiling /admin/livestock ...
+ ✓ Compiled /admin/livestock in 904ms (2826 modules)
+ ✓ Compiled in 1415ms (2840 modules)
+ GET /admin/health 200 in 517ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1447ms (2824 modules)
+ GET /_next/static/css/app/layout.css?v=1777554683166 404 in 1904ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 1883ms
+ GET /_next/static/chunks/main-app.js?v=1777554683166 404 in 1886ms
+ GET /_next/static/chunks/app/admin/health/page.js 404 in 1884ms
+ GET /_next/static/chunks/app/layout.js 404 in 1760ms
+ GET /_next/static/chunks/app/admin/layout.js 404 in 1883ms
+ GET /admin/health 200 in 69ms
+ GET /_next/static/css/app/layout.css?v=1777554689478 404 in 36ms
+ GET /_next/static/chunks/main-app.js?v=1777554689478 404 in 76ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 74ms
+ GET /_next/static/chunks/app/admin/health/page.js 404 in 74ms
+ GET /_next/static/chunks/app/admin/layout.js 404 in 73ms
+ GET /_next/static/chunks/app/layout.js 404 in 72ms
+ ✓ Compiled in 2.9s (2835 modules)
+ ✓ Compiled in 869ms (2835 modules)
+ ✓ Compiled in 987ms (2835 modules)
+ ✓ Compiled in 986ms (2835 modules)
+ ✓ Compiled in 975ms (2835 modules)
+ ✓ Compiled in 884ms (2835 modules)
+ ✓ Compiled in 699ms (2835 modules)
+ ✓ Compiled in 906ms (2835 modules)
+ ✓ Compiled in 692ms (2835 modules)
+ ✓ Compiled in 818ms (2835 modules)
+ ✓ Compiled in 737ms (2835 modules)
+ GET / 200 in 468ms
+ ○ Compiling /buyer ...
+ ✓ Compiled /buyer in 1403ms (2834 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.4s (3060 modules)
+ ✓ Compiled in 1355ms (3064 modules)
+ ✓ Compiled in 945ms (3064 modules)
+ ✓ Compiled in 736ms (3064 modules)
+ ✓ Compiled in 4.2s (3064 modules)
+ ✓ Compiled in 1473ms (3064 modules)
+ ✓ Compiled in 2.9s (3066 modules)
+ ✓ Compiled in 1605ms (3066 modules)
+ ✓ Compiled in 1049ms (3066 modules)
+ ✓ Compiled in 1279ms (3066 modules)
+ ✓ Compiled in 1362ms (3066 modules)
+ ✓ Compiled in 1029ms (3066 modules)
+ ✓ Compiled in 1291ms (3066 modules)
+ ✓ Compiled in 1237ms (3066 modules)
+ ✓ Compiled in 3.2s (3066 modules)
+ ✓ Compiled in 1139ms (3066 modules)
+ ✓ Compiled in 1323ms (3066 modules)
+ ✓ Compiled in 1022ms (3066 modules)
+ ✓ Compiled in 619ms (1457 modules)
+ ✓ Compiled in 779ms (3066 modules)
+ ✓ Compiled in 805ms (3066 modules)
+ ✓ Compiled in 477ms (1457 modules)
+ ✓ Compiled in 682ms (3066 modules)
+ ✓ Compiled in 858ms (3066 modules)

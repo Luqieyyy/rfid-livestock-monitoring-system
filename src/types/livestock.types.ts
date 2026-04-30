@@ -14,6 +14,7 @@ export interface FirebaseLivestock {
   rfid: string; // Required RFID tag identifier
   gender?: string;
   weight?: number;
+  price?: number; // Selling price in RM
   location?: string;
   dateOfBirth?: any;
   notes?: string;
@@ -32,6 +33,7 @@ export interface Livestock {
   gender: 'male' | 'female';
   status: 'healthy' | 'sick' | 'quarantine' | 'deceased' | 'sold';
   weight: number;
+  price?: number; // Selling price in RM
   location: string;
   purchaseDate?: Date;
   purchasePrice?: number;
