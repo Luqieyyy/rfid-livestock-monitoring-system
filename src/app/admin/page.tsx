@@ -102,6 +102,21 @@ export default function AdminDashboard() {
         totalRevenue={stats?.totalRevenue || 0}
       />
 
+      {/* ── Health alert — shown inline after KPI strip ─────────────── */}
+      {stats && stats.sickCount > 0 && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <AlertIcon className="h-4 w-4 shrink-0 text-red-500" />
+            <p className="text-sm text-red-700">
+              <span className="font-semibold">{stats.sickCount} haiwan</span> sedang dalam rawatan. Semak rekod health.
+            </p>
+          </div>
+          <Link href="/admin/health" className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700 transition-colors">
+            View →
+          </Link>
+        </div>
+      )}
+
       <section>
         <SectionLabel>Sales Analytics</SectionLabel>
         <SalesAnalyticsSection
@@ -214,9 +229,13 @@ export default function AdminDashboard() {
             renderItem={(animal: Livestock) => (
               <div className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                    <AnimalIcon className="h-3.5 w-3.5 text-slate-500" />
-                  </div>
+                  {animal.photoUrl ? (
+                    <img src={animal.photoUrl} alt={animal.animalId} className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-slate-200 shadow-sm" />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+                      {(animal.animalId || animal.id).slice(-2)}
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm font-medium text-slate-800">{animal.animalId || animal.id}</p>
                     <p className="text-xs capitalize text-slate-400">{animal.breed} · {animal.type}</p>
@@ -255,16 +274,21 @@ export default function AdminDashboard() {
             href="/admin/health"
             items={upcomingCheckups}
             emptyMessage="No upcoming checkups"
-            renderItem={(checkup: HealthRecord) => (
+            renderItem={(checkup: HealthRecord) => {
+              const animal = livestock.find((l) => l.id === checkup.livestockId);
+              const displayId = animal?.animalId ?? checkup.livestockId;
+              return (
               <div className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                    <CalendarIcon className="h-3.5 w-3.5 text-slate-500" />
-                  </div>
+                  {animal?.photoUrl ? (
+                    <img src={animal.photoUrl} alt={displayId} className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-slate-200 shadow-sm" />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                      {displayId.slice(-2)}
+                    </div>
+                  )}
                   <div>
-                    <p className="text-sm font-medium text-slate-800">
-                      {livestock.find((l) => l.id === checkup.livestockId)?.animalId ?? checkup.livestockId}
-                    </p>
+                    <p className="text-sm font-medium text-slate-800">{displayId}</p>
                     <p className="text-xs capitalize text-slate-400">{checkup.type}</p>
                   </div>
                 </div>
@@ -272,7 +296,8 @@ export default function AdminDashboard() {
                   {checkup.nextCheckup ? new Date(checkup.nextCheckup).toLocaleDateString('en-MY') : 'N/A'}
                 </p>
               </div>
-            )}
+              );
+            }}
           />
 
           {/* Quick actions */}
@@ -314,20 +339,6 @@ export default function AdminDashboard() {
         </section>
       )}
 
-      {/* ── Health alert ───────────────────────────────────────────── */}
-      {stats && stats.sickCount > 0 && (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <AlertIcon className="h-4 w-4 shrink-0 text-red-500" />
-            <p className="text-sm text-red-700">
-              <span className="font-semibold">{stats.sickCount} haiwan</span> sedang dalam rawatan. Semak rekod health.
-            </p>
-          </div>
-          <Link href="/admin/health" className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700 transition-colors">
-            View →
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
@@ -359,39 +370,51 @@ function OverviewKpiStrip({
   totalRevenue: number;
 }) {
   return (
-    <div className="grid overflow-hidden rounded-lg border border-slate-200 bg-white sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <OverviewKpiCell
         label="Total Animals"
         value={totalLivestock.toLocaleString('en-MY')}
         helper="Tracked livestock"
-        icon={<AnimalIcon className="h-4 w-4" />}
+        accent="border-slate-400"
+        cardBg="from-slate-50 to-slate-100"
+        valCls="text-slate-800"
+        iconSrc="/totallivestockfarm.jpg"
       />
       <OverviewKpiCell
         label="Healthy Rate"
         value={`${healthyRate}%`}
         helper="Current herd condition"
-        tone="emerald"
-        icon={<PulseIcon className="h-4 w-4" />}
+        accent="border-emerald-500"
+        cardBg="from-emerald-50 to-emerald-100"
+        valCls="text-emerald-700"
+        iconSrc="/healthy.png"
       />
       <OverviewKpiCell
         label="Under Treatment"
         value={sickCount.toLocaleString('en-MY')}
         helper="Needs follow-up"
-        tone={sickCount > 0 ? 'amber' : 'slate'}
-        icon={<AlertIcon className="h-4 w-4" />}
+        accent={sickCount > 0 ? 'border-amber-500' : 'border-slate-400'}
+        cardBg={sickCount > 0 ? 'from-amber-50 to-amber-100' : 'from-slate-50 to-slate-100'}
+        valCls={sickCount > 0 ? 'text-amber-700' : 'text-slate-800'}
+        iconSrc="/sickanimal.png"
       />
       <OverviewKpiCell
         label="Pending Checkups"
         value={checkupsCount.toLocaleString('en-MY')}
         helper="Scheduled reviews"
-        icon={<CalendarIcon className="h-4 w-4" />}
+        accent="border-blue-500"
+        cardBg="from-blue-50 to-blue-100"
+        valCls="text-blue-700"
+        iconSrc="/HealthRecordsicon/Checkups.png"
       />
       <OverviewKpiCell
         label="Revenue"
         value={`MYR ${totalRevenue.toLocaleString('en-MY')}`}
         helper="Completed payments"
-        tone="emerald"
-        icon={<SalesIcon className="h-4 w-4" />}
+        accent="border-emerald-500"
+        cardBg="from-emerald-50 to-emerald-100"
+        valCls="text-emerald-700"
+        iconSrc="/sales_myr.png"
       />
     </div>
   );
@@ -401,30 +424,28 @@ function OverviewKpiCell({
   label,
   value,
   helper,
-  icon,
-  tone = 'slate',
+  accent,
+  cardBg,
+  valCls,
+  iconSrc,
 }: {
   label: string;
   value: string;
   helper: string;
-  icon: React.ReactNode;
-  tone?: 'slate' | 'emerald' | 'amber';
+  accent: string;
+  cardBg: string;
+  valCls: string;
+  iconSrc: string;
 }) {
-  const toneClass = {
-    slate: { icon: 'bg-slate-100 text-slate-500', value: 'text-slate-900' },
-    emerald: { icon: 'bg-emerald-50 text-emerald-600', value: 'text-emerald-600' },
-    amber: { icon: 'bg-amber-50 text-amber-600', value: 'text-amber-600' },
-  }[tone];
-
   return (
-    <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 sm:odd:border-r xl:border-b-0 xl:border-r xl:last:border-r-0">
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClass.icon}`}>
-        {icon}
-      </div>
+    <div className={`flex items-center justify-between rounded-xl border border-slate-200 bg-gradient-to-br ${cardBg} px-5 py-5 border-l-4 ${accent} shadow-sm min-h-[100px]`}>
       <div className="min-w-0">
-        <p className="text-[11px] text-slate-400">{label}</p>
-        <p className={`mt-0.5 truncate text-lg font-semibold tabular-nums ${toneClass.value}`}>{value}</p>
-        <p className="truncate text-[11px] text-slate-400">{helper}</p>
+        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
+        <p className={`text-2xl font-extrabold tabular-nums leading-none ${valCls}`}>{value}</p>
+        <p className="mt-1 text-[11px] text-slate-400">{helper}</p>
+      </div>
+      <div className="shrink-0 ml-3">
+        <img src={iconSrc} alt={label} className="h-16 w-16 object-contain" />
       </div>
     </div>
   );

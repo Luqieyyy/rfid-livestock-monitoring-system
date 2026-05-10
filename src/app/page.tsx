@@ -98,102 +98,112 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between py-3">
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4">
+        <nav className="w-full max-w-5xl flex items-center justify-between rounded-2xl bg-white/90 backdrop-blur-md border border-gray-200/80 shadow-xl shadow-slate-900/10 px-5 py-3">
           <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-11 h-11 flex items-center justify-center overflow-hidden">
-              <Image src="/farmsenselogo.png" alt="FarmSense Logo" width={44} height={44} className="object-contain group-hover:scale-110 transition-transform" />
+            <div className="w-8 h-8 flex items-center justify-center overflow-hidden">
+              <Image src="/farmsenselogo.png" alt="FarmSense Logo" width={32} height={32} className="object-contain group-hover:scale-110 transition-transform" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-slate-900">
+            <span className="text-lg font-bold tracking-tight text-slate-900">
               Farm<span className="text-emerald-600">Sense</span>
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-600">
+          <div className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600">
             <a href="#features" className="hover:text-emerald-600 transition-colors">Features</a>
             <a href="#livestock" className="hover:text-emerald-600 transition-colors">Livestock</a>
             <a href="#about" className="hover:text-emerald-600 transition-colors">About</a>
             <a href="#reviews" className="hover:text-emerald-600 transition-colors">Reviews</a>
           </div>
 
-          <Link href="/login" className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-emerald-200 transition-all active:scale-95">
+          <Link href="/login" className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-lg shadow-emerald-900/30">
             Login
           </Link>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Hero Section */}
-      <section className="relative px-6 overflow-hidden" style={{minHeight: '90vh', display: 'flex', alignItems: 'center', paddingTop: '80px'}}>
+      <section className="relative overflow-hidden px-4 sm:px-6" style={{minHeight: '92vh', display: 'flex', alignItems: 'center', paddingTop: '92px'}}>
         {/* Background image */}
         <div className="absolute inset-0">
           <img src="/backgroundlembu.jpg" alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-slate-950/45" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/10 to-white/80" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/20 border border-white/30 text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-6 backdrop-blur-sm">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              Malaysia&apos;s Trusted Livestock Marketplace
-            </div>
-
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight drop-shadow-lg">
-              Pilih Ternakan<br />
-              <span className="text-emerald-400">Sedia untuk Dijual</span><br />
-              Hari Ini
-            </h1>
-            <p className="text-lg text-white/90 mb-8 leading-relaxed max-w-xl drop-shadow">
-              Dengan sistem pemantauan 24/7 dan kawalan biosekuriti yang ketat, kami menjamin persekitaran yang paling kondusif untuk ternakan sebelum berpindah tangan.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/buyer" className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold hover:shadow-xl hover:shadow-emerald-200 transition-all flex items-center gap-2 active:scale-95">
-                Cari Ternakan Tersedia
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <a href="#about" className="px-8 py-4 bg-white/20 border-2 border-white/40 text-white rounded-xl font-bold hover:bg-white/30 transition-all backdrop-blur-sm">
-                Ketahui Lebih Lanjut
-              </a>
-            </div>
-
-            {/* Trust row */}
-            <div className="flex items-center gap-6 mt-10 pt-8 border-t border-gray-100">
-              <div className="flex -space-x-2">
-                {['#10b981','#0891b2','#7c3aed','#f59e0b'].map((c, i) => (
-                  <div key={i} className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: c }}>
-                    {['N','A','C','S'][i]}
-                  </div>
-                ))}
+        <div className="relative mx-auto w-full max-w-7xl">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left — text */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Malaysia&apos;s Trusted Livestock Marketplace
               </div>
-              <div>
-                <div className="flex text-amber-400">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="fill-current w-4 h-4" />)}
+
+              <h1 className="text-4xl font-extrabold leading-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl">
+                Pilih Ternakan{' '}
+                <span className="text-emerald-400">Sedia untuk Dijual</span>{' '}
+                Hari Ini
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 drop-shadow sm:text-lg">
+                Dengan sistem pemantauan 24/7 dan kawalan biosekuriti yang ketat, kami menjamin persekitaran yang paling kondusif untuk ternakan sebelum berpindah tangan.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link href="/buyer" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-7 py-3.5 font-bold text-white shadow-xl shadow-emerald-900/20 transition-all hover:from-emerald-700 hover:to-teal-700 active:scale-95">
+                  Cari Ternakan Tersedia
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <a href="#about" className="rounded-xl border border-white/40 bg-white/15 px-7 py-3.5 font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25">
+                  Ketahui Lebih Lanjut
+                </a>
+              </div>
+
+              <div className="mt-10 flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {['#10b981','#0891b2','#7c3aed','#f59e0b'].map((c, i) => (
+                    <div key={i} className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: c }}>
+                      {['N','A','C','S'][i]}
+                    </div>
+                  ))}
                 </div>
-                <p className="text-xs text-white/70 mt-0.5">Dipercayai 500+ pembeli</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl transform rotate-3 opacity-10" />
-            <div className="relative bg-white p-2 rounded-3xl shadow-2xl ring-1 ring-gray-100">
-              <div className="relative h-[420px] rounded-2xl overflow-hidden">
-                <Image src="/landingpage1.jpg" alt="Livestock" fill className="object-cover" priority />
-                {/* Floating card */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg flex items-center gap-4">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <div className="flex text-amber-400">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="fill-current w-4 h-4" />)}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 font-medium">Health Status</p>
-                    <p className="font-bold text-gray-900 text-sm">All livestock vet-certified</p>
-                  </div>
-                  <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">Live</span>
+                  <p className="text-xs font-semibold text-white/80 mt-0.5">Dipercayai 500+ pembeli</p>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Right — livestock card */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="hidden lg:block"
+            >
+              <div className="relative rounded-2xl overflow-hidden border-4 border-white/80 shadow-2xl shadow-slate-950/40">
+                <div className="relative h-72">
+                  <Image src="/indexpage.jpg" alt="Livestock" fill className="object-cover" priority />
+                </div>
+                <div className="flex items-center justify-between bg-white px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Health Status</p>
+                      <p className="text-sm font-bold text-slate-800">All livestock vet-certified</p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 bg-emerald-500 text-white text-xs font-black rounded-full">Live</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 

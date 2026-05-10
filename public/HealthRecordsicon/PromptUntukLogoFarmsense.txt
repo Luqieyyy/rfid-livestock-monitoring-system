@@ -1,0 +1,82 @@
+Create a modern flat 2D vector illustration icon in premium Iconscout style for a smart farming/livestock management mobile app called “FarmSense”.
+
+IMPORTANT:
+Follow the exact visual branding and color theme of the provided FarmSense dashboard reference image:
+- soft green pastel tones
+- light mint green UI accents
+- white clean card-style aesthetic
+- subtle earthy farming colors
+- modern agrotech startup vibe
+- soft shadows and rounded design
+- minimal clean healthcare/livestock dashboard appearance
+- premium mobile SaaS illustration style
+
+VERY IMPORTANT COLOR RULE:
+- The BACKGROUND and UI elements may use mint green/pastel green theme
+- BUT the livestock animals MUST keep their ORIGINAL natural colors
+- Cows should use realistic white, brown, black, cream patterns
+- Goats should use realistic beige, brown, white, cream fur colors
+- Do NOT tint the animals fully green
+- Avoid monochrome green animals
+- Animals must visually stand out from the green background
+- Use natural livestock color palettes while maintaining the FarmSense UI theme
+
+STYLE REQUIREMENTS:
+- Minimal clean flat illustration
+- Soft rounded shapes
+- Modern SaaS/mobile app aesthetic
+- White or transparent background
+- Main UI color palette:
+  - pastel green
+  - mint green
+  - soft beige
+  - light brown
+  - subtle cream white
+- Professional startup-style design
+- Cute but premium
+- Similar to Iconscout / Storyset / Icons8 illustration quality
+- Simple soft shadows
+- High quality SVG-style vector look
+- Centered composition
+- Mobile app friendly
+- No text
+- No watermark
+- Smooth modern character proportions
+- Slight futuristic agrotech vibe
+
+ANIMAL RESTRICTION:
+- ONLY use cows or goats
+- Do NOT include chickens, sheep, horses, ducks, cats, dogs, or other animals
+- Livestock illustrations must focus only on cattle or goats
+- Keep the livestock appearance realistic but simplified in modern flat vector style
+
+MAIN ICON SUBJECT:
+[Total Health Records]
+
+OPTIONAL DETAILS:
+Include:
+- cows or goats only
+- veterinary healthcare equipment
+- smart livestock monitoring
+- IoT sensors
+- wireless monitoring signals
+- smart farming technology
+- livestock healthcare dashboard style
+- subtle AI/agrotech elements
+- farm environment elements
+
+VISUAL MOOD:
+- trustworthy
+- clean
+- healthy
+- modern agriculture technology
+- friendly veterinary ecosystem
+- enterprise farming app aesthetic
+
+OUTPUT:
+- Transparent background
+- App icon ready
+- Clean vector illustration
+- 1:1 ratio
+- High resolution
+- Consistent with FarmSense dashboard UI branding

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { healthRecordService, livestockService } from '@/services/firestore.service';
 import type { HealthRecord, Livestock } from '@/types/livestock.types';
 
@@ -38,20 +39,27 @@ export default function HealthPage() {
     checkups: records.filter((r) => r.type === 'checkup').length,
   };
 
+  const tabs = [
+    { value: 'all' as FilterType,        label: 'All Records',  count: records.length },
+    { value: 'vaccination' as FilterType, label: 'Vaccinations', count: stats.vaccinations },
+    { value: 'treatment' as FilterType,   label: 'Treatments',   count: stats.treatments },
+    { value: 'checkup' as FilterType,     label: 'Checkups',     count: stats.checkups },
+    { value: 'diagnosis' as FilterType,   label: 'Diagnosis',    count: records.filter(r => r.type === 'diagnosis').length },
+  ];
+
   if (loading) return <HealthSkeleton />;
 
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">Livestock Management</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Health Records</h2>
+          <h2 className="text-xl font-bold text-slate-900">Health Records</h2>
           <p className="mt-0.5 text-sm text-slate-500">Rekod kesihatan, rawatan dan pemeriksaan semua ternakan.</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 self-start sm:self-auto"
+          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 self-start sm:self-auto"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -60,40 +68,38 @@ export default function HealthPage() {
         </button>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards — colored left border accent */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Records" value={stats.total} tone="slate" icon={<ClipboardIcon />} />
-        <StatCard label="Vaccinations" value={stats.vaccinations} tone="blue" icon={<VaccineIcon />} />
-        <StatCard label="Treatments" value={stats.treatments} tone="rose" icon={<PillIcon />} />
-        <StatCard label="Checkups" value={stats.checkups} tone="emerald" icon={<StethIcon />} />
+        <StatCard label="Total Records"  value={stats.total}        accent="border-slate-400"   valCls="text-slate-800"   cardBg="from-slate-50 to-slate-100"     iconSrc="/HealthRecordsicon/Totalrecords.png" iconAlt="Total Records" />
+        <StatCard label="Vaccinations"   value={stats.vaccinations}  accent="border-blue-500"   valCls="text-blue-700"    cardBg="from-blue-50 to-blue-100"       iconSrc="/HealthRecordsicon/vaccination.png"  iconAlt="Vaccinations" />
+        <StatCard label="Treatments"     value={stats.treatments}    accent="border-rose-500"   valCls="text-rose-700"    cardBg="from-rose-50 to-rose-100"       iconSrc="/HealthRecordsicon/Treatments.png"   iconAlt="Treatments" />
+        <StatCard label="Checkups"       value={stats.checkups}      accent="border-emerald-500" valCls="text-emerald-700" cardBg="from-emerald-50 to-emerald-100"  iconSrc="/HealthRecordsicon/Checkups.png"     iconAlt="Checkups" />
       </div>
 
-      {/* Filter tabs + records */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        {/* Tabs bar */}
-        <div className="flex items-center gap-1 border-b border-slate-200 px-5 pt-4 overflow-x-auto">
-          {([
-            { value: 'all', label: 'All Records' },
-            { value: 'vaccination', label: 'Vaccinations' },
-            { value: 'treatment', label: 'Treatments' },
-            { value: 'checkup', label: 'Checkups' },
-            { value: 'diagnosis', label: 'Diagnosis' },
-          ] as const).map((tab) => (
+      {/* Table panel */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {/* Tabs */}
+        <div className="flex items-center gap-0.5 border-b border-slate-200 px-4 pt-3 overflow-x-auto">
+          {tabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setFilter(tab.value)}
-              className={`flex-shrink-0 border-b-2 px-3.5 py-3 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 flex-shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 filter === tab.value
                   ? 'border-emerald-600 text-emerald-700'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               {tab.label}
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+                filter === tab.value ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {tab.count}
+              </span>
             </button>
           ))}
         </div>
 
-        {/* Records */}
         {filtered.length === 0 ? (
           <EmptyState
             icon={<StethIcon className="h-8 w-8 text-slate-400" />}
@@ -102,10 +108,20 @@ export default function HealthPage() {
             action={<button onClick={() => setShowAddModal(true)} className="mt-4 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition">+ Add First Record</button>}
           />
         ) : (
-          <div className="divide-y divide-slate-100">
-            {filtered.map((record) => (
-              <HealthRow key={record.id} record={record} livestock={livestock} />
-            ))}
+          <div className="overflow-hidden">
+            {/* Table header */}
+            <div className="hidden xl:grid xl:grid-cols-[minmax(0,2fr)_120px_140px_140px_150px] gap-0 bg-slate-50 border-b border-slate-200 px-5 py-2.5 text-xs font-semibold text-slate-500">
+              <span>Animal / Description</span>
+              <span>Date</span>
+              <span>Veterinarian</span>
+              <span>Medication</span>
+              <span>Next Checkup</span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {filtered.map((record) => (
+                <HealthRow key={record.id} record={record} livestock={livestock} />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -118,94 +134,110 @@ export default function HealthPage() {
 }
 
 function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Livestock[] }) {
+  const router = useRouter();
   const animal = livestock.find((l) => l.id === record.livestockId);
   const displayId = animal?.animalId ?? record.livestockId;
+
   const typeConfig = {
-    vaccination: { icon: <VaccineIcon className="h-[18px] w-[18px] text-blue-600" />,   bg: 'bg-blue-50',   ring: 'ring-blue-100',   label: 'Vaccination', labelCls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'   },
-    treatment:   { icon: <PillIcon className="h-[18px] w-[18px] text-rose-500" />,      bg: 'bg-rose-50',   ring: 'ring-rose-100',   label: 'Treatment',   labelCls: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'   },
-    checkup:     { icon: <StethIcon className="h-[18px] w-[18px] text-emerald-600" />,  bg: 'bg-emerald-50',ring: 'ring-emerald-100',label: 'Checkup',     labelCls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'},
-    diagnosis:   { icon: <DiagnosisIcon className="h-[18px] w-[18px] text-amber-600" />,bg: 'bg-amber-50',  ring: 'ring-amber-100',  label: 'Diagnosis',   labelCls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'  },
+    vaccination: { dot: 'bg-blue-500',    label: 'Vaccination', labelCls: 'bg-blue-50 text-blue-700 border border-blue-200'   },
+    treatment:   { dot: 'bg-rose-500',    label: 'Treatment',   labelCls: 'bg-rose-50 text-rose-700 border border-rose-200'   },
+    checkup:     { dot: 'bg-emerald-500', label: 'Checkup',     labelCls: 'bg-emerald-50 text-emerald-700 border border-emerald-200'},
+    diagnosis:   { dot: 'bg-amber-500',   label: 'Diagnosis',   labelCls: 'bg-amber-50 text-amber-700 border border-amber-200'  },
   };
   const cfg = typeConfig[record.type as keyof typeof typeConfig] ?? typeConfig.checkup;
 
-  const statusStyle: Record<string, string> = {
-    completed: 'bg-emerald-100 text-emerald-700',
-    scheduled: 'bg-sky-100 text-sky-700',
-    ongoing: 'bg-amber-100 text-amber-700',
+  const statusConfig: Record<string, { dot: string; text: string; cls: string }> = {
+    completed: { dot: 'bg-emerald-500', text: 'Completed', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+    scheduled: { dot: 'bg-sky-500',     text: 'Scheduled', cls: 'bg-sky-50 text-sky-700 border border-sky-200' },
+    ongoing:   { dot: 'bg-amber-500',   text: 'Ongoing',   cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
   };
+  const sc = statusConfig[record.status] ?? { dot: 'bg-slate-400', text: record.status, cls: 'bg-slate-50 text-slate-600 border border-slate-200' };
 
   const isOverdue = record.nextCheckup && new Date(record.nextCheckup) < new Date() && record.status !== 'completed';
 
   return (
-    <div className="grid gap-4 px-5 py-4 transition-colors hover:bg-slate-50 lg:grid-cols-[minmax(360px,1fr)_160px_150px_190px_128px] lg:items-center">
+    <div className="grid gap-3 px-4 py-4 transition-colors hover:bg-slate-50/70 sm:px-5 xl:grid-cols-[minmax(0,2fr)_120px_140px_140px_150px] xl:items-center">
+      {/* Animal info */}
       <div className="flex min-w-0 items-start gap-3">
-        <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ring-1 ${cfg.bg} ${cfg.ring}`}>
-          {cfg.icon}
-        </div>
-
+        {/* Animal avatar — click to open livestock detail */}
+        <button
+          onClick={() => router.push(`/admin/livestock?open=${displayId}`)}
+          className="flex-shrink-0 mt-0.5 group focus:outline-none"
+          title={`View ${displayId} details`}
+        >
+          {animal?.photoUrl ? (
+            <img src={animal.photoUrl} alt={displayId} className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-sm ring-1 ring-slate-200 group-hover:ring-emerald-400 group-hover:scale-105 transition-all duration-150" />
+          ) : (
+            <div className={`h-12 w-12 rounded-full flex items-center justify-center text-sm font-bold text-white ${cfg.dot} group-hover:scale-105 group-hover:brightness-110 transition-all duration-150`}>
+              {displayId.slice(-2)}
+            </div>
+          )}
+        </button>
         <div className="min-w-0">
-          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="font-mono text-sm font-bold tracking-tight text-slate-950">{displayId}</span>
-            <span className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${statusStyle[record.status] ?? 'bg-slate-100 text-slate-600'}`}>
-              {record.status}
+          <div className="mb-1 flex flex-wrap items-center gap-1.5">
+            <span className="font-mono text-sm font-bold text-slate-900">{displayId}</span>
+            <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${sc.cls}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
+              {sc.text}
             </span>
-            <span className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${cfg.labelCls}`}>
-              {cfg.label}
-            </span>
+            <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${cfg.labelCls}`}>{cfg.label}</span>
           </div>
-          <p className="max-w-3xl text-sm leading-6 text-slate-600 lg:line-clamp-1">{record.description}</p>
+          <p className="break-words text-sm text-slate-500 xl:line-clamp-1">{record.description}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 lg:contents">
-        <MetaItem label="Date" value={new Date(record.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })} />
-        <MetaItem label="Vet" value={record.veterinarian || '-'} />
-        <MetaItem label="Medication" value={record.medication || '-'} />
+      {/* Date */}
+      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+        <span className="text-[11px] font-medium text-slate-400 xl:hidden">Date: </span>
+        <span className="text-sm font-medium text-slate-700">
+          {new Date(record.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </span>
+      </div>
+
+      {/* Vet */}
+      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+        <span className="text-[11px] font-medium text-slate-400 xl:hidden">Vet: </span>
+        <span className="text-sm text-slate-700">{record.veterinarian || <span className="text-slate-300">—</span>}</span>
+      </div>
+
+      {/* Medication */}
+      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+        <span className="text-[11px] font-medium text-slate-400 xl:hidden">Medication: </span>
+        <span className="break-words text-sm text-slate-700">{record.medication || <span className="text-slate-300">—</span>}</span>
+      </div>
+
+      {/* Next checkup */}
+      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+        <span className="text-[11px] font-medium text-slate-400 xl:hidden">Next Checkup: </span>
         {record.nextCheckup ? (
-          <div className={`rounded-lg px-3 py-2 text-left ring-1 ${isOverdue ? 'bg-red-50 text-red-700 ring-red-100' : 'bg-amber-50 text-amber-700 ring-amber-100'}`}>
-            <p className="text-[11px] font-semibold uppercase tracking-wide opacity-75">Next Checkup</p>
-            <p className="mt-0.5 text-sm font-bold">
-              {new Date(record.nextCheckup).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
-            </p>
-          </div>
+          <span className={`inline-block rounded-md px-2.5 py-1 text-sm font-semibold ${
+            isOverdue
+              ? 'bg-red-50 text-red-700 border border-red-200'
+              : 'bg-amber-50 text-amber-700 border border-amber-200'
+          }`}>
+            {isOverdue && <span className="mr-1 text-xs">!</span>}
+            {new Date(record.nextCheckup).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
         ) : (
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-left text-slate-400 ring-1 ring-slate-100">
-            <p className="text-[11px] font-semibold uppercase tracking-wide">Next Checkup</p>
-            <p className="mt-0.5 text-sm font-semibold">-</p>
-          </div>
+          <span className="text-slate-300">—</span>
         )}
       </div>
     </div>
   );
 }
 
-function MetaItem({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, accent, valCls, cardBg, iconSrc, iconAlt }: {
+  label: string; value: number; accent: string; valCls: string;
+  cardBg: string; iconSrc: string; iconAlt: string;
+}) {
   return (
-    <div className="min-w-0 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-100 lg:bg-transparent lg:px-0 lg:py-0 lg:ring-0">
-      <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="truncate text-sm font-semibold text-slate-800">{value}</p>
-    </div>
-  );
-}
-
-function StatCard({ label, value, tone, icon }: { label: string; value: number; tone: 'slate' | 'blue' | 'rose' | 'emerald'; icon: React.ReactNode }) {
-  const cfg = {
-    slate:   { iconBg: 'bg-slate-50',   iconRing: 'ring-slate-200',   val: 'text-slate-950',  sub: 'text-slate-500'  },
-    blue:    { iconBg: 'bg-blue-50',    iconRing: 'ring-blue-100',    val: 'text-blue-700',   sub: 'text-slate-500'   },
-    rose:    { iconBg: 'bg-rose-50',    iconRing: 'ring-rose-100',    val: 'text-rose-700',   sub: 'text-slate-500'   },
-    emerald: { iconBg: 'bg-emerald-50', iconRing: 'ring-emerald-100', val: 'text-emerald-700',sub: 'text-slate-500'},
-  };
-  const c = cfg[tone];
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white">
-      <div className="flex items-start justify-between gap-3 px-5 py-4">
-        <div>
-          <p className={`text-[11px] font-semibold uppercase tracking-widest ${c.sub}`}>{label}</p>
-          <p className={`mt-2 text-3xl font-bold tabular-nums leading-none ${c.val}`}>{value}</p>
-        </div>
-        <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1 ${c.iconBg} ${c.iconRing}`}>
-          {icon}
-        </div>
+    <div className={`flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-gradient-to-br ${cardBg} px-4 py-5 sm:px-6 sm:py-6 border-l-4 ${accent} shadow-sm min-h-[120px]`}>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{label}</p>
+        <p className={`text-4xl font-extrabold tabular-nums leading-none ${valCls}`}>{value}</p>
+      </div>
+      <div className="shrink-0">
+        <img src={iconSrc} alt={iconAlt} className="h-24 w-24 object-contain sm:h-28 sm:w-28 lg:h-32 lg:w-32 xl:h-24 xl:w-24 2xl:h-32 2xl:w-32" />
       </div>
     </div>
   );
@@ -226,18 +258,17 @@ function HealthSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
       <div className="h-8 w-48 rounded-xl bg-slate-200" />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-2xl bg-slate-200" />)}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-xl bg-slate-200" />)}
       </div>
-      <div className="h-64 rounded-[28px] bg-slate-200" />
+      <div className="h-64 rounded-xl bg-slate-200" />
     </div>
   );
 }
 
 // ── Icons ──────────────────────────────────────────────────────
 
-// Document with lines — Total Records
-function ClipboardIcon({ className = 'h-5 w-5 text-slate-500' }: { className?: string }) {
+function ClipboardIcon({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -245,8 +276,7 @@ function ClipboardIcon({ className = 'h-5 w-5 text-slate-500' }: { className?: s
   );
 }
 
-// Shield with checkmark — Vaccination (immunity/protection)
-function VaccineIcon({ className = 'h-5 w-5 text-blue-600' }: { className?: string }) {
+function VaccineIcon({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-3.036-1.116-5.8-2.944-7.893z" />
@@ -254,8 +284,7 @@ function VaccineIcon({ className = 'h-5 w-5 text-blue-600' }: { className?: stri
   );
 }
 
-// Medical cross in circle — Treatment
-function PillIcon({ className = 'h-5 w-5 text-rose-500' }: { className?: string }) {
+function PillIcon({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -263,8 +292,7 @@ function PillIcon({ className = 'h-5 w-5 text-rose-500' }: { className?: string 
   );
 }
 
-// Stethoscope — Checkup
-function StethIcon({ className = 'h-5 w-5 text-emerald-600' }: { className?: string }) {
+function StethIcon({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3c-1.2 5.4-6 6-6 10a6 6 0 0012 0c0-4-4.8-4.6-6-10z" />
@@ -274,7 +302,6 @@ function StethIcon({ className = 'h-5 w-5 text-emerald-600' }: { className?: str
   );
 }
 
-// Magnifying glass + document — Diagnosis
 function DiagnosisIcon({ className = 'h-5 w-5 text-amber-600' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +335,7 @@ function AddHealthRecordModal({ livestock, onClose, onSuccess }: { livestock: Li
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-white rounded-[28px] shadow-2xl overflow-hidden">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div>
             <h2 className="text-lg font-bold text-slate-900">Add Health Record</h2>
@@ -319,7 +346,7 @@ function AddHealthRecordModal({ livestock, onClose, onSuccess }: { livestock: Li
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-600">Livestock *</label>
               <select required value={form.livestockId} onChange={(e) => setForm({ ...form, livestockId: e.target.value })} className={ic}>
@@ -341,7 +368,7 @@ function AddHealthRecordModal({ livestock, onClose, onSuccess }: { livestock: Li
             <label className="text-xs font-semibold text-slate-600">Description *</label>
             <textarea required rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe the health record..." className={ic} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-600">Date *</label>
               <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={ic} />
@@ -351,7 +378,7 @@ function AddHealthRecordModal({ livestock, onClose, onSuccess }: { livestock: Li
               <input type="text" value={form.veterinarian} onChange={(e) => setForm({ ...form, veterinarian: e.target.value })} placeholder="Dr. Name" className={ic} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-600">Medication</label>
               <input type="text" value={form.medication} onChange={(e) => setForm({ ...form, medication: e.target.value })} placeholder="Medication name" className={ic} />

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import NextImage from 'next/image';
 import { livestockService } from '@/services/firestore.service';
 import { kandangService } from '@/services/farm.service';
@@ -12,7 +13,8 @@ import { formatAnimalDisplayName } from '@/utils/helpers';
 import ManageBreedsModal from '@/components/livestock/ManageBreedsModal';
 import AnimalProfileModal from '@/components/livestock/AnimalProfileModal';
 
-export default function LivestockPage() {
+function LivestockPageInner() {
+  const searchParams = useSearchParams();
   const [livestock, setLivestock] = useState<Livestock[]>([]);
   const [filteredLivestock, setFilteredLivestock] = useState<Livestock[]>([]);
   const [kandangs, setKandangs] = useState<Kandang[]>([]);
@@ -40,6 +42,15 @@ export default function LivestockPage() {
   useEffect(() => {
     applyFilters();
   }, [filter, typeFilter, searchQuery, livestock]);
+
+  // Auto-open animal modal from ?open=ANIMALID param (e.g. from health records)
+  useEffect(() => {
+    const openId = searchParams.get('open');
+    if (openId && livestock.length > 0) {
+      const target = livestock.find((l) => l.animalId === openId || l.id === openId);
+      if (target) setSelectedAnimal(target);
+    }
+  }, [searchParams, livestock]);
 
   const loadData = async () => {
     try {
@@ -437,6 +448,14 @@ export default function LivestockPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function LivestockPage() {
+  return (
+    <Suspense fallback={null}>
+      <LivestockPageInner />
+    </Suspense>
   );
 }
 
