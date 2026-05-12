@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
 import { getFirebaseDb } from '@/lib/firebase';
 import {
@@ -133,18 +133,19 @@ export default function ConditionLogsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { label: 'Total Logs', value: stats.total, cls: 'text-slate-700' },
-          { label: 'Good', value: stats.good, cls: 'text-emerald-600' },
-          { label: 'Monitor', value: stats.monitor, cls: 'text-amber-600' },
-          { label: 'Sick', value: stats.sick, cls: 'text-red-600' },
-        ].map((s) => (
-          <div key={s.label} className="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500 font-medium">{s.label}</p>
-            <p className={`text-2xl font-bold mt-1 ${s.cls}`}>{s.value}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <CondStatCard label="Total Logs" value={stats.total} iconBg="bg-slate-100" iconFg="text-slate-600" val="text-slate-800"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+        />
+        <CondStatCard label="Good" value={stats.good} iconBg="bg-emerald-100" iconFg="text-emerald-600" val="text-emerald-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+        />
+        <CondStatCard label="Monitor" value={stats.monitor} iconBg="bg-amber-100" iconFg="text-amber-600" val="text-amber-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
+        />
+        <CondStatCard label="Sick" value={stats.sick} iconBg="bg-red-100" iconFg="text-red-600" val="text-red-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" /></svg>}
+        />
       </div>
 
       {/* Unreviewed alert */}
@@ -340,6 +341,22 @@ export default function ConditionLogsPage() {
           onClose={() => setViewingAnimal(null)}
         />
       )}
+    </div>
+  );
+}
+
+function CondStatCard({ label, value, iconBg, iconFg, val, icon }: {
+  label: string; value: number; iconBg: string; iconFg: string; val: string; icon: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+      <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} ${iconFg}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className={`text-4xl font-extrabold tabular-nums leading-none ${val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
+      </div>
     </div>
   );
 }

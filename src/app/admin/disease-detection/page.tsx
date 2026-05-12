@@ -3,17 +3,25 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { diseaseDetectionService } from '@/services/disease-detection.service';
 import { useAuth } from '@/context/AuthContext';
+import { getFirebaseDb } from '@/lib/firebase';
 import type {
   DiseaseDetectionSubmission,
   DiseaseSubmissionDetailsResponse,
   DiseaseSubmissionStatus,
 } from '@/types/disease-detection.types';
 import Image from 'next/image';
+import { doc, getDoc } from 'firebase/firestore';
 
 const inputClass =
   'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100 transition';
 
 type StatusFilter = DiseaseSubmissionStatus | 'all';
+
+type FarmerProfile = {
+  displayName: string | null;
+  nickname: string | null;
+  photoURL: string | null;
+};
 
 export default function DiseaseDetectionPage() {
   const { user, loading: authLoading } = useAuth();
@@ -32,11 +40,12 @@ export default function DiseaseDetectionPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [farmerProfiles, setFarmerProfiles] = useState<Record<string, FarmerProfile>>({});
 
   const loadList = async () => {
-    if (authLoading) {
-      return;
-    }
+    if (authLoading) return;
 
     if (!user) {
       setLoading(false);
@@ -48,11 +57,8 @@ export default function DiseaseDetectionPage() {
     try {
       setLoading(true);
       setError(null);
-      const submissions = await diseaseDetectionService.listSubmissions({
-        status,
-        animalType: animalType || undefined,
-        limit: 100,
-      });
+      // Fetch all submissions once, filter client-side
+      const submissions = await diseaseDetectionService.listSubmissions({ limit: 200 });
       setItems(submissions);
     } catch (e: any) {
       const rawMessage = e?.message || 'Failed to load submissions';
@@ -67,29 +73,74 @@ export default function DiseaseDetectionPage() {
   };
 
   useEffect(() => {
-    if (!authLoading) {
-      loadList();
-    }
+    if (!authLoading) loadList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, animalType, authLoading, user?.uid]);
+  }, [authLoading, user?.uid]);
+
+  useEffect(() => {
+    const farmerIds = Array.from(
+      new Set(items.map((item) => item.farmerId).filter((id): id is string => Boolean(id)))
+    ).filter((id) => !farmerProfiles[id]);
+
+    if (farmerIds.length === 0) return;
+
+    let cancelled = false;
+
+    const loadFarmerProfiles = async () => {
+      const db = getFirebaseDb();
+      const entries = await Promise.all(
+        farmerIds.map(async (id) => {
+          try {
+            const snap = await getDoc(doc(db, 'users', id));
+            const data = snap.exists() ? snap.data() : {};
+            return [
+              id,
+              {
+                displayName: typeof data.displayName === 'string' ? data.displayName : null,
+                nickname: typeof data.nickname === 'string' ? data.nickname : null,
+                photoURL:
+                  typeof data.photoURL === 'string'
+                    ? data.photoURL
+                    : typeof data.photoUrl === 'string'
+                    ? data.photoUrl
+                    : null,
+              },
+            ] as const;
+          } catch {
+            return [id, { displayName: null, nickname: null, photoURL: null }] as const;
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setFarmerProfiles((current) => ({ ...current, ...Object.fromEntries(entries) }));
+      }
+    };
+
+    loadFarmerProfiles();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items, farmerProfiles]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      const farmerName = (item.farmerName || '').toLowerCase();
-      const farmerEmail = (item.farmerEmail || '').toLowerCase();
+      if (status !== 'all' && item.status !== status) return false;
+      if (animalType && !item.animalType?.toLowerCase().includes(animalType.toLowerCase())) return false;
+
+      const profile = item.farmerId ? farmerProfiles[item.farmerId] : null;
+      const farmerName = getFarmerDisplayName(item, profile).toLowerCase();
       const query = farmerQuery.trim().toLowerCase();
-      const matchesFarmer =
-        !query || farmerName.includes(query) || farmerEmail.includes(query);
+      if (query && !farmerName.includes(query)) return false;
 
-      const rawDate = getDateFromUnknown(item.submittedAt);
-      const d = rawDate ? new Date(rawDate) : null;
+      const d = getDateFromUnknown(item.submittedAt);
+      if (fromDate && d && d < new Date(fromDate)) return false;
+      if (toDate && d && d > endOfDay(new Date(toDate))) return false;
 
-      const fromOk = !fromDate || (d && d >= new Date(fromDate));
-      const toOk = !toDate || (d && d <= endOfDay(new Date(toDate)));
-
-      return matchesFarmer && fromOk && toOk;
+      return true;
     });
-  }, [items, farmerQuery, fromDate, toDate]);
+  }, [items, status, animalType, farmerQuery, fromDate, toDate, farmerProfiles]);
 
   const stats = useMemo(() => {
     return {
@@ -151,6 +202,20 @@ export default function DiseaseDetectionPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      setDeleteLoading(true);
+      await diseaseDetectionService.deleteSubmission(id);
+      setConfirmDeleteId(null);
+      if (selectedId === id) setSelectedId(null);
+      await loadList();
+    } catch (e: any) {
+      alert(e?.message || 'Failed to delete submission');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const resetFilters = () => {
     setStatus('all');
     setAnimalType('');
@@ -188,26 +253,17 @@ export default function DiseaseDetectionPage() {
         </button>
       </div>
 
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        <div className="flex items-start gap-2">
-          <WarningIcon className="mt-0.5 h-4 w-4 flex-shrink-0" />
-          <p>
-            AI analysis is assistive and should be verified by a veterinarian or trained
-            expert before operational action.
-          </p>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatsCard label="Total" value={stats.total} tone="slate" icon={<StackIcon className="h-5 w-5" />} />
-        <StatsCard label="Pending" value={stats.pending} tone="amber" icon={<ClockIcon className="h-5 w-5" />} />
-        <StatsCard label="Under Analysis" value={stats.underAnalysis} tone="blue" icon={<PulseIcon className="h-5 w-5" />} />
-        <StatsCard label="Analyzed" value={stats.analyzed} tone="emerald" icon={<CheckIcon className="h-5 w-5" />} />
-        <StatsCard label="Review Needed" value={stats.reviewNeeded} tone="rose" icon={<FlagIcon className="h-5 w-5" />} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <StatsCard label="Total" value={stats.total} tone="slate" iconSrc="/DiseaseDetectionicon/TotalSubmissions.png" />
+        <StatsCard label="Pending" value={stats.pending} tone="amber" iconSrc="/DiseaseDetectionicon/Pending.png" />
+        <StatsCard label="Under Analysis" value={stats.underAnalysis} tone="blue" iconSrc="/DiseaseDetectionicon/UnderAnalysis.png" />
+        <StatsCard label="Analyzed" value={stats.analyzed} tone="emerald" iconSrc="/DiseaseDetectionicon/Completed.png" />
+        <StatsCard label="Review Needed" value={stats.reviewNeeded} tone="rose" iconSrc="/DiseaseDetectionicon/ReviewNeeded.png" />
       </div>
 
       <div className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 md:grid-cols-6">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <select value={status} onChange={(e) => setStatus(e.target.value as StatusFilter)} className={inputClass}>
             <option value="all">All status</option>
             <option value="pending">Pending</option>
@@ -224,7 +280,7 @@ export default function DiseaseDetectionPage() {
           <input
             value={farmerQuery}
             onChange={(e) => setFarmerQuery(e.target.value)}
-            placeholder="Farmer name/email"
+            placeholder="Farmer nickname"
             className={inputClass}
           />
           <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={inputClass} />
@@ -258,7 +314,8 @@ export default function DiseaseDetectionPage() {
               description="Try adjusting your filters or wait for new farmer uploads."
             />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full divide-y divide-slate-100">
                 <thead className="bg-slate-50/80">
                   <tr>
@@ -268,6 +325,7 @@ export default function DiseaseDetectionPage() {
                     <Th>Media</Th>
                     <Th>Status</Th>
                     <Th>Confidence</Th>
+                    <Th>Actions</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
@@ -288,8 +346,15 @@ export default function DiseaseDetectionPage() {
                           <p className="mt-1 text-xs text-slate-400">{formatDate(item.submittedAt)}</p>
                         </td>
                         <td className="px-4 py-3 align-top">
-                          <p className="text-sm font-medium text-slate-800">{item.farmerName || 'Unknown farmer'}</p>
-                          <p className="mt-1 text-xs text-slate-500">{item.farmerEmail || 'No email'}</p>
+                          <FarmerCell
+                            name={getFarmerDisplayName(
+                              item,
+                              item.farmerId ? farmerProfiles[item.farmerId] : null
+                            )}
+                            photoURL={
+                              item.farmerId ? farmerProfiles[item.farmerId]?.photoURL || null : null
+                            }
+                          />
                         </td>
                         <td className="px-4 py-3 align-top">
                           <p className="text-sm font-medium capitalize text-slate-800">{item.animalType || 'Unknown type'}</p>
@@ -313,12 +378,68 @@ export default function DiseaseDetectionPage() {
                         <td className="px-4 py-3 align-top">
                           <ConfidencePill value={item.confidence ?? null} />
                         </td>
+                        <td className="px-4 py-3 align-top" onClick={(e) => e.stopPropagation()}>
+                          {confirmDeleteId === item.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                disabled={deleteLoading}
+                                onClick={() => handleDelete(item.id)}
+                                className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+                              >
+                                {deleteLoading ? '...' : 'Yes'}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50"
+                              >
+                                No
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => openDetails(item.id)}
+                                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-50"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(item.id)}
+                                className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-600 transition hover:bg-red-100"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
+            <div className="grid gap-3 p-4 lg:hidden">
+              {filteredItems.map((item) => {
+                const active = selectedId === item.id;
+                const farmerProfile = item.farmerId ? farmerProfiles[item.farmerId] : null;
+                return (
+                  <SubmissionCard
+                    key={item.id}
+                    item={item}
+                    active={active}
+                    farmerName={getFarmerDisplayName(item, farmerProfile)}
+                    farmerPhotoURL={farmerProfile?.photoURL || null}
+                    confirmDelete={confirmDeleteId === item.id}
+                    deleteLoading={deleteLoading}
+                    onOpen={() => openDetails(item.id)}
+                    onRequestDelete={() => setConfirmDeleteId(item.id)}
+                    onCancelDelete={() => setConfirmDeleteId(null)}
+                    onConfirmDelete={() => handleDelete(item.id)}
+                  />
+                );
+              })}
+            </div>
+            </>
           )}
         </div>
 
@@ -367,7 +488,20 @@ export default function DiseaseDetectionPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Farmer</p>
-                    <p className="text-sm font-medium text-slate-800">{detail.submission.farmerName || 'Unknown'}</p>
+                    <FarmerCell
+                      name={getFarmerDisplayName(
+                        detail.submission,
+                        detail.submission.farmerId
+                          ? farmerProfiles[detail.submission.farmerId]
+                          : null
+                      )}
+                      photoURL={
+                        detail.submission.farmerId
+                          ? farmerProfiles[detail.submission.farmerId]?.photoURL || null
+                          : null
+                      }
+                      compact
+                    />
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Animal</p>
@@ -565,32 +699,31 @@ function StatsCard({
   label,
   value,
   tone,
-  icon,
+  iconSrc,
 }: {
   label: string;
   value: number;
   tone: 'slate' | 'amber' | 'blue' | 'emerald' | 'rose';
-  icon: ReactNode;
+  iconSrc: string;
 }) {
   const tones = {
-    slate: 'border-slate-200 bg-white text-slate-900 icon:bg-slate-100 icon:text-slate-700',
-    amber: 'border-amber-200 bg-amber-50 text-amber-700 icon:bg-amber-100 icon:text-amber-700',
-    blue: 'border-blue-200 bg-blue-50 text-blue-700 icon:bg-blue-100 icon:text-blue-700',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 icon:bg-emerald-100 icon:text-emerald-700',
-    rose: 'border-rose-200 bg-rose-50 text-rose-700 icon:bg-rose-100 icon:text-rose-700',
+    slate:   { val: 'text-slate-800'   },
+    amber:   { val: 'text-amber-700'   },
+    blue:    { val: 'text-blue-700'    },
+    emerald: { val: 'text-emerald-700' },
+    rose:    { val: 'text-rose-700'    },
   };
-  const toneClass = tones[tone].split(' ');
-  const cardClass = toneClass.filter((c) => !c.startsWith('icon:')).join(' ');
-  const iconClass = toneClass
-    .filter((c) => c.startsWith('icon:'))
-    .map((c) => c.replace('icon:', ''))
-    .join(' ');
+  const t = tones[tone];
 
   return (
-    <div className={`rounded-2xl border p-4 ${cardClass}`}>
-      <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${iconClass}`}>{icon}</div>
-      <p className="text-xs font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+      <div className="shrink-0">
+        <img src={iconSrc} alt={label} className="h-28 w-28 object-contain" />
+      </div>
+      <div className="min-w-0">
+        <p className={`text-3xl font-extrabold tabular-nums leading-none ${t.val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500 leading-tight">{label}</p>
+      </div>
     </div>
   );
 }
@@ -657,6 +790,173 @@ function ConfidencePill({ value }: { value: number | null | undefined }) {
     <span className={`rounded-full border px-2 py-1 text-xs font-semibold ${tone}`}>
       {formatConfidence(value)}
     </span>
+  );
+}
+
+function getFarmerDisplayName(
+  item: DiseaseDetectionSubmission,
+  profile?: FarmerProfile | null
+) {
+  return (
+    profile?.nickname?.trim() ||
+    profile?.displayName?.trim() ||
+    item.farmerName?.trim() ||
+    'Unknown farmer'
+  );
+}
+
+function getInitials(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (parts.length === 0) return 'F';
+  return parts.map((part) => part[0]?.toUpperCase()).join('');
+}
+
+function FarmerCell({
+  name,
+  photoURL,
+  compact = false,
+}: {
+  name: string;
+  photoURL?: string | null;
+  compact?: boolean;
+}) {
+  const avatarSize = compact ? 'h-8 w-8' : 'h-9 w-9';
+
+  return (
+    <div className="flex min-w-[170px] items-center gap-3">
+      <div
+        className={`${avatarSize} relative shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100`}
+      >
+        {photoURL ? (
+          <img src={photoURL} alt={name} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-emerald-50 text-xs font-bold text-emerald-700">
+            {getInitials(name)}
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-slate-800">{name}</p>
+        {!compact && <p className="mt-0.5 text-xs text-slate-400">Farmer</p>}
+      </div>
+    </div>
+  );
+}
+
+function SubmissionCard({
+  item,
+  active,
+  farmerName,
+  farmerPhotoURL,
+  confirmDelete,
+  deleteLoading,
+  onOpen,
+  onRequestDelete,
+  onCancelDelete,
+  onConfirmDelete,
+}: {
+  item: DiseaseDetectionSubmission;
+  active: boolean;
+  farmerName: string;
+  farmerPhotoURL?: string | null;
+  confirmDelete: boolean;
+  deleteLoading: boolean;
+  onOpen: () => void;
+  onRequestDelete: () => void;
+  onCancelDelete: () => void;
+  onConfirmDelete: () => void;
+}) {
+  return (
+    <div
+      onClick={onOpen}
+      className={`cursor-pointer rounded-2xl border p-4 transition ${
+        active
+          ? 'border-emerald-200 bg-emerald-50/70'
+          : 'border-slate-200 bg-white hover:bg-slate-50'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-sm font-semibold text-slate-900">
+            #{item.id.slice(0, 8).toUpperCase()}
+          </p>
+          <p className="mt-1 text-xs text-slate-400">{formatDate(item.submittedAt)}</p>
+        </div>
+        <StatusPill status={item.status} />
+      </div>
+
+      <div className="mt-4">
+        <FarmerCell name={farmerName} photoURL={farmerPhotoURL} />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Animal</p>
+          <p className="mt-1 text-sm font-semibold capitalize text-slate-800">
+            {item.animalType || 'Unknown type'}
+          </p>
+          <p className="mt-0.5 font-mono text-xs text-slate-500">
+            {item.animalTag && item.animalTag.trim()
+              ? item.animalTag
+              : item.animalId
+              ? `#${item.animalId.slice(0, 8)}`
+              : 'No tag'}
+          </p>
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Confidence</p>
+          <div className="mt-1">
+            <ConfidencePill value={item.confidence ?? null} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <MediaCountsBadge
+          imageCount={Number(item.mediaCounts?.image || 0)}
+          videoCount={Number(item.mediaCounts?.video || 0)}
+        />
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          {confirmDelete ? (
+            <>
+              <button
+                disabled={deleteLoading}
+                onClick={onConfirmDelete}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteLoading ? '...' : 'Yes'}
+              </button>
+              <button
+                onClick={onCancelDelete}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                No
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={onOpen}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Edit
+              </button>
+              <button
+                onClick={onRequestDelete}
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+              >
+                Delete
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

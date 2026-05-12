@@ -261,16 +261,27 @@ function ActivitiesView({ activities, livestock }: { activities: FeedingActivity
 
 function StatCard({ label, value, tone }: { label: string; value: string | number; tone: 'sky' | 'emerald' | 'amber' | 'violet' }) {
   const tones = {
-    sky: { wrap: 'border-sky-100 bg-sky-50/50', val: 'text-sky-700' },
-    emerald: { wrap: 'border-emerald-100 bg-emerald-50/50', val: 'text-emerald-700' },
-    amber: { wrap: 'border-amber-100 bg-amber-50/50', val: 'text-amber-700' },
-    violet: { wrap: 'border-violet-100 bg-violet-50/50', val: 'text-violet-700' },
+    sky:     { iconBg: 'bg-sky-100',     iconFg: 'text-sky-600',     val: 'text-sky-700'     },
+    emerald: { iconBg: 'bg-emerald-100', iconFg: 'text-emerald-600', val: 'text-emerald-700' },
+    amber:   { iconBg: 'bg-amber-100',   iconFg: 'text-amber-600',   val: 'text-amber-700'   },
+    violet:  { iconBg: 'bg-violet-100',  iconFg: 'text-violet-600',  val: 'text-violet-700'  },
+  };
+  const icons = {
+    sky: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    emerald: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    amber: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>,
+    violet: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
   };
   const t = tones[tone];
   return (
-    <div className={`rounded-2xl border p-5 ${t.wrap}`}>
-      <p className={`text-3xl font-bold tabular-nums ${t.val}`}>{value}</p>
-      <p className="mt-1 text-sm font-medium text-slate-600">{label}</p>
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+      <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl ${t.iconBg} ${t.iconFg}`}>
+        {icons[tone]}
+      </div>
+      <div className="min-w-0">
+        <p className={`text-4xl font-extrabold tabular-nums leading-none ${t.val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
+      </div>
     </div>
   );
 }

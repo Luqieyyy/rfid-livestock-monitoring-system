@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { salesRecordService, livestockService } from '@/services/firestore.service';
 import type { SalesRecord, Livestock } from '@/types/livestock.types';
 import { formatAnimalDisplayName } from '@/utils/helpers';
@@ -124,61 +124,26 @@ export default function SalesPage() {
 
       {/* Stat Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Revenue */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full" />
-          <div className="absolute -right-2 -bottom-6 w-16 h-16 bg-white/5 rounded-full" />
-          <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center mb-4">
-            <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <p className="text-2xl font-extrabold tracking-tight">{formatMYR(stats.totalRevenue)}</p>
-          <p className="text-emerald-100 text-xs font-medium mt-1">Total Revenue</p>
-        </div>
-
-        {/* Pending Revenue */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
-              <svg className="w-4.5 h-4.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            {stats.pendingRevenue > 0 && (
-              <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-wide">Pending</span>
-            )}
-          </div>
-          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{formatMYR(stats.pendingRevenue)}</p>
-          <p className="text-gray-400 text-xs font-medium mt-1">Pending Revenue</p>
-        </div>
-
-        {/* Total Sales */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
-            <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{stats.total}</p>
-          <p className="text-gray-400 text-xs font-medium mt-1">Total Sales</p>
-        </div>
-
-        {/* Pending Deliveries */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
-              <svg className="w-4.5 h-4.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-              </svg>
-            </div>
-            {stats.pendingDeliveries > 0 && (
-              <span className="text-[10px] font-bold bg-red-100 text-red-500 px-2 py-0.5 rounded-full uppercase tracking-wide">Action needed</span>
-            )}
-          </div>
-          <p className="text-2xl font-extrabold text-gray-900 tracking-tight">{stats.pendingDeliveries}</p>
-          <p className="text-gray-400 text-xs font-medium mt-1">Pending Deliveries</p>
-        </div>
+        <SalesStatCard
+          label="Total Revenue" value={formatMYR(stats.totalRevenue)}
+          iconBg="bg-emerald-100" iconFg="text-emerald-600" val="text-emerald-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+        />
+        <SalesStatCard
+          label="Pending Revenue" value={formatMYR(stats.pendingRevenue)}
+          iconBg="bg-amber-100" iconFg="text-amber-600" val="text-amber-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+        />
+        <SalesStatCard
+          label="Total Sales" value={String(stats.total)}
+          iconBg="bg-blue-100" iconFg="text-blue-600" val="text-blue-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+        />
+        <SalesStatCard
+          label="Pending Deliveries" value={String(stats.pendingDeliveries)}
+          iconBg="bg-orange-100" iconFg="text-orange-600" val="text-orange-700"
+          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>}
+        />
       </div>
 
       {/* Table Card */}
@@ -734,6 +699,23 @@ function EditSaleModal({ sale, livestock, onClose, onSuccess }: {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+
+function SalesStatCard({ label, value, iconBg, iconFg, val, icon }: {
+  label: string; value: string; iconBg: string; iconFg: string; val: string; icon: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+      <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} ${iconFg}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className={`text-2xl font-extrabold tabular-nums leading-none ${val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
       </div>
     </div>
   );

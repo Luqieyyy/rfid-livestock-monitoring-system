@@ -68,23 +68,23 @@ export default function HealthPage() {
         </button>
       </div>
 
-      {/* Stat cards — colored left border accent */}
+      {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Records"  value={stats.total}        accent="border-slate-400"   valCls="text-slate-800"   cardBg="from-slate-50 to-slate-100"     iconSrc="/HealthRecordsicon/Totalrecords.png" iconAlt="Total Records" />
-        <StatCard label="Vaccinations"   value={stats.vaccinations}  accent="border-blue-500"   valCls="text-blue-700"    cardBg="from-blue-50 to-blue-100"       iconSrc="/HealthRecordsicon/vaccination.png"  iconAlt="Vaccinations" />
-        <StatCard label="Treatments"     value={stats.treatments}    accent="border-rose-500"   valCls="text-rose-700"    cardBg="from-rose-50 to-rose-100"       iconSrc="/HealthRecordsicon/Treatments.png"   iconAlt="Treatments" />
-        <StatCard label="Checkups"       value={stats.checkups}      accent="border-emerald-500" valCls="text-emerald-700" cardBg="from-emerald-50 to-emerald-100"  iconSrc="/HealthRecordsicon/Checkups.png"     iconAlt="Checkups" />
+        <StatCard label="Total Records"  value={stats.total}         valCls="text-slate-800"   iconSrc="/HealthRecordsicon/Totalrecords.png" />
+        <StatCard label="Vaccinations"   value={stats.vaccinations}  valCls="text-blue-700"    iconSrc="/HealthRecordsicon/vaccination.png" />
+        <StatCard label="Treatments"     value={stats.treatments}    valCls="text-rose-700"    iconSrc="/HealthRecordsicon/Treatments.png" />
+        <StatCard label="Checkups"       value={stats.checkups}      valCls="text-emerald-700" iconSrc="/HealthRecordsicon/Checkups.png" />
       </div>
 
       {/* Table panel */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {/* Tabs */}
-        <div className="flex items-center gap-0.5 border-b border-slate-200 px-4 pt-3 overflow-x-auto">
+        <div className="flex items-center gap-0.5 overflow-x-auto border-b border-slate-200 px-3 pt-3 sm:px-4">
           {tabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setFilter(tab.value)}
-              className={`flex items-center gap-1.5 flex-shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex-shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 filter === tab.value
                   ? 'border-emerald-600 text-emerald-700'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -187,7 +187,7 @@ function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Liv
       </div>
 
       {/* Date */}
-      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+      <div className="min-w-0 pl-[60px] xl:pl-0">
         <span className="text-[11px] font-medium text-slate-400 xl:hidden">Date: </span>
         <span className="text-sm font-medium text-slate-700">
           {new Date(record.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -195,19 +195,19 @@ function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Liv
       </div>
 
       {/* Vet */}
-      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+      <div className="min-w-0 pl-[60px] xl:pl-0">
         <span className="text-[11px] font-medium text-slate-400 xl:hidden">Vet: </span>
         <span className="text-sm text-slate-700">{record.veterinarian || <span className="text-slate-300">—</span>}</span>
       </div>
 
       {/* Medication */}
-      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+      <div className="min-w-0 pl-[60px] xl:pl-0">
         <span className="text-[11px] font-medium text-slate-400 xl:hidden">Medication: </span>
         <span className="break-words text-sm text-slate-700">{record.medication || <span className="text-slate-300">—</span>}</span>
       </div>
 
       {/* Next checkup */}
-      <div className="min-w-0 sm:pl-[60px] xl:pl-0">
+      <div className="min-w-0 pl-[60px] xl:pl-0">
         <span className="text-[11px] font-medium text-slate-400 xl:hidden">Next Checkup: </span>
         {record.nextCheckup ? (
           <span className={`inline-block rounded-md px-2.5 py-1 text-sm font-semibold ${
@@ -226,18 +226,17 @@ function HealthRow({ record, livestock }: { record: HealthRecord; livestock: Liv
   );
 }
 
-function StatCard({ label, value, accent, valCls, cardBg, iconSrc, iconAlt }: {
-  label: string; value: number; accent: string; valCls: string;
-  cardBg: string; iconSrc: string; iconAlt: string;
+function StatCard({ label, value, valCls, iconSrc }: {
+  label: string; value: number; valCls: string; iconSrc: string;
 }) {
   return (
-    <div className={`flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-gradient-to-br ${cardBg} px-4 py-5 sm:px-6 sm:py-6 border-l-4 ${accent} shadow-sm min-h-[120px]`}>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{label}</p>
-        <p className={`text-4xl font-extrabold tabular-nums leading-none ${valCls}`}>{value}</p>
-      </div>
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:gap-4 sm:px-5 sm:py-5">
       <div className="shrink-0">
-        <img src={iconSrc} alt={iconAlt} className="h-24 w-24 object-contain sm:h-28 sm:w-28 lg:h-32 lg:w-32 xl:h-24 xl:w-24 2xl:h-32 2xl:w-32" />
+        <img src={iconSrc} alt={label} className="h-16 w-16 object-contain drop-shadow-sm sm:h-20 sm:w-20 lg:h-24 lg:w-24" />
+      </div>
+      <div className="min-w-0">
+        <p className={`text-3xl font-extrabold tabular-nums leading-none lg:text-4xl ${valCls}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
       </div>
     </div>
   );
@@ -258,7 +257,7 @@ function HealthSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
       <div className="h-8 w-48 rounded-xl bg-slate-200" />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-xl bg-slate-200" />)}
       </div>
       <div className="h-64 rounded-xl bg-slate-200" />

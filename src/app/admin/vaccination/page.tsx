@@ -153,9 +153,9 @@ export default function VaccinationPage() {
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <SummaryCard label="Overdue" count={counts.overdue} tone="red" onClick={() => setFilterStatus('overdue')} active={filterStatus === 'overdue'} />
-        <SummaryCard label="Upcoming / Scheduled" count={counts.scheduled} tone="amber" onClick={() => setFilterStatus('scheduled')} active={filterStatus === 'scheduled'} />
-        <SummaryCard label="Completed" count={counts.completed} tone="emerald" onClick={() => setFilterStatus('completed')} active={filterStatus === 'completed'} />
+        <SummaryCard label="Overdue" count={counts.overdue} tone="red" iconSrc="/VaccinationTracker/Overdue.png" onClick={() => setFilterStatus('overdue')} active={filterStatus === 'overdue'} />
+        <SummaryCard label="Upcoming / Scheduled" count={counts.scheduled} tone="amber" iconSrc="/VaccinationTracker/Upcoming.png" onClick={() => setFilterStatus('scheduled')} active={filterStatus === 'scheduled'} />
+        <SummaryCard label="Completed" count={counts.completed} tone="emerald" iconSrc="/VaccinationTracker/CompletedVaccinations.png" onClick={() => setFilterStatus('completed')} active={filterStatus === 'completed'} />
       </div>
 
       {/* Add form */}
@@ -346,24 +346,30 @@ export default function VaccinationPage() {
 
 // ── Sub-components ────────────────────────────────────────────
 
-function SummaryCard({ label, count, tone, onClick, active }: {
+function SummaryCard({ label, count, tone, iconSrc, onClick, active }: {
   label: string; count: number;
   tone: 'red' | 'amber' | 'emerald';
+  iconSrc: string;
   onClick: () => void; active: boolean;
 }) {
   const tones = {
-    red: { base: 'border-red-100 bg-red-50', active: 'border-red-400 bg-red-50 ring-2 ring-red-200', value: 'text-red-700', dot: 'bg-red-500' },
-    amber: { base: 'border-amber-100 bg-amber-50', active: 'border-amber-400 bg-amber-50 ring-2 ring-amber-200', value: 'text-amber-700', dot: 'bg-amber-500' },
-    emerald: { base: 'border-emerald-100 bg-emerald-50', active: 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200', value: 'text-emerald-700', dot: 'bg-emerald-500' },
+    red:     { ring: 'ring-2 ring-red-200 border-red-300',         val: 'text-red-600'     },
+    amber:   { ring: 'ring-2 ring-amber-200 border-amber-300',     val: 'text-amber-600'   },
+    emerald: { ring: 'ring-2 ring-emerald-200 border-emerald-300', val: 'text-emerald-600' },
   };
   const t = tones[tone];
   return (
-    <button onClick={onClick} className={`rounded-2xl border p-5 text-left transition ${active ? t.active : t.base + ' hover:border-slate-300'}`}>
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${t.dot}`} />
-        <p className="text-sm font-medium text-slate-600">{label}</p>
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-4 rounded-xl border bg-white px-5 py-5 text-left shadow-sm transition hover:shadow-md ${active ? t.ring : 'border-slate-200'}`}
+    >
+      <div className="shrink-0">
+        <img src={iconSrc} alt={label} className="h-28 w-28 object-contain mix-blend-multiply" />
       </div>
-      <p className={`mt-3 text-3xl font-bold tabular-nums ${t.value}`}>{count}</p>
+      <div className="min-w-0">
+        <p className={`text-4xl font-extrabold tabular-nums leading-none ${t.val}`}>{count}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
+      </div>
     </button>
   );
 }

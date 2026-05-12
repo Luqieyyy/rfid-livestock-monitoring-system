@@ -116,4 +116,11 @@ export const diseaseDetectionService = {
       body: { submissionId, status, reviewNote },
     });
   },
+
+  async deleteSubmission(submissionId: string) {
+    return requestJson<any>('deleteDiseaseSubmission', {
+      method: 'POST',
+      body: { submissionId },
+    });
+  },
 };

@@ -1,15 +1,15 @@
-Create a modern flat 2D vector illustration icon in premium Iconscout style for a smart farming/livestock management mobile app called “FarmSense”.
+Create a modern flat 2D vector illustration icon in premium Iconscout style for a smart farming/livestock management system called "FarmSense".
 
 IMPORTANT:
-Follow the exact visual branding and color theme of the provided FarmSense dashboard reference image:
+Follow the exact visual branding and color theme of the FarmSense admin dashboard:
 - soft green pastel tones
 - light mint green UI accents
 - white clean card-style aesthetic
 - subtle earthy farming colors
 - modern agrotech startup vibe
 - soft shadows and rounded design
-- minimal clean healthcare/livestock dashboard appearance
-- premium mobile SaaS illustration style
+- minimal clean livestock dashboard appearance
+- premium SaaS illustration style
 
 VERY IMPORTANT COLOR RULE:
 - The BACKGROUND and UI elements may use mint green/pastel green theme
@@ -18,14 +18,15 @@ VERY IMPORTANT COLOR RULE:
 - Goats should use realistic beige, brown, white, cream fur colors
 - Do NOT tint the animals fully green
 - Avoid monochrome green animals
-- Animals must visually stand out from the green background
+- Animals must visually stand out from the background
 - Use natural livestock color palettes while maintaining the FarmSense UI theme
 
 STYLE REQUIREMENTS:
 - Minimal clean flat illustration
 - Soft rounded shapes
-- Modern SaaS/mobile app aesthetic
-- White or transparent background
+- Modern SaaS/admin dashboard aesthetic
+- TRANSPARENT background — NO white box, NO card background, NO rounded rectangle behind the icon
+- The illustration must float freely with NO background shape at all
 - Main UI color palette:
   - pastel green
   - mint green
@@ -35,48 +36,87 @@ STYLE REQUIREMENTS:
 - Professional startup-style design
 - Cute but premium
 - Similar to Iconscout / Storyset / Icons8 illustration quality
-- Simple soft shadows
+- Simple soft shadows directly under objects only (no background panel)
 - High quality SVG-style vector look
 - Centered composition
-- Mobile app friendly
 - No text
 - No watermark
 - Smooth modern character proportions
-- Slight futuristic agrotech vibe
 
 ANIMAL RESTRICTION:
 - ONLY use cows or goats
 - Do NOT include chickens, sheep, horses, ducks, cats, dogs, or other animals
-- Livestock illustrations must focus only on cattle or goats
 - Keep the livestock appearance realistic but simplified in modern flat vector style
 
-MAIN ICON SUBJECT:
-[Total Health Records]
-
-OPTIONAL DETAILS:
-Include:
-- cows or goats only
-- veterinary healthcare equipment
-- smart livestock monitoring
-- IoT sensors
-- wireless monitoring signals
-- smart farming technology
-- livestock healthcare dashboard style
-- subtle AI/agrotech elements
-- farm environment elements
-
-VISUAL MOOD:
-- trustworthy
-- clean
-- healthy
-- modern agriculture technology
-- friendly veterinary ecosystem
-- enterprise farming app aesthetic
-
 OUTPUT:
-- Transparent background
-- App icon ready
-- Clean vector illustration
-- 1:1 ratio
-- High resolution
+- FULLY TRANSPARENT background — no white fill, no card, no box
+- 128x128px, 1:1 ratio
+- High resolution PNG with alpha transparency
+- No text, no watermark
 - Consistent with FarmSense dashboard UI branding
+
+CRITICAL — GENERATE ONE SINGLE ICON ONLY. ONE centered illustration per image. Do NOT generate multiple icons side by side.
+
+============================
+SECTION: BREEDING RECORDS
+============================
+
+Generate 5 separate icons for the Breeding Records page stat cards.
+Each icon must have a FULLY TRANSPARENT background — no white box, no card, no background shape.
+
+---
+
+ICON 1 — Total Records
+MAIN SUBJECT: A cow and a goat standing side by side with a small clipboard or document icon — representing total breeding records in the system.
+Include: clipboard or document, two livestock animals, simple and clean composition
+Color tone: slate/neutral with mint green accent on the document
+Mood: organized, neutral, enterprise
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 2 — Planned
+MAIN SUBJECT: A calm goat or cow beside a sky-blue clipboard with a checklist or plan schedule on it — representing a planned breeding session not yet started.
+Include: clipboard with checklist, calm livestock, sky/blue tone accents
+Color tone: sky blue
+Mood: prepared, organized, calm
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 3 — Pregnant
+MAIN SUBJECT: A clearly pregnant cow or goat with a soft amber heart or baby animal silhouette nearby — representing active pregnancy in the breeding record.
+Include: visibly round/pregnant animal belly, small heart or tiny calf silhouette, warm amber glow
+Color tone: amber/warm yellow
+Mood: warm, nurturing, expectant
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 4 — Delivered
+MAIN SUBJECT: A mother cow or goat standing beside a small newborn calf or kid (baby goat) — representing a successful birth delivery.
+Include: mother animal, tiny newborn baby animal, soft emerald green checkmark or star nearby
+Color tone: emerald green
+Mood: joyful, successful, new life
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 5 — Failed
+MAIN SUBJECT: A goat or cow with a soft red X mark or broken heart nearby — representing a failed breeding attempt. Keep the animal looking calm, not distressed.
+Include: X mark or broken heart, livestock looking calm, subtle rose/red tone on the indicator only
+Color tone: rose/red for the indicator, animal stays natural color
+Mood: neutral, informative, not dramatic
+Background: FULLY TRANSPARENT
+
+============================
+FILE NAMING (save as):
+- breeding-total.png
+- breeding-planned.png
+- breeding-pregnant.png
+- breeding-delivered.png
+- breeding-failed.png
+
+SAVE LOCATION:
+/public/BreedingIcon/
+============================

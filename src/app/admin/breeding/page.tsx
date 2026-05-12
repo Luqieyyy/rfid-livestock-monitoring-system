@@ -118,12 +118,12 @@ export default function BreedingPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="Total" value={stats.total} tone="slate" />
-        <StatCard label="Planned" value={stats.planned} tone="sky" />
-        <StatCard label="Pregnant" value={stats.pregnant} tone="amber" />
-        <StatCard label="Delivered" value={stats.delivered} tone="emerald" />
-        <StatCard label="Failed" value={stats.failed} tone="red" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <StatCard label="Total" value={stats.total} tone="slate" iconSrc="/Breeding/TotalRecords.png" />
+        <StatCard label="Planned" value={stats.planned} tone="sky" iconSrc="/Breeding/Planned.png" />
+        <StatCard label="Pregnant" value={stats.pregnant} tone="amber" iconSrc="/Breeding/Pregnant.png" />
+        <StatCard label="Delivered" value={stats.delivered} tone="emerald" iconSrc="/Breeding/Delivered.png" />
+        <StatCard label="Failed" value={stats.failed} tone="red" iconSrc="/Breeding/Failed.png" />
       </div>
 
       {/* Tabs + Cards */}
@@ -294,19 +294,24 @@ function LivestockAvatar({ animal, fallbackId, className }: { animal?: Livestock
   );
 }
 
-function StatCard({ label, value, tone }: { label: string; value: number; tone: 'slate' | 'sky' | 'amber' | 'emerald' | 'red' }) {
+function StatCard({ label, value, tone, iconSrc }: { label: string; value: number; tone: 'slate' | 'sky' | 'amber' | 'emerald' | 'red'; iconSrc: string }) {
   const tones = {
-    slate: { wrap: 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md', val: 'text-slate-900', label: 'text-slate-500' },
-    sky: { wrap: 'border-sky-100 bg-sky-50/30 hover:bg-sky-50 hover:border-sky-300 hover:shadow-md hover:shadow-sky-100', val: 'text-sky-700', label: 'text-sky-600' },
-    amber: { wrap: 'border-amber-100 bg-amber-50/30 hover:bg-amber-50 hover:border-amber-300 hover:shadow-md hover:shadow-amber-100', val: 'text-amber-700', label: 'text-amber-600' },
-    emerald: { wrap: 'border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-100', val: 'text-emerald-700', label: 'text-emerald-600' },
-    red: { wrap: 'border-red-100 bg-red-50/30 hover:bg-red-50 hover:border-red-300 hover:shadow-md hover:shadow-red-100', val: 'text-red-700', label: 'text-red-600' },
+    slate:   { val: 'text-slate-800'   },
+    sky:     { val: 'text-sky-700'     },
+    amber:   { val: 'text-amber-700'   },
+    emerald: { val: 'text-emerald-700' },
+    red:     { val: 'text-red-700'     },
   };
   const t = tones[tone];
   return (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 group cursor-default ${t.wrap}`}>
-      <p className={`text-4xl font-black tabular-nums tracking-tight group-hover:scale-105 transition-transform origin-left ${t.val}`}>{value}</p>
-      <p className={`mt-1.5 text-sm font-semibold tracking-wide uppercase ${t.label}`}>{label}</p>
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+      <div className="shrink-0">
+        <img src={iconSrc} alt={label} className="h-28 w-28 object-contain" />
+      </div>
+      <div className="min-w-0">
+        <p className={`text-4xl font-extrabold tabular-nums leading-none ${t.val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
+      </div>
     </div>
   );
 }
