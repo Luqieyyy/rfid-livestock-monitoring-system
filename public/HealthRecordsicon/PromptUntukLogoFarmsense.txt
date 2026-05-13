@@ -58,65 +58,109 @@ OUTPUT:
 CRITICAL — GENERATE ONE SINGLE ICON ONLY. ONE centered illustration per image. Do NOT generate multiple icons side by side.
 
 ============================
-SECTION: BREEDING RECORDS
+SECTION: FEEDING MANAGEMENT
 ============================
 
-Generate 5 separate icons for the Breeding Records page stat cards.
+Generate 4 separate icons for the Feeding Management page stat cards.
 Each icon must have a FULLY TRANSPARENT background — no white box, no card, no background shape.
 
 ---
 
-ICON 1 — Total Records
-MAIN SUBJECT: A cow and a goat standing side by side with a small clipboard or document icon — representing total breeding records in the system.
-Include: clipboard or document, two livestock animals, simple and clean composition
-Color tone: slate/neutral with mint green accent on the document
-Mood: organized, neutral, enterprise
-Background: FULLY TRANSPARENT
-
----
-
-ICON 2 — Planned
-MAIN SUBJECT: A calm goat or cow beside a sky-blue clipboard with a checklist or plan schedule on it — representing a planned breeding session not yet started.
-Include: clipboard with checklist, calm livestock, sky/blue tone accents
+ICON 1 — Today's Feedings
+MAIN SUBJECT: A cow or goat standing beside a feed bowl or trough with a soft clock icon nearby — representing the number of feeding sessions logged today.
+Include: feed bowl/trough, livestock animal, clock or time indicator
 Color tone: sky blue
-Mood: prepared, organized, calm
+Mood: active, daily routine, energetic
 Background: FULLY TRANSPARENT
 
 ---
 
-ICON 3 — Pregnant
-MAIN SUBJECT: A clearly pregnant cow or goat with a soft amber heart or baby animal silhouette nearby — representing active pregnancy in the breeding record.
-Include: visibly round/pregnant animal belly, small heart or tiny calf silhouette, warm amber glow
-Color tone: amber/warm yellow
-Mood: warm, nurturing, expectant
-Background: FULLY TRANSPARENT
-
----
-
-ICON 4 — Delivered
-MAIN SUBJECT: A mother cow or goat standing beside a small newborn calf or kid (baby goat) — representing a successful birth delivery.
-Include: mother animal, tiny newborn baby animal, soft emerald green checkmark or star nearby
+ICON 2 — Completed Schedules
+MAIN SUBJECT: A goat or cow with a green checkmark badge on a clipboard nearby — representing completed feeding schedules for the day.
+Include: clipboard with checkmark, satisfied livestock, clean emerald green accent
 Color tone: emerald green
-Mood: joyful, successful, new life
+Mood: accomplished, clean, done
 Background: FULLY TRANSPARENT
 
 ---
 
-ICON 5 — Failed
-MAIN SUBJECT: A goat or cow with a soft red X mark or broken heart nearby — representing a failed breeding attempt. Keep the animal looking calm, not distressed.
-Include: X mark or broken heart, livestock looking calm, subtle rose/red tone on the indicator only
-Color tone: rose/red for the indicator, animal stays natural color
-Mood: neutral, informative, not dramatic
+ICON 3 — Total Feed (kg)
+MAIN SUBJECT: A large feed sack or scale with grain/hay spilling out slightly — representing the total amount of feed given in kilograms.
+Include: feed sack or weighing scale, grain/hay, soft amber accent
+Color tone: amber/warm orange
+Mood: abundant, farm supply, nutritious
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 4 — Active Schedules
+MAIN SUBJECT: A cow or goat beside a calendar or schedule board with glowing dots or indicators — representing currently active repeating feeding schedules.
+Include: calendar or schedule board, livestock, violet/purple accent indicators
+Color tone: violet/purple
+Mood: organized, recurring, systematic
 Background: FULLY TRANSPARENT
 
 ============================
 FILE NAMING (save as):
-- breeding-total.png
-- breeding-planned.png
-- breeding-pregnant.png
-- breeding-delivered.png
-- breeding-failed.png
+- feeding-today.png
+- feeding-completed.png
+- feeding-total-kg.png
+- feeding-active.png
 
 SAVE LOCATION:
-/public/BreedingIcon/
+/public/FeedingIcon/
+============================
+
+============================
+SECTION: CONDITION LOGS
+============================
+
+Generate 4 separate icons for the Condition Logs page stat cards.
+Each icon must have a FULLY TRANSPARENT background — no white box, no card, no background shape.
+
+---
+
+ICON 1 — Total Logs
+MAIN SUBJECT: A cow or goat beside a document or clipboard with multiple lines/entries on it — representing all condition log reports submitted by farmers.
+Include: document with lines, livestock animal, neutral slate/grey accent
+Color tone: slate/neutral grey
+Mood: organized, archival, neutral
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 2 — Good
+MAIN SUBJECT: A healthy happy cow or goat standing proudly with a soft green checkmark or heart nearby — representing livestock in good condition.
+Include: healthy livestock, green checkmark or small heart, clean emerald green accent
+Color tone: emerald green
+Mood: healthy, positive, thriving
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 3 — Monitor
+MAIN SUBJECT: A cow or goat with a soft amber eye or magnifying glass icon nearby — representing livestock that need to be watched or monitored closely.
+Include: livestock animal, magnifying glass or eye symbol, warm amber/orange accent
+Color tone: amber/warm orange
+Mood: cautious, watchful, attentive
+Background: FULLY TRANSPARENT
+
+---
+
+ICON 4 — Sick
+MAIN SUBJECT: A cow or goat with a soft red warning triangle or thermometer nearby — representing sick livestock that need attention. Keep the animal looking calm, not distressed.
+Include: warning triangle or thermometer, livestock calm, subtle rose/red tone on the indicator only
+Color tone: rose/red for the indicator, animal stays natural color
+Mood: alert, medical, informative
+Background: FULLY TRANSPARENT
+
+============================
+FILE NAMING (save as):
+- conditionlog-total.png
+- conditionlog-good.png
+- conditionlog-monitor.png
+- conditionlog-sick.png
+
+SAVE LOCATION:
+/public/ConditionLogIcon/
 ============================

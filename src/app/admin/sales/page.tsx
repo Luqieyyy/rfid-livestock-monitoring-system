@@ -23,15 +23,18 @@ export default function SalesPage() {
       (animal) => animal.id === livestockId || animal.animalId === livestockId
     );
 
-    if (!matchedAnimal) {
-      return livestockId;
-    }
-
+    if (!matchedAnimal) return livestockId;
     if (matchedAnimal.animalId && matchedAnimal.animalId !== 'N/A') {
       return formatAnimalDisplayName(matchedAnimal.type, matchedAnimal.animalId);
     }
-
     return matchedAnimal.rfid || matchedAnimal.id;
+  };
+
+  const getLivestockPhoto = (livestockId: string): string | null => {
+    const matchedAnimal = livestock.find(
+      (animal) => animal.id === livestockId || animal.animalId === livestockId
+    );
+    return matchedAnimal?.photoUrl ?? null;
   };
 
   useEffect(() => {
@@ -123,27 +126,11 @@ export default function SalesPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <SalesStatCard
-          label="Total Revenue" value={formatMYR(stats.totalRevenue)}
-          iconBg="bg-emerald-100" iconFg="text-emerald-600" val="text-emerald-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-        />
-        <SalesStatCard
-          label="Pending Revenue" value={formatMYR(stats.pendingRevenue)}
-          iconBg="bg-amber-100" iconFg="text-amber-600" val="text-amber-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-        />
-        <SalesStatCard
-          label="Total Sales" value={String(stats.total)}
-          iconBg="bg-blue-100" iconFg="text-blue-600" val="text-blue-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
-        />
-        <SalesStatCard
-          label="Pending Deliveries" value={String(stats.pendingDeliveries)}
-          iconBg="bg-orange-100" iconFg="text-orange-600" val="text-orange-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>}
-        />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+        <SalesStatCard label="Total Revenue" value={formatMYR(stats.totalRevenue)} val="text-emerald-700" img="/Sales/totalrevenues.png" />
+        <SalesStatCard label="Pending Revenue" value={formatMYR(stats.pendingRevenue)} val="text-amber-700" img="/Sales/pendingsales.png" />
+        <SalesStatCard label="Total Sales" value={String(stats.total)} val="text-blue-700" img="/Sales/totalsales.png" />
+        <SalesStatCard label="Pending Deliveries" value={String(stats.pendingDeliveries)} val="text-orange-700" img="/Sales/pendingdeliveris.png" />
       </div>
 
       {/* Table Card */}
@@ -202,11 +189,19 @@ export default function SalesPage() {
                       {/* Livestock */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
-                            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-                            </svg>
-                          </div>
+                          {getLivestockPhoto(sale.livestockId) ? (
+                            <img
+                              src={getLivestockPhoto(sale.livestockId)!}
+                              alt={getLivestockLabel(sale.livestockId)}
+                              className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-100"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
+                              </svg>
+                            </div>
+                          )}
                           <div>
                             <p className="font-semibold text-gray-900 text-[13px]">{getLivestockLabel(sale.livestockId)}</p>
                           </div>
@@ -705,13 +700,13 @@ function EditSaleModal({ sale, livestock, onClose, onSuccess }: {
 }
 
 
-function SalesStatCard({ label, value, iconBg, iconFg, val, icon }: {
-  label: string; value: string; iconBg: string; iconFg: string; val: string; icon: React.ReactNode;
+function SalesStatCard({ label, value, val, img }: {
+  label: string; value: string; val: string; img: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
-      <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} ${iconFg}`}>
-        {icon}
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm h-full min-h-[140px]">
+      <div className="shrink-0 flex h-28 w-28 items-center justify-center">
+        <img src={img} alt={label} className="h-28 w-28 object-contain drop-shadow-sm" />
       </div>
       <div className="min-w-0">
         <p className={`text-2xl font-extrabold tabular-nums leading-none ${val}`}>{value}</p>

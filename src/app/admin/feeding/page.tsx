@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Bell, Clock3, Trash2 } from 'lucide-react';
 import { feedingScheduleService, feedingActivityService, livestockService, iotFeedService } from '@/services/firestore.service';
 import type { FeedingSchedule, FeedingActivity, Livestock } from '@/types/livestock.types';
 
@@ -115,7 +116,7 @@ export default function FeedingManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 items-stretch">
         <StatCard label="Today's Feedings" value={stats.todayFeedings} tone="sky" />
         <StatCard label="Completed Schedules" value={stats.completedSchedules} tone="emerald" />
         <StatCard label="Total Feed (kg)" value={stats.totalFeedGiven.toFixed(1)} tone="amber" />
@@ -173,46 +174,57 @@ function SchedulesView({ schedules, onUpdate }: { schedules: FeedingSchedule[]; 
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {schedules.map((s) => (
-        <div key={s.id} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 hover:bg-white hover:border-slate-200 transition group">
-          {/* Time badge */}
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-600 shadow-sm">
-            <span className="text-sm font-bold text-white leading-none">{s.time}</span>
-          </div>
+        <div key={s.id} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md sm:p-5">
+          <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-emerald-500 to-sky-500" />
 
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-slate-900">{s.name}</p>
-            <p className="text-sm text-slate-500">{s.feedType} · {s.quantity} {s.unit}</p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              {s.livestockTypes.map((t) => (
-                <span key={t} className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 capitalize">{t}</span>
-              ))}
-              {s.notificationEnabled && (
-                <span className="flex items-center gap-1 rounded-md bg-sky-50 border border-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
-                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                  {s.notifyBefore}min before
-                </span>
-              )}
+          {/* Card content */}
+          <div className="flex flex-col gap-4 pl-2 sm:flex-row sm:items-center">
+            <div className="flex flex-shrink-0 items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 sm:w-36">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+                <Clock3 className="h-4 w-4" strokeWidth={2.2} />
+              </span>
+              <span className="text-xl font-extrabold leading-none text-emerald-800 tabular-nums">{s.time}</span>
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => handleToggle(s)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                s.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-              }`}
-            >
-              {s.isActive ? 'Active' : 'Inactive'}
-            </button>
-            <button onClick={() => handleDelete(s.id)} className="rounded-xl p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+            {/* Info */}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+                <p className="truncate text-base font-bold text-slate-950">{s.name}</p>
+                <p className="text-sm font-medium text-slate-500">{s.feedType} · {s.quantity} {s.unit}</p>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {s.livestockTypes.map((t) => (
+                  <span key={t} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold capitalize text-slate-600">{t}</span>
+                ))}
+                {s.notificationEnabled && (
+                  <span className="flex items-center gap-1.5 rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700">
+                    <Bell className="h-3.5 w-3.5" strokeWidth={2.2} />
+                    {s.notifyBefore}min before
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 sm:flex-shrink-0">
+              <button
+                onClick={() => handleToggle(s)}
+                className={`min-w-[6rem] rounded-full px-3.5 py-2 text-xs font-bold transition ${
+                  s.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                }`}
+              >
+                {s.isActive ? 'Active' : 'Inactive'}
+              </button>
+              <button
+                onClick={() => handleDelete(s.id)}
+                className="rounded-full p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                aria-label={`Delete ${s.name}`}
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={2} />
+              </button>
+            </div>
           </div>
         </div>
       ))}
@@ -223,7 +235,7 @@ function SchedulesView({ schedules, onUpdate }: { schedules: FeedingSchedule[]; 
 // ── Activities ───────────────────────────────────────────────
 
 function ActivitiesView({ activities, livestock }: { activities: FeedingActivity[]; livestock: Livestock[] }) {
-  const getName = (id: string) => livestock.find((l) => l.id === id)?.tagId ?? 'Unknown';
+  const getName = (id: string) => livestock.find((l) => l.id === id)?.tagId ?? null;
 
   if (activities.length === 0) return (
     <EmptyState icon={<ListIcon className="h-8 w-8 text-slate-400" />} title="No feeding activities today" description="Feeding activities logged by staff will appear here." />
@@ -238,13 +250,18 @@ function ActivitiesView({ activities, livestock }: { activities: FeedingActivity
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-slate-900 text-sm">{a.livestockTagId || getName(a.livestockId)}</span>
+              <span className="font-semibold text-slate-900 text-sm">
+                {a.livestockTagId || getName(a.livestockId) || 'Auto Feed (IoT)'}
+              </span>
               <span className="text-slate-300">·</span>
               <span className="text-sm font-medium text-emerald-600">
                 {new Date(a.fedAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <p className="text-sm text-slate-500">{a.feedType} · {a.quantity} {a.unit} · {a.farmerName}</p>
+            <p className="text-sm text-slate-500">
+              {a.feedType || 'Dispensed'} · {a.quantity} {a.unit}
+              {a.farmerName && a.farmerName !== 'Unknown Farmer' ? ` · ${a.farmerName}` : ' · IoT Dispenser'}
+            </p>
           </div>
           {a.scheduleName && (
             <span className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 flex-shrink-0">
@@ -261,22 +278,22 @@ function ActivitiesView({ activities, livestock }: { activities: FeedingActivity
 
 function StatCard({ label, value, tone }: { label: string; value: string | number; tone: 'sky' | 'emerald' | 'amber' | 'violet' }) {
   const tones = {
-    sky:     { iconBg: 'bg-sky-100',     iconFg: 'text-sky-600',     val: 'text-sky-700'     },
-    emerald: { iconBg: 'bg-emerald-100', iconFg: 'text-emerald-600', val: 'text-emerald-700' },
-    amber:   { iconBg: 'bg-amber-100',   iconFg: 'text-amber-600',   val: 'text-amber-700'   },
-    violet:  { iconBg: 'bg-violet-100',  iconFg: 'text-violet-600',  val: 'text-violet-700'  },
+    sky:     { val: 'text-sky-700'     },
+    emerald: { val: 'text-emerald-700' },
+    amber:   { val: 'text-amber-700'   },
+    violet:  { val: 'text-violet-700'  },
   };
   const icons = {
-    sky: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-    emerald: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-    amber: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>,
-    violet: <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+    sky:     '/Feedingicon/todayfeeding.png',
+    emerald: '/Feedingicon/feedingcompleted.png',
+    amber:   '/Feedingicon/totalfeed.png',
+    violet:  '/Feedingicon/activeschedules.png',
   };
   const t = tones[tone];
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
-      <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl ${t.iconBg} ${t.iconFg}`}>
-        {icons[tone]}
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm h-[160px]">
+      <div className="shrink-0 flex h-28 w-28 items-center justify-center">
+        <img src={icons[tone]} alt={label} className="h-28 w-28 object-contain drop-shadow-sm" />
       </div>
       <div className="min-w-0">
         <p className={`text-4xl font-extrabold tabular-nums leading-none ${t.val}`}>{value}</p>

@@ -133,19 +133,11 @@ export default function ConditionLogsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <CondStatCard label="Total Logs" value={stats.total} iconBg="bg-slate-100" iconFg="text-slate-600" val="text-slate-800"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-        />
-        <CondStatCard label="Good" value={stats.good} iconBg="bg-emerald-100" iconFg="text-emerald-600" val="text-emerald-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-        />
-        <CondStatCard label="Monitor" value={stats.monitor} iconBg="bg-amber-100" iconFg="text-amber-600" val="text-amber-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
-        />
-        <CondStatCard label="Sick" value={stats.sick} iconBg="bg-red-100" iconFg="text-red-600" val="text-red-700"
-          icon={<svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" /></svg>}
-        />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 items-stretch">
+        <CondStatCard label="Total Logs" value={stats.total} val="text-slate-800" img="/ConditionLog/totallog.png" />
+        <CondStatCard label="Good" value={stats.good} val="text-emerald-700" img="/ConditionLog/goodcondition.png" />
+        <CondStatCard label="Monitor" value={stats.monitor} val="text-amber-700" img="/ConditionLog/monitor.png" />
+        <CondStatCard label="Sick" value={stats.sick} val="text-red-700" img="/ConditionLog/sick.png" />
       </div>
 
       {/* Unreviewed alert */}
@@ -345,13 +337,13 @@ export default function ConditionLogsPage() {
   );
 }
 
-function CondStatCard({ label, value, iconBg, iconFg, val, icon }: {
-  label: string; value: number; iconBg: string; iconFg: string; val: string; icon: React.ReactNode;
+function CondStatCard({ label, value, val, img }: {
+  label: string; value: number; val: string; img: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
-      <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} ${iconFg}`}>
-        {icon}
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm h-full min-h-[140px]">
+      <div className="shrink-0 flex h-28 w-28 items-center justify-center">
+        <img src={img} alt={label} className="h-28 w-28 object-contain drop-shadow-sm" />
       </div>
       <div className="min-w-0">
         <p className={`text-4xl font-extrabold tabular-nums leading-none ${val}`}>{value}</p>

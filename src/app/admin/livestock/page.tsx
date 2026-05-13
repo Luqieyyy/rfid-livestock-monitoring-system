@@ -574,13 +574,15 @@ function AddLivestockModal({ onClose, onSuccess, kandangs, existingLivestock, ge
         setUploading(false);
       }
 
-      await livestockService.create({
+      const createData: Record<string, unknown> = {
         ...formData,
         weight: parseFloat(formData.weight),
-        price: formData.price ? parseFloat(formData.price) : undefined,
         dateOfBirth: new Date(formData.dateOfBirth),
         photoUrl,
-      } as Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>);
+      };
+      if (formData.price) createData.price = parseFloat(formData.price);
+      else delete createData.price;
+      await livestockService.create(createData as Omit<Livestock, 'id' | 'createdAt' | 'updatedAt'>);
       onSuccess();
       onClose();
     } catch (error) {
@@ -866,13 +868,18 @@ function EditLivestockModal({ animal, onClose, onSuccess, kandangs, getAllBreeds
         setUploading(false);
       }
 
-      await livestockService.update(animal.id, {
+      const updateData: Record<string, unknown> = {
         ...formData,
         weight: parseFloat(formData.weight),
-        price: formData.price ? parseFloat(formData.price) : undefined,
         dateOfBirth: new Date(formData.dateOfBirth),
         photoUrl,
-      });
+      };
+      if (formData.price) {
+        updateData.price = parseFloat(formData.price);
+      } else {
+        delete updateData.price;
+      }
+      await livestockService.update(animal.id, updateData);
       onSuccess();
     } catch (error) {
       console.error('Error updating livestock:', error);
