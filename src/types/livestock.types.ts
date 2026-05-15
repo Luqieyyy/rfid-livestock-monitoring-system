@@ -119,6 +119,10 @@ export interface FeedingActivity {
   id: string;
   scheduleId?: string;
   scheduleName?: string;
+  penName?: string;
+  animalCount?: number;
+  animalIds?: string[];
+  animalTags?: string[];
   livestockId: string;
   livestockTagId?: string;
   livestockAnimalId: string; // References the animalId field
@@ -129,6 +133,9 @@ export interface FeedingActivity {
   unit: 'kg' | 'lbs';
   fedAt: Date;
   notes?: string;
+  remarks?: string;
+  remark?: string;
+  additionalNotes?: string;
   location?: string;
   photoUrl?: string;
   createdAt: Date;

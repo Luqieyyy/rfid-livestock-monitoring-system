@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bell, Clock3, Trash2 } from 'lucide-react';
+import { Bell, Clock3, FileText, Trash2 } from 'lucide-react';
 import { feedingScheduleService, feedingActivityService, livestockService, iotFeedService } from '@/services/firestore.service';
 import type { FeedingSchedule, FeedingActivity, Livestock } from '@/types/livestock.types';
 
@@ -236,6 +236,16 @@ function SchedulesView({ schedules, onUpdate }: { schedules: FeedingSchedule[]; 
 
 function ActivitiesView({ activities, livestock }: { activities: FeedingActivity[]; livestock: Livestock[] }) {
   const getName = (id: string) => livestock.find((l) => l.id === id)?.tagId ?? null;
+  const getNotes = (activity: FeedingActivity) => {
+    const raw = [
+      activity.notes,
+      activity.remarks,
+      activity.remark,
+      activity.additionalNotes,
+    ].find((value) => typeof value === 'string' && value.trim().length > 0);
+
+    return typeof raw === 'string' ? raw.trim() : '';
+  };
 
   if (activities.length === 0) return (
     <EmptyState icon={<ListIcon className="h-8 w-8 text-slate-400" />} title="No feeding activities today" description="Feeding activities logged by staff will appear here." />
@@ -243,33 +253,50 @@ function ActivitiesView({ activities, livestock }: { activities: FeedingActivity
 
   return (
     <div className="divide-y divide-slate-100">
-      {activities.map((a) => (
-        <div key={a.id} className="flex items-center gap-4 py-4 hover:bg-slate-50/60 rounded-xl px-2 transition">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-sky-100">
-            <CheckIcon className="h-5 w-5 text-sky-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-slate-900 text-sm">
-                {a.livestockTagId || getName(a.livestockId) || 'Auto Feed (IoT)'}
-              </span>
-              <span className="text-slate-300">·</span>
-              <span className="text-sm font-medium text-emerald-600">
-                {new Date(a.fedAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
-              </span>
+      {activities.map((a) => {
+        const notes = getNotes(a);
+
+        return (
+          <div key={a.id} className="flex items-start gap-4 py-4 hover:bg-slate-50/60 rounded-xl px-2 transition">
+            {a.photoUrl ? (
+              <img src={a.photoUrl} alt="feed" className="h-10 w-10 flex-shrink-0 rounded-xl object-cover" />
+            ) : (
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-sky-100">
+                <CheckIcon className="h-5 w-5 text-sky-600" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-slate-900 text-sm">
+                  {a.livestockTagId || getName(a.livestockId) || a.penName || 'Auto Feed (IoT)'}
+                </span>
+                <span className="text-slate-300">·</span>
+                <span className="text-sm font-medium text-emerald-600">
+                  {new Date(a.fedAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <p className="text-sm text-slate-500">
+                {a.feedType || 'Dispensed'} · {a.quantity} {a.unit}
+                {a.farmerName && a.farmerName !== 'Unknown Farmer' ? ` · ${a.farmerName}` : ' · IoT Dispenser'}
+                {a.animalCount ? ` · ${a.animalCount} animals` : ''}
+              </p>
+              {notes && (
+                <div className="mt-2 flex items-start gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs text-slate-600">
+                  <FileText className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-600" strokeWidth={2.2} />
+                  <p className="line-clamp-2 leading-relaxed">
+                    <span className="font-semibold text-emerald-700">Remarks:</span> {notes}
+                  </p>
+                </div>
+              )}
             </div>
-            <p className="text-sm text-slate-500">
-              {a.feedType || 'Dispensed'} · {a.quantity} {a.unit}
-              {a.farmerName && a.farmerName !== 'Unknown Farmer' ? ` · ${a.farmerName}` : ' · IoT Dispenser'}
-            </p>
+            {a.scheduleName && (
+              <span className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 flex-shrink-0">
+                {a.scheduleName}
+              </span>
+            )}
           </div>
-          {a.scheduleName && (
-            <span className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 flex-shrink-0">
-              {a.scheduleName}
-            </span>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
