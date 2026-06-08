@@ -964,7 +964,7 @@ function OffersSection({
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold capitalize ${statusBadge(offer.status)}`}>{offer.status}</span>
                 </div>
                 <p className="text-xs text-gray-500 truncate">{offer.buyerName} · {offer.buyerContact}</p>
-                {offer.message && <p className="text-xs text-gray-400 italic mt-0.5 truncate">"{offer.message}"</p>}
+                {offer.message && <p className="text-xs text-gray-400 italic mt-0.5 truncate">&ldquo;{offer.message}&rdquo;</p>}
                 {offer.status === 'countered' && offer.counterAmount != null && (
                   <p className="text-xs text-blue-600 font-medium mt-0.5">Counter: {formatMYR(offer.counterAmount)}{offer.counterMessage ? ` — ${offer.counterMessage}` : ''}</p>
                 )}
