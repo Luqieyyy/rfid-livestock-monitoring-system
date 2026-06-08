@@ -257,8 +257,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/feeding':       { section: 'Livestock Management', label: 'Feeding Schedule' },
     '/admin/condition-logs':{ section: 'Livestock Management', label: 'Condition Logs' },
     '/admin/rfid-activity': { section: 'Livestock Management', label: 'RFID Activity Log' },
-    '/admin/sales':         { section: 'Finance',            label: 'Sales' },
+    '/admin/sales':         { section: 'Finance',            label: 'Sales & Offers' },
     '/admin/staff':         { section: 'Settings',           label: 'User Management' },
+    '/admin/reports/monthly': { section: 'Reports', label: 'Monthly Farm Report' },
     '/admin/tools':             { section: 'Settings', label: 'Tools & Migration' },
     '/admin/tools/iot-wiring':  { section: 'Admin Tools', label: 'IoT Wiring Architecture' },
     '/admin/profile':           { section: 'Settings', label: 'Profile & Security' },
@@ -544,7 +545,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               </div>
             ) : (
-              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/8 hover:bg-white/12 border border-white/8 hover:border-emerald-400/25 mb-1 transition-all group">
+              <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-black/65 hover:bg-black/80 border border-white/15 hover:border-emerald-400/35 mb-1 transition-all group shadow-lg shadow-black/10">
                 <div className="relative shrink-0">
                   {user?.photoURL ? (
                     <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-lg object-cover" />
@@ -569,8 +570,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               onClick={handleLogout}
               title={sidebarCollapsed ? 'Sign Out' : undefined}
-              className={`w-full flex items-center rounded-xl text-[12.5px] font-medium text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150 ${
-                sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2'
+              className={`w-full flex items-center rounded-xl bg-red-500 text-[12.5px] font-semibold text-white shadow-lg shadow-red-950/10 hover:bg-red-600 transition-all duration-150 ${
+                sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-center gap-2.5 px-3 py-2'
               }`}
             >
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -629,4 +630,3 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
-

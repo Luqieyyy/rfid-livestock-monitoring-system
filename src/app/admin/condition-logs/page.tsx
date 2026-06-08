@@ -20,8 +20,11 @@ import type { Livestock } from '@/types/livestock.types';
 
 interface ConditionLog {
   id: string;
-  animalId: string;
-  animalDisplayName: string;
+  logType?: 'animal' | 'farm';
+  animalId?: string;
+  animalDisplayName?: string;
+  area?: string;
+  areaLabel?: string;
   farmerId: string;
   farmerName: string;
   condition: 'Good' | 'Monitor' | 'Sick';
@@ -37,10 +40,23 @@ const conditionConfig = {
   Sick: { color: 'bg-red-100 text-red-700 border-red-200', dot: 'bg-red-500' },
 };
 
+// Display labels differ depending on whether the log is about an animal or the farm/facility
+const conditionLabel = (logType: 'animal' | 'farm' | undefined, condition: ConditionLog['condition']) => {
+  if (logType === 'farm') {
+    return condition === 'Good' ? 'Baik' : condition === 'Monitor' ? 'Perlu Perhatian' : 'Kerosakan';
+  }
+  return condition;
+};
+
+function getLogType(log: ConditionLog): 'animal' | 'farm' {
+  return log.logType === 'farm' ? 'farm' : 'animal';
+}
+
 export default function ConditionLogsPage() {
   const [logs, setLogs] = useState<ConditionLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'Good' | 'Monitor' | 'Sick' | 'unreviewed'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'animal' | 'farm'>('all');
   const [selectedLog, setSelectedLog] = useState<ConditionLog | null>(null);
   const [viewingAnimal, setViewingAnimal] = useState<Livestock | null>(null);
   const [loadingAnimal, setLoadingAnimal] = useState<string | null>(null);
@@ -96,6 +112,7 @@ export default function ConditionLogsPage() {
   };
 
   const filtered = logs.filter((l) => {
+    if (typeFilter !== 'all' && getLogType(l) !== typeFilter) return false;
     if (filter === 'all') return true;
     if (filter === 'unreviewed') return !l.isReviewed;
     return l.condition === filter;
@@ -103,6 +120,8 @@ export default function ConditionLogsPage() {
 
   const stats = {
     total: logs.length,
+    animal: logs.filter((l) => getLogType(l) === 'animal').length,
+    farm: logs.filter((l) => getLogType(l) === 'farm').length,
     good: logs.filter((l) => l.condition === 'Good').length,
     monitor: logs.filter((l) => l.condition === 'Monitor').length,
     sick: logs.filter((l) => l.condition === 'Sick').length,
@@ -129,15 +148,15 @@ export default function ConditionLogsPage() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">Farmer Reports</p>
         <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Condition Logs</h2>
-        <p className="mt-0.5 text-sm text-slate-500">Laporan keadaan ternakan daripada farmer — gambar dan nota pemerhatian.</p>
+        <p className="mt-0.5 text-sm text-slate-500">Laporan keadaan ternakan dan ladang daripada farmer — gambar dan nota pemerhatian.</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 items-stretch">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 items-stretch">
         <CondStatCard label="Total Logs" value={stats.total} val="text-slate-800" img="/ConditionLog/totallog.png" />
-        <CondStatCard label="Good" value={stats.good} val="text-emerald-700" img="/ConditionLog/goodcondition.png" />
-        <CondStatCard label="Monitor" value={stats.monitor} val="text-amber-700" img="/ConditionLog/monitor.png" />
-        <CondStatCard label="Sick" value={stats.sick} val="text-red-700" img="/ConditionLog/sick.png" />
+        <CondStatCard label="Animal Reports" value={stats.animal} val="text-emerald-700" img="/ConditionLog/goodcondition.png" />
+        <CondStatCard label="Farm / Facility Reports" value={stats.farm} val="text-amber-700" img="/ConditionLog/monitor.png" />
+        <CondStatCard label="Sick / Damaged" value={stats.sick} val="text-red-700" img="/ConditionLog/sick.png" />
       </div>
 
       {/* Unreviewed alert */}
@@ -161,21 +180,47 @@ export default function ConditionLogsPage() {
         </div>
       )}
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {(['all', 'unreviewed', 'Good', 'Monitor', 'Sick'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition ${
-              filter === f
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'
-            }`}
-          >
-            {f === 'all' ? 'All' : f === 'unreviewed' ? `Unreviewed (${stats.unreviewed})` : f}
-          </button>
-        ))}
+      {/* Filters */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 sm:flex-row sm:items-center sm:gap-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Type</span>
+          {([
+            { key: 'all', label: 'All' },
+            { key: 'animal', label: `Animal (${stats.animal})` },
+            { key: 'farm', label: `Farm / Facility (${stats.farm})` },
+          ] as const).map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTypeFilter(t.key)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                typeFilter === t.key
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="hidden h-6 w-px bg-slate-200 sm:block" />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Status</span>
+          {(['all', 'unreviewed', 'Good', 'Monitor', 'Sick'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                filter === f
+                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'
+              }`}
+            >
+              {f === 'all' ? 'All' : f === 'unreviewed' ? `Unreviewed (${stats.unreviewed})` : f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Logs Grid */}
@@ -188,6 +233,7 @@ export default function ConditionLogsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((log) => {
             const cfg = conditionConfig[log.condition] ?? conditionConfig.Good;
+            const isFarm = getLogType(log) === 'farm';
             return (
               <div
                 key={log.id}
@@ -208,9 +254,16 @@ export default function ConditionLogsPage() {
                   </div>
                 ) : (
                   <div className="h-44 w-full bg-slate-50 flex items-center justify-center">
-                    <span className="text-4xl">📷</span>
+                    <span className="text-4xl">{isFarm ? '🏚️' : '📷'}</span>
                   </div>
                 )}
+
+                {/* Type badge */}
+                <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isFarm ? 'bg-slate-900/80 text-white' : 'bg-emerald-600/90 text-white'
+                }`}>
+                  {isFarm ? 'FARM / FACILITY' : 'ANIMAL'}
+                </span>
 
                 {/* Unreviewed badge */}
                 {!log.isReviewed && (
@@ -223,12 +276,14 @@ export default function ConditionLogsPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-bold text-slate-900 text-sm">{log.animalDisplayName || '—'}</p>
+                      <p className="font-bold text-slate-900 text-sm">
+                        {isFarm ? (log.areaLabel || 'Farm / Facility') : (log.animalDisplayName || '—')}
+                      </p>
                       <p className="text-xs text-slate-400 mt-0.5">by {log.farmerName}</p>
                     </div>
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                      {log.condition}
+                      {conditionLabel(log.logType, log.condition)}
                     </span>
                   </div>
 
@@ -240,21 +295,23 @@ export default function ConditionLogsPage() {
 
                   <div className="flex items-center justify-between mt-3">
                     <p className="text-[11px] text-slate-400">{formatTime(log.timestamp)}</p>
-                    <button
-                      onClick={(e) => openAnimalProfile(e, log.animalId)}
-                      disabled={loadingAnimal === log.animalId}
-                      className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-full transition disabled:opacity-50"
-                    >
-                      {loadingAnimal === log.animalId ? (
-                        <span className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin inline-block" />
-                      ) : (
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                      View Animal
-                    </button>
+                    {!isFarm && log.animalId && (
+                      <button
+                        onClick={(e) => openAnimalProfile(e, log.animalId!)}
+                        disabled={loadingAnimal === log.animalId}
+                        className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-full transition disabled:opacity-50"
+                      >
+                        {loadingAnimal === log.animalId ? (
+                          <span className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin inline-block" />
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                        View Animal
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -282,11 +339,18 @@ export default function ConditionLogsPage() {
             <div className="p-6 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">{selectedLog.animalDisplayName}</h3>
+                  <span className={`inline-block mb-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    getLogType(selectedLog) === 'farm' ? 'bg-slate-900/80 text-white' : 'bg-emerald-600/90 text-white'
+                  }`}>
+                    {getLogType(selectedLog) === 'farm' ? 'FARM / FACILITY' : 'ANIMAL'}
+                  </span>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {getLogType(selectedLog) === 'farm' ? (selectedLog.areaLabel || 'Farm / Facility') : selectedLog.animalDisplayName}
+                  </h3>
                   <p className="text-sm text-slate-400">Reported by {selectedLog.farmerName}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${conditionConfig[selectedLog.condition]?.color}`}>
-                  {selectedLog.condition}
+                  {conditionLabel(selectedLog.logType, selectedLog.condition)}
                 </span>
               </div>
 
@@ -341,13 +405,13 @@ function CondStatCard({ label, value, val, img }: {
   label: string; value: number; val: string; img: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm h-full min-h-[140px]">
-      <div className="shrink-0 flex h-28 w-28 items-center justify-center">
-        <img src={img} alt={label} className="h-28 w-28 object-contain drop-shadow-sm" />
+    <div className="flex h-full flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
+      <div className="shrink-0 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 sm:h-24 sm:w-24">
+        <img src={img} alt={label} className="h-16 w-16 object-contain drop-shadow-sm sm:h-20 sm:w-20" />
       </div>
-      <div className="min-w-0">
-        <p className={`text-4xl font-extrabold tabular-nums leading-none ${val}`}>{value}</p>
-        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
+      <div className="min-w-0 text-center sm:text-left">
+        <p className={`text-3xl font-extrabold tabular-nums leading-none sm:text-4xl ${val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium leading-snug text-slate-500 sm:text-base">{label}</p>
       </div>
     </div>
   );

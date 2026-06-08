@@ -7,6 +7,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  onSnapshot,
   query,
   where,
   serverTimestamp,
@@ -18,7 +19,20 @@ import type { VaccinationRecord, VaccineScheduleTemplate, VaccineStatus } from '
 const COL = {
   VACCINATIONS: 'vaccinations',
   SCHEDULES: 'vaccine_schedules',
+  SETTINGS: 'settings',
+  VACCINE_TYPES_DOC: 'vaccineTypes',
 };
+
+export const DEFAULT_VACCINE_TYPES = [
+  'FMD',
+  'Brucellosis',
+  'Anthrax',
+  'Blackleg',
+  'LSD',
+  'PPR',
+  'Rabies',
+  'Other',
+];
 
 function toDate(val: any): Date {
   if (!val) return new Date();
@@ -45,6 +59,23 @@ export const vaccinationService = {
     const records = snap.docs.map((d) => ({ id: d.id, ...convertDates(d.data()) }) as VaccinationRecord);
     // sync overdue status client-side
     return syncOverdueStatus(records);
+  },
+
+  watchAll(
+    onRecords: (records: VaccinationRecord[]) => void,
+    onError?: (error: Error) => void,
+  ): () => void {
+    const db = getFirebaseDb();
+    return onSnapshot(
+      collection(db, COL.VACCINATIONS),
+      (snap) => {
+        const records = snap.docs.map((d) => ({ id: d.id, ...convertDates(d.data()) }) as VaccinationRecord);
+        onRecords(syncOverdueStatus(records));
+      },
+      (error) => {
+        onError?.(error);
+      },
+    );
   },
 
   async getByAnimal(animalId: string): Promise<VaccinationRecord[]> {
@@ -86,7 +117,9 @@ export const vaccinationService = {
     const db = getFirebaseDb();
     const payload: any = { ...data, updatedAt: serverTimestamp() };
     if (data.administeredAt) payload.administeredAt = Timestamp.fromDate(new Date(data.administeredAt));
-    if (data.nextDueAt) payload.nextDueAt = Timestamp.fromDate(new Date(data.nextDueAt));
+    if (Object.prototype.hasOwnProperty.call(data, 'nextDueAt')) {
+      payload.nextDueAt = data.nextDueAt ? Timestamp.fromDate(new Date(data.nextDueAt)) : null;
+    }
     await updateDoc(doc(db, COL.VACCINATIONS, id), payload);
   },
 
@@ -116,6 +149,38 @@ export const vaccinationService = {
         });
       }
     }
+  },
+};
+
+// ==================== VACCINE TYPES ====================
+
+export const vaccineTypeService = {
+  async getAll(): Promise<string[]> {
+    const db = getFirebaseDb();
+    const snap = await getDoc(doc(db, COL.SETTINGS, COL.VACCINE_TYPES_DOC));
+    if (!snap.exists()) return DEFAULT_VACCINE_TYPES;
+
+    const rawTypes = snap.data().types;
+    if (!Array.isArray(rawTypes)) return DEFAULT_VACCINE_TYPES;
+
+    return mergeVaccineTypes(rawTypes.map((value) => String(value)));
+  },
+
+  async add(name: string): Promise<string[]> {
+    const db = getFirebaseDb();
+    const cleaned = name.trim();
+    if (!cleaned) return vaccineTypeService.getAll();
+
+    const current = await vaccineTypeService.getAll();
+    const exists = current.some((type) => type.toLowerCase() === cleaned.toLowerCase());
+    const updated = exists ? current : mergeVaccineTypes([...current, cleaned]);
+
+    await setDoc(doc(db, COL.SETTINGS, COL.VACCINE_TYPES_DOC), {
+      types: updated,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+
+    return updated;
   },
 };
 
@@ -154,6 +219,24 @@ function syncOverdueStatus(records: VaccinationRecord[]): VaccinationRecord[] {
     }
     return r;
   });
+}
+
+function mergeVaccineTypes(types: string[]): string[] {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+
+  [...DEFAULT_VACCINE_TYPES, ...types]
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .forEach((value) => {
+      const key = value.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(value);
+      }
+    });
+
+  return merged;
 }
 
 // e.g. VAC-00003-FMD-20260408-a3f

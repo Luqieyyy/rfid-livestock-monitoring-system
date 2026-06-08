@@ -89,6 +89,25 @@ export interface SalesRecord {
   createdAt: Date;
 }
 
+export interface Offer {
+  id: string;
+  livestockId: string;
+  livestockDisplayName?: string; // e.g. "Cow 003" — denormalized for easy display
+  livestockPhotoUrl?: string;
+  buyerId?: string;
+  buyerName: string;
+  buyerContact: string;
+  offerAmount: number;
+  listedPrice?: number;
+  message?: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'countered' | 'expired';
+  counterAmount?: number;
+  counterMessage?: string;
+  respondedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface DashboardStats {
   totalLivestock: number;
   healthyCount: number;

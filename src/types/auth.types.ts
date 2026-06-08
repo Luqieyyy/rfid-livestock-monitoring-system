@@ -8,6 +8,8 @@ export interface AuthUser {
   displayName: string | null;
   role: UserRole;
   photoURL?: string | null;
+  phoneNumber?: string | null;
+  location?: string | null;
 }
 
 export interface LoginCredentials {

@@ -82,6 +82,7 @@ export default function RfidActivityPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DayStats | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'success' | 'not_found'>('all');
+  const [filterAnimalType, setFilterAnimalType] = useState('all');
 
   const loadLogs = useCallback(async (dateKey: string) => {
     setLoading(true);
@@ -111,9 +112,11 @@ export default function RfidActivityPage() {
     loadLogs(selectedDate);
   }, [selectedDate, loadLogs]);
 
-  const filteredLogs = logs.filter(l =>
-    filterType === 'all' ? true : l.scan_result === filterType
-  );
+  const filteredLogs = logs.filter(l => {
+    if (filterType !== 'all' && l.scan_result !== filterType) return false;
+    if (filterAnimalType !== 'all' && l.animal_type !== filterAnimalType) return false;
+    return true;
+  });
 
   const typeEmoji: Record<string, string> = { cow: '🐄', goat: '🐐', sheep: '🐑' };
 
@@ -243,28 +246,41 @@ export default function RfidActivityPage() {
           )}
 
           {/* Filter Bar */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center justify-between gap-4">
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-gray-500">
               Menunjukkan <span className="font-semibold text-gray-900">{filteredLogs.length}</span> daripada {logs.length} rekod untuk <span className="font-semibold">{selectedDate}</span>
             </p>
-            <div className="flex gap-2">
-              {(['all', 'success', 'not_found'] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilterType(f)}
-                  className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                    filterType === f
-                      ? f === 'all'
-                        ? 'bg-gray-800 text-white'
-                        : f === 'success'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-amber-500 text-white'
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {f === 'all' ? 'Semua' : f === 'success' ? '✅ Dikenal' : '⚠️ Tidak Daftar'}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              <div className="flex rounded-xl border border-gray-200 overflow-hidden">
+                {(['all', 'cow', 'goat'] as const).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setFilterAnimalType(t)}
+                    className={`px-3 py-1.5 text-sm font-medium transition-all ${filterAnimalType === t ? 'bg-emerald-600 text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                  >
+                    {t === 'all' ? 'All' : t === 'cow' ? '🐄 Cow' : '🐐 Goat'}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                {(['all', 'success', 'not_found'] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFilterType(f)}
+                    className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                      filterType === f
+                        ? f === 'all'
+                          ? 'bg-gray-800 text-white'
+                          : f === 'success'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-amber-500 text-white'
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {f === 'all' ? 'Semua' : f === 'success' ? '✅ Dikenal' : '⚠️ Tidak Daftar'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

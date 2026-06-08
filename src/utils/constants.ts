@@ -89,6 +89,8 @@ export const COLLECTIONS = {
   HEALTH_RECORDS: 'health_records',
   BREEDING_RECORDS: 'breeding_records',
   SALES: 'sales',
+  OFFERS: 'offers',
+  LIVESTOCK_SAVES: 'livestock_saves',
 } as const;
 
 // Date formats

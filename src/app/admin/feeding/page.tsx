@@ -116,7 +116,7 @@ export default function FeedingManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 items-stretch">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4 items-stretch">
         <StatCard label="Today's Feedings" value={stats.todayFeedings} tone="sky" />
         <StatCard label="Completed Schedules" value={stats.completedSchedules} tone="emerald" />
         <StatCard label="Total Feed (kg)" value={stats.totalFeedGiven.toFixed(1)} tone="amber" />
@@ -318,13 +318,13 @@ function StatCard({ label, value, tone }: { label: string; value: string | numbe
   };
   const t = tones[tone];
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm h-[160px]">
-      <div className="shrink-0 flex h-28 w-28 items-center justify-center">
-        <img src={icons[tone]} alt={label} className="h-28 w-28 object-contain drop-shadow-sm" />
+    <div className="flex h-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
+      <div className="shrink-0 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 sm:h-24 sm:w-24">
+        <img src={icons[tone]} alt={label} className="h-16 w-16 object-contain drop-shadow-sm sm:h-20 sm:w-20" />
       </div>
-      <div className="min-w-0">
-        <p className={`text-4xl font-extrabold tabular-nums leading-none ${t.val}`}>{value}</p>
-        <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
+      <div className="min-w-0 text-center sm:text-left">
+        <p className={`text-3xl font-extrabold tabular-nums leading-none sm:text-4xl ${t.val}`}>{value}</p>
+        <p className="mt-1 text-sm font-medium leading-snug text-slate-500 sm:text-base">{label}</p>
       </div>
     </div>
   );

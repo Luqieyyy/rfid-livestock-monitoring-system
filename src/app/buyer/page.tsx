@@ -2,12 +2,15 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { livestockService } from '@/services/firestore.service';
+import { livestockService, savedService } from '@/services/firestore.service';
+import { useAuth } from '@/context/AuthContext';
 import type { Livestock } from '@/types/livestock.types';
 import { formatAnimalDisplayName } from '@/utils/helpers';
+import { AnimalDetailModal, calculateAge } from '@/components/buyer/AnimalDetailModal';
 
 function BuyerPortalContent() {
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [livestock, setLivestock] = useState<Livestock[]>([]);
   const [filteredLivestock, setFilteredLivestock] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +18,8 @@ function BuyerPortalContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [selectedAnimal, setSelectedAnimal] = useState<Livestock | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     const typeFromUrl = searchParams.get('type');
@@ -37,6 +42,28 @@ function BuyerPortalContent() {
       console.error('Error loading livestock:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    savedService.getSavedIds(user.uid).then((ids) => setSavedIds(new Set(ids)));
+  }, [user?.uid]);
+
+  const handleToggleSave = async (e: React.MouseEvent, animal: Livestock) => {
+    e.stopPropagation();
+    if (!user?.uid) return;
+    setTogglingId(animal.id);
+    try {
+      const nowSaved = await savedService.toggle(user.uid, animal.id);
+      setSavedIds((prev) => {
+        const next = new Set(prev);
+        if (nowSaved) next.add(animal.id);
+        else next.delete(animal.id);
+        return next;
+      });
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -75,18 +102,6 @@ function BuyerPortalContent() {
     }
 
     setFilteredLivestock(filtered);
-  };
-
-  const calculateAge = (dateOfBirth: Date) => {
-    const today = new Date();
-    const birth = new Date(dateOfBirth);
-    const ageInDays = Math.floor((today.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (ageInDays < 30) return `${ageInDays} days`;
-    if (ageInDays < 365) return `${Math.floor(ageInDays / 30)} months`;
-    const years = Math.floor(ageInDays / 365);
-    const months = Math.floor((ageInDays % 365) / 30);
-    return months > 0 ? `${years}y ${months}m` : `${years} years`;
   };
 
   const typeStats = {
@@ -207,6 +222,20 @@ function BuyerPortalContent() {
                     Verified
                   </span>
                 </div>
+                <button
+                  onClick={(e) => handleToggleSave(e, animal)}
+                  disabled={togglingId === animal.id}
+                  className={`absolute left-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition-all ${
+                    savedIds.has(animal.id)
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-white/85 text-slate-400 hover:bg-white hover:text-rose-500 backdrop-blur-sm'
+                  } ${togglingId === animal.id ? 'scale-90 opacity-70' : 'hover:scale-110'}`}
+                  aria-label={savedIds.has(animal.id) ? 'Unsave' : 'Save'}
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill={savedIds.has(animal.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
                 {animal.photoUrl ? (
                   <img 
                     src={animal.photoUrl} 
@@ -288,199 +317,12 @@ function BuyerPortalContent() {
 
       {/* Animal Detail Modal */}
       {selectedAnimal && (
-        <AnimalDetailModal animal={selectedAnimal} onClose={() => setSelectedAnimal(null)} calculateAge={calculateAge} />
+        <AnimalDetailModal animal={selectedAnimal} onClose={() => setSelectedAnimal(null)} />
       )}
     </div>
   );
 }
 
-function AnimalDetailModal({ animal, onClose, calculateAge }: { 
-  animal: Livestock; 
-  onClose: () => void;
-  calculateAge: (date: Date) => string;
-}) {
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-emerald-700 to-teal-600 p-8 text-white relative">
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <div className="flex items-center gap-6">
-            {animal.photoUrl ? (
-              <img 
-                src={animal.photoUrl} 
-                alt={animal.breed}
-                className="w-24 h-24 rounded-2xl object-cover shadow-lg border-4 border-white/20"
-              />
-            ) : (
-              <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-                <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
-            )}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-2xl font-bold">{animal.animalId}</h2>
-                <span className="bg-emerald-400 text-emerald-900 px-3 py-1 rounded-full text-xs font-semibold">Verified</span>
-              </div>
-              <p className="text-emerald-100 capitalize text-lg">{animal.breed} • {animal.type}</p>
-              <p className="text-emerald-200 text-sm mt-1">RFID: {animal.rfid || 'N/A'}</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* View Mode - Show all details */}
-        <div className="p-8">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {animal.price != null && (
-              <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-5 text-center border-2 border-emerald-200">
-                <p className="text-xs text-emerald-600 font-semibold mb-1">Harga Jualan</p>
-                <p className="text-3xl font-bold text-emerald-700">RM {animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
-              </div>
-            )}
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 text-center border border-emerald-100">
-              <p className="text-xs text-gray-500 mb-1">Weight</p>
-              <p className="text-xl font-bold text-gray-900">{animal.weight} kg</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 text-center border border-purple-100">
-              <p className="text-xs text-gray-500 mb-1">Age</p>
-              <p className="text-xl font-bold text-gray-900">{calculateAge(animal.dateOfBirth)}</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-100">
-              <p className="text-xs text-gray-500 mb-1">Gender</p>
-              <p className="text-xl font-bold text-gray-900 capitalize">{animal.gender}</p>
-            </div>
-            <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 text-center border border-orange-100">
-              <p className="text-xs text-gray-500 mb-1">Location</p>
-              <p className="text-xl font-bold text-gray-900">{animal.location}</p>
-            </div>
-          </div>
-
-          {/* Detailed Information */}
-          <div className="space-y-6 mb-8">
-            <h3 className="text-lg font-bold text-gray-900">Complete Animal Profile</h3>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              <InfoRow label="Date of Birth" value={new Date(animal.dateOfBirth).toLocaleDateString()} />
-              <InfoRow label="Health Status" value={animal.status} valueClass="text-emerald-600 capitalize" />
-              <InfoRow label="Animal ID" value={animal.animalId} />
-              <InfoRow label="RFID" value={animal.rfid || 'N/A'} />
-              <InfoRow label="Breed" value={animal.breed} valueClass="capitalize" />
-            </div>
-          </div>
-
-          {/* Yield Estimation */}
-          {animal.weight && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6">
-              <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Estimated Yield ({animal.type === 'cow' ? 'Lembu' : 'Kambing'})
-              </h4>
-              <p className="text-xs text-slate-500 mb-4">Based on live weight of <span className="font-semibold text-slate-700">{animal.weight} kg</span></p>
-              <div className="grid grid-cols-3 gap-3">
-                {(() => {
-                  const w = Number(animal.weight);
-                  const isCow = animal.type === 'cow';
-                  const daging = +(w * (isCow ? 0.385 : 0.30)).toFixed(1);
-                  const tulang = +(w * 0.11).toFixed(1);
-                  const lemak  = +(w * (isCow ? 0.065 : 0.07)).toFixed(1);
-                  return (
-                    <>
-                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-                        <p className="text-xs text-slate-500 mb-1">Daging</p>
-                        <p className="text-xl font-bold text-emerald-600">{daging}</p>
-                        <p className="text-xs text-slate-400">kg</p>
-                      </div>
-                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-                        <p className="text-xs text-slate-500 mb-1">Tulang</p>
-                        <p className="text-xl font-bold text-amber-500">{tulang}</p>
-                        <p className="text-xs text-slate-400">kg</p>
-                      </div>
-                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-                        <p className="text-xs text-slate-500 mb-1">Lemak</p>
-                        <p className="text-xl font-bold text-orange-400">{lemak}</p>
-                        <p className="text-xs text-slate-400">kg</p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-              <p className="text-xs text-slate-400 mt-3">* Anggaran sahaja. Hasil sebenar bergantung kepada pemotongan dan kondisi haiwan.</p>
-            </div>
-          )}
-
-          {/* Health Certification */}
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-semibold text-emerald-800 mb-1">Health Certified</h4>
-                <p className="text-sm text-emerald-700">This animal has passed all health verification requirements and is ready for purchase.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes Section */}
-          {animal.notes && (
-            <div className="bg-gray-50 rounded-xl p-5 mb-6">
-              <h4 className="font-semibold text-gray-900 mb-2">Additional Notes</h4>
-              <p className="text-gray-600">{animal.notes}</p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button 
-              type="button"
-              onClick={() => {
-                const typeName = animal.type === 'cow' ? 'lembu' : animal.type === 'goat' ? 'kambing' : animal.type;
-                const breedName = animal.breed;
-                const priceText = animal.price != null ? `\nHarga yang tertera: RM ${animal.price.toLocaleString('en-MY', { minimumFractionDigits: 2 })}` : '';
-                const message = `Assalamualaikum, saya berminat untuk membeli ${typeName} baka ${breedName} (ID: ${animal.animalId}).\n\nMaklumat haiwan:\n- Berat: ${animal.weight} kg\n- Jantina: ${animal.gender === 'male' ? 'Jantan' : 'Betina'}${priceText}\n\nBoleh saya dapatkan maklumat lanjut?\n\nTerima kasih.`;
-                const whatsappUrl = `https://wa.me/60173743683?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-              }}
-              className="flex-1 px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 012.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.188 8.188 0 01-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.12-.24-.01-.39.11-.5.11-.11.27-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43-.14 0-.3-.01-.47-.01z"/>
-              </svg>
-              Chat with Owner
-            </button>
-            <button 
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoRow({ label, value, valueClass = "text-gray-900" }: { label: string; value: string; valueClass?: string }) {
-  return (
-    <div className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-xl">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className={`font-medium ${valueClass}`}>{value}</span>
-    </div>
-  );
-}
 
 export default function BuyerPortal() {
   return (

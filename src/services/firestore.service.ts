@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -13,6 +14,7 @@ import {
   DocumentData,
   Timestamp,
   serverTimestamp,
+  getCountFromServer,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 const db = getFirebaseDb();
@@ -23,6 +25,7 @@ import type {
   HealthRecord,
   BreedingRecord,
   SalesRecord,
+  Offer,
   DashboardStats,
   FeedingSchedule,
   FeedingActivity,
@@ -478,6 +481,106 @@ export const salesRecordService = {
   },
 };
 
+// Offers Service — Carousell-style "Make an Offer" on livestock listings
+export const offerService = {
+  async getAll(): Promise<Offer[]> {
+    const cached = cacheGet<Offer[]>('offers:all');
+    if (cached) return cached;
+    const offersRef = collection(db, COLLECTIONS.OFFERS);
+    const q = query(offersRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...convertTimestamp(doc.data()) })) as Offer[];
+    cacheSet('offers:all', data);
+    return data;
+  },
+
+  async create(data: Omit<Offer, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const offersRef = collection(db, COLLECTIONS.OFFERS);
+    const docRef = await addDoc(offersRef, {
+      ...data,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    cacheInvalidate('offers:all');
+    return docRef.id;
+  },
+
+  async update(id: string, data: Partial<Offer>): Promise<void> {
+    const docRef = doc(db, COLLECTIONS.OFFERS, id);
+    await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+    cacheInvalidate('offers:all');
+  },
+
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTIONS.OFFERS, id);
+    await deleteDoc(docRef);
+    cacheInvalidate('offers:all');
+  },
+
+  async getByLivestockId(livestockId: string): Promise<Offer[]> {
+    const offersRef = collection(db, COLLECTIONS.OFFERS);
+    const q = query(offersRef, where('livestockId', '==', livestockId), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...convertTimestamp(doc.data()) })) as Offer[];
+  },
+
+  async getPending(): Promise<Offer[]> {
+    const offersRef = collection(db, COLLECTIONS.OFFERS);
+    const q = query(offersRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...convertTimestamp(doc.data()) })) as Offer[];
+  },
+
+  // Accept an offer: mark it accepted and create a linked pending sale record
+  async accept(offer: Offer): Promise<string> {
+    const offerDocRef = doc(db, COLLECTIONS.OFFERS, offer.id);
+    await updateDoc(offerDocRef, {
+      status: 'accepted',
+      respondedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    const salesRef = collection(db, COLLECTIONS.SALES);
+    const saleDocRef = await addDoc(salesRef, {
+      livestockId: offer.livestockId,
+      buyerName: offer.buyerName,
+      buyerContact: offer.buyerContact,
+      saleDate: new Date(),
+      price: offer.offerAmount,
+      paymentStatus: 'pending',
+      deliveryStatus: 'pending',
+      notes: `Created from accepted offer (${offer.id})`,
+      createdAt: serverTimestamp(),
+    });
+
+    cacheInvalidate('offers:all', 'sales:all');
+    return saleDocRef.id;
+  },
+
+  async reject(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTIONS.OFFERS, id);
+    await updateDoc(docRef, {
+      status: 'rejected',
+      respondedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    cacheInvalidate('offers:all');
+  },
+
+  async counter(id: string, counterAmount: number, counterMessage?: string): Promise<void> {
+    const docRef = doc(db, COLLECTIONS.OFFERS, id);
+    await updateDoc(docRef, {
+      status: 'countered',
+      counterAmount,
+      counterMessage: counterMessage ?? null,
+      respondedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    cacheInvalidate('offers:all');
+  },
+};
+
 // Dashboard Statistics Service
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
@@ -907,5 +1010,49 @@ export const iotFeedService = {
       callback(snap.exists() ? snap.val() : null);
     });
     return () => off(nodeRef);
+  },
+};
+
+// Saved / Wishlist Service — buyers can save livestock for future reference
+// Document ID format: `${uid}_${livestockId}` for idempotent upserts
+export const savedService = {
+  // Toggle save — returns new saved state
+  async toggle(uid: string, livestockId: string): Promise<boolean> {
+    const docId = `${uid}_${livestockId}`;
+    const docRef = doc(db, COLLECTIONS.LIVESTOCK_SAVES, docId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      await deleteDoc(docRef);
+      return false;
+    } else {
+      await setDoc(docRef, { uid, livestockId, savedAt: serverTimestamp() });
+      return true;
+    }
+  },
+
+  // Get all saved livestockIds for a buyer
+  async getSavedIds(uid: string): Promise<string[]> {
+    const q = query(collection(db, COLLECTIONS.LIVESTOCK_SAVES), where('uid', '==', uid));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data().livestockId as string);
+  },
+
+  // Count how many buyers saved a specific livestock (for admin)
+  async getSaveCount(livestockId: string): Promise<number> {
+    const q = query(collection(db, COLLECTIONS.LIVESTOCK_SAVES), where('livestockId', '==', livestockId));
+    const snap = await getCountFromServer(q);
+    return snap.data().count;
+  },
+
+  // Batch: get save counts for multiple livestock IDs at once
+  async getSaveCounts(livestockIds: string[]): Promise<Record<string, number>> {
+    if (livestockIds.length === 0) return {};
+    const counts: Record<string, number> = {};
+    await Promise.all(
+      livestockIds.map(async (id) => {
+        counts[id] = await savedService.getSaveCount(id);
+      })
+    );
+    return counts;
   },
 };

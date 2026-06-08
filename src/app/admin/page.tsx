@@ -84,13 +84,22 @@ export default function AdminDashboard() {
             </p>
           )}
         </div>
-        <Link
-          href="/admin/health"
-          className="flex items-center gap-1.5 rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:border-slate-300 transition-colors"
-        >
-          <PulseIcon className="h-3.5 w-3.5 text-rose-500" />
-          Review health queue
-        </Link>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Link
+            href="/admin/reports/monthly"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-emerald-800"
+          >
+            <ReportIcon className="h-4 w-4" />
+            Monthly Report
+          </Link>
+          <Link
+            href="/admin/health"
+            className="flex items-center gap-1.5 rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-sm hover:border-slate-300 transition-colors"
+          >
+            <PulseIcon className="h-3.5 w-3.5 text-rose-500" />
+            Review health queue
+          </Link>
+        </div>
       </div>
 
       {/* ── SECTION 1: Sales Analytics ─────────────────────────────── */}
@@ -375,45 +384,45 @@ function OverviewKpiStrip({
         label="Total Animals"
         value={totalLivestock.toLocaleString('en-MY')}
         helper="Tracked livestock"
-        accent="border-slate-400"
-        cardBg="from-slate-50 to-slate-100"
-        valCls="text-slate-800"
+        accent="border-[#8B9A86]"
+        cardBg="from-[#FAFAF7] to-[#EEF0E9]"
+        valCls="text-[#283228]"
         iconSrc="/totallivestockfarm.jpg"
       />
       <OverviewKpiCell
         label="Healthy Rate"
         value={`${healthyRate}%`}
         helper="Current herd condition"
-        accent="border-emerald-500"
-        cardBg="from-emerald-50 to-emerald-100"
-        valCls="text-emerald-700"
+        accent="border-[#6F9C73]"
+        cardBg="from-[#F7FAF4] to-[#E9F1E5]"
+        valCls="text-[#26734E]"
         iconSrc="/healthy.png"
       />
       <OverviewKpiCell
         label="Under Treatment"
         value={sickCount.toLocaleString('en-MY')}
         helper="Needs follow-up"
-        accent={sickCount > 0 ? 'border-amber-500' : 'border-slate-400'}
-        cardBg={sickCount > 0 ? 'from-amber-50 to-amber-100' : 'from-slate-50 to-slate-100'}
-        valCls={sickCount > 0 ? 'text-amber-700' : 'text-slate-800'}
+        accent={sickCount > 0 ? 'border-[#C07A2C]' : 'border-[#A4A39B]'}
+        cardBg={sickCount > 0 ? 'from-[#FCF7ED] to-[#F1E2C8]' : 'from-[#FAFAF7] to-[#EEEDE6]'}
+        valCls={sickCount > 0 ? 'text-[#9A5317]' : 'text-[#343B35]'}
         iconSrc="/sickanimal.png"
       />
       <OverviewKpiCell
         label="Pending Checkups"
         value={checkupsCount.toLocaleString('en-MY')}
         helper="Scheduled reviews"
-        accent="border-blue-500"
-        cardBg="from-blue-50 to-blue-100"
-        valCls="text-blue-700"
+        accent="border-[#7E9AAD]"
+        cardBg="from-[#F7F9FA] to-[#E9EEF1]"
+        valCls="text-[#315B73]"
         iconSrc="/HealthRecordsicon/Checkups.png"
       />
       <OverviewKpiCell
         label="Revenue"
         value={`MYR ${totalRevenue.toLocaleString('en-MY')}`}
         helper="Completed payments"
-        accent="border-emerald-500"
-        cardBg="from-emerald-50 to-emerald-100"
-        valCls="text-emerald-700"
+        accent="border-[#7B8F5B]"
+        cardBg="from-[#F8F6EF] to-[#E9E2D0]"
+        valCls="text-[#2F6F56]"
         iconSrc="/sales_myr.png"
       />
     </div>
@@ -438,14 +447,14 @@ function OverviewKpiCell({
   iconSrc: string;
 }) {
   return (
-    <div className={`flex items-center justify-between rounded-xl border border-slate-200 bg-gradient-to-br ${cardBg} px-5 py-5 border-l-4 ${accent} shadow-sm min-h-[100px]`}>
+    <div className={`flex min-h-[100px] items-center justify-between rounded-xl border border-[#D9DDD4] bg-gradient-to-br ${cardBg} px-5 py-5 border-l-4 ${accent} shadow-[0_1px_2px_rgba(45,55,38,0.05),0_8px_20px_rgba(45,55,38,0.05)]`}>
       <div className="min-w-0">
-        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
+        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</p>
         <p className={`text-2xl font-extrabold tabular-nums leading-none ${valCls}`}>{value}</p>
         <p className="mt-1 text-[11px] text-slate-400">{helper}</p>
       </div>
       <div className="shrink-0 ml-3">
-        <img src={iconSrc} alt={label} className="h-16 w-16 object-contain" />
+        <img src={iconSrc} alt={label} className="h-16 w-16 object-contain mix-blend-multiply" />
       </div>
     </div>
   );
@@ -1390,6 +1399,15 @@ function PulseIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  );
+}
+
+function ReportIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 3v5h5M9 14h6M9 18h6M9 10h2" />
     </svg>
   );
 }

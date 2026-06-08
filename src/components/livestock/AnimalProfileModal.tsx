@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { healthRecordService } from '@/services/firestore.service';
+import { createPortal } from 'react-dom';
+import { healthRecordService, breedingRecordService } from '@/services/firestore.service';
 import { vaccinationService } from '@/services/vaccination.service';
 import { getFirebaseDb } from '@/lib/firebase';
-import type { Livestock, HealthRecord } from '@/types/livestock.types';
+import type { Livestock, HealthRecord, BreedingRecord } from '@/types/livestock.types';
 import type { VaccinationRecord } from '@/types/vaccination.types';
 import { formatAnimalDisplayName } from '@/utils/helpers';
 import { Timestamp } from 'firebase/firestore';
@@ -22,6 +23,7 @@ interface ConditionLog {
 
 interface Props {
   animal: Livestock;
+  peers?: Livestock[];
   onClose: () => void;
   onEdit?: () => void;
 }
@@ -75,14 +77,112 @@ function ModalEmpty({ label }: { label: string }) {
   );
 }
 
-export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
-  const [tab, setTab] = useState<'overview' | 'health' | 'logs' | 'yield'>('overview');
+function formatRM(value: number) {
+  return `RM ${Math.round(value).toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+}
+
+function monthsOld(dateOfBirth: Date) {
+  const birth = new Date(dateOfBirth);
+  const now = new Date();
+  return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth());
+}
+
+function median(values: number[]) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function buildPriceAdvisor(animal: Livestock, peers: Livestock[] = []) {
+  const weight = Math.max(animal.weight || 0, 1);
+  const ageMonths = monthsOld(animal.dateOfBirth);
+  const fallbackRate = animal.type === 'cow' ? 26 : animal.type === 'goat' ? 34 : 30;
+  const peerRates = peers
+    .filter((peer) => peer.id !== animal.id)
+    .filter((peer) => peer.type === animal.type && peer.price != null && (peer.weight || 0) > 0)
+    .map((peer) => (peer.price || 0) / (peer.weight || 1))
+    .filter((rate) => Number.isFinite(rate) && rate > 0);
+  const marketRate = peerRates.length >= 3 ? median(peerRates) : fallbackRate;
+
+  let multiplier = 1;
+  const factors: string[] = [];
+
+  if (animal.status === 'healthy') {
+    multiplier += 0.08;
+    factors.push('Healthy status adds buyer confidence');
+  } else if (animal.status === 'quarantine') {
+    multiplier -= 0.18;
+    factors.push('Quarantine status lowers recommended price');
+  } else if (animal.status === 'sick') {
+    multiplier -= 0.28;
+    factors.push('Sick status needs discount until recovered');
+  }
+
+  if (animal.gender === 'male') {
+    multiplier += animal.type === 'cow' ? 0.04 : 0.06;
+    factors.push('Male livestock has stronger meat-sale demand');
+  } else if (animal.gender === 'female' && animal.status === 'healthy') {
+    multiplier += 0.03;
+    factors.push('Healthy female has breeding value');
+  }
+
+  if (ageMonths >= 10 && ageMonths <= 36) {
+    multiplier += 0.06;
+    factors.push('Age is inside a strong selling window');
+  } else if (ageMonths > 60) {
+    multiplier -= 0.08;
+    factors.push('Older age slightly reduces resale upside');
+  }
+
+  const premiumBreeds = ['boer', 'brahman', 'simmental', 'angus', 'limousin'];
+  if (premiumBreeds.some((breed) => animal.breed.toLowerCase().includes(breed))) {
+    multiplier += 0.05;
+    factors.push('Breed usually carries a market premium');
+  }
+
+  const recommended = Math.max(0, weight * marketRate * multiplier);
+  const low = recommended * 0.92;
+  const high = recommended * 1.08;
+  const current = animal.price || 0;
+  const currentRate = current > 0 ? current / weight : 0;
+  const delta = current > 0 ? ((current - recommended) / recommended) * 100 : 0;
+  const confidence = peerRates.length >= 6 ? 'High' : peerRates.length >= 3 ? 'Medium' : 'Starter';
+  const verdict =
+    current === 0
+      ? 'No selling price set'
+      : delta > 12
+        ? 'Above recommendation'
+        : delta < -12
+          ? 'Below recommendation'
+          : 'Fair range';
+
+  return {
+    recommended,
+    low,
+    high,
+    marketRate,
+    current,
+    currentRate,
+    delta,
+    confidence,
+    verdict,
+    factors: factors.slice(0, 4),
+    peerCount: peerRates.length,
+  };
+}
+
+export default function AnimalProfileModal({ animal, peers = [], onClose, onEdit }: Props) {
+  const [tab, setTab] = useState<'overview' | 'health' | 'logs' | 'timeline' | 'yield' | 'ai'>('overview');
   const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>([]);
   const [conditionLogs, setConditionLogs] = useState<ConditionLog[]>([]);
+  const [breedingRecords, setBreedingRecords] = useState<BreedingRecord[]>([]);
   const [loadingExtra, setLoadingExtra] = useState(false);
   const [healthLoaded, setHealthLoaded] = useState(false);
   const [logsLoaded, setLogsLoaded] = useState(false);
+  const [timelineLoaded, setTimelineLoaded] = useState(false);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
 
   useEffect(() => {
     if (tab === 'health' && !healthLoaded) {
@@ -113,7 +213,74 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
         });
       });
     }
+    if (tab === 'timeline' && !timelineLoaded) {
+      setLoadingTimeline(true);
+      Promise.all([
+        healthLoaded ? Promise.resolve(healthRecords) : healthRecordService.getByLivestockId(animal.id),
+        healthLoaded ? Promise.resolve(vaccinations) : vaccinationService.getByAnimal(animal.animalId),
+        breedingRecordService.getByLivestockId(animal.id),
+        (async () => {
+          if (logsLoaded) return conditionLogs;
+          const { collection, query, where, orderBy, getDocs } = await import('firebase/firestore');
+          const db = getFirebaseDb();
+          const q = query(
+            collection(db, 'condition_logs'),
+            where('animalId', '==', animal.animalId),
+            orderBy('timestamp', 'desc')
+          );
+          const snap = await getDocs(q);
+          return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ConditionLog));
+        })(),
+      ]).then(([hr, vac, breeding, logs]) => {
+        if (!healthLoaded) {
+          setHealthRecords(hr);
+          setVaccinations(vac);
+          setHealthLoaded(true);
+        }
+        if (!logsLoaded) {
+          setConditionLogs(logs);
+          setLogsLoaded(true);
+        }
+        setBreedingRecords(breeding);
+        setTimelineLoaded(true);
+        setLoadingTimeline(false);
+      });
+    }
   }, [tab]);
+
+  const timelineEvents: { date: Date; type: string; title: string; subtitle?: string; color: string }[] = (() => {
+    if (!timelineLoaded) return [];
+    const events: { date: Date; type: string; title: string; subtitle?: string; color: string }[] = [];
+    vaccinations.forEach((v) => events.push({
+      date: new Date(v.administeredAt),
+      type: 'Vaccination',
+      title: `Vaccination: ${v.vaccineType}`,
+      subtitle: v.administeredBy ? `by ${v.administeredBy}` : undefined,
+      color: 'bg-emerald-500',
+    }));
+    healthRecords.forEach((h) => events.push({
+      date: new Date(h.date),
+      type: 'Health checkup',
+      title: h.description,
+      subtitle: h.veterinarian ? `Dr. ${h.veterinarian}` : undefined,
+      color: 'bg-blue-500',
+    }));
+    conditionLogs.forEach((c) => events.push({
+      date: c.timestamp ? c.timestamp.toDate() : new Date(0),
+      type: 'Condition log',
+      title: `Condition: ${c.condition}`,
+      subtitle: `by ${c.farmerName}${c.notes ? ` — ${c.notes}` : ''}`,
+      color: c.condition === 'Sick' ? 'bg-red-500' : c.condition === 'Monitor' ? 'bg-amber-500' : 'bg-emerald-500',
+    }));
+    breedingRecords.forEach((b) => events.push({
+      date: new Date(b.breedingDate),
+      type: 'Breeding update',
+      title: `Breeding: ${b.status}`,
+      subtitle: b.notes,
+      color: 'bg-pink-500',
+    }));
+    return events.sort((a, b) => b.date.getTime() - a.date.getTime());
+  })();
 
   const animalImgSrc = animal.photoUrl || (animal.type === 'cow' ? '/cow.jpg' : '/goat.png');
 
@@ -133,49 +300,43 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
     };
   })();
 
+  const priceAdvisor = buildPriceAdvisor(animal, peers);
+
   const tabs = [
     { key: 'overview' as const, label: 'Overview' },
+    { key: 'ai' as const, label: 'AI Price' },
     { key: 'health' as const, label: 'Health & Vax' },
     { key: 'logs' as const, label: 'Condition Logs' },
+    { key: 'timeline' as const, label: 'Timeline' },
     { key: 'yield' as const, label: 'Est. Yield' },
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-black/5">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-black/5">
 
-        {/* Top bar */}
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
-          <h2 className="text-base font-semibold text-slate-900">Animal Profile</h2>
-          <button onClick={onClose} className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700">
+        {/* Header row: thumbnail + name + status + close */}
+        <div className="flex shrink-0 items-center gap-4 border-b border-slate-200 px-5 py-4">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
+            <img src={animalImgSrc} alt={animal.type} className="h-full w-full object-cover" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-lg font-bold tracking-tight text-slate-950">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
+              <StatusBadge status={animal.status} />
+            </div>
+            <p className="mt-0.5 truncate text-sm text-slate-500">{animal.breed} / <span className="capitalize">{animal.type}</span></p>
+          </div>
+          <button onClick={onClose} className="shrink-0 rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Hero banner */}
-        <div className="relative shrink-0">
-          <div className="h-48 overflow-hidden bg-slate-100">
-            <img src={animalImgSrc} alt={animal.type} className="h-full w-full object-cover" />
-          </div>
-          <div className="absolute bottom-0 left-6 translate-y-1/2">
-            <div className="h-24 w-24 overflow-hidden rounded-xl border-4 border-white bg-white shadow-md">
-              <img src={animalImgSrc} alt={animal.type} className="h-full w-full object-cover" />
-            </div>
-          </div>
-        </div>
-
-        {/* Name row */}
-        <div className="shrink-0 border-b border-slate-100 bg-white px-6 pb-4 pt-14">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="text-2xl font-bold tracking-tight text-slate-950">{formatAnimalDisplayName(animal.type, animal.animalId)}</h3>
-              <p className="mt-1 text-sm text-slate-600">{animal.breed} / <span className="capitalize">{animal.type}</span></p>
-            </div>
-            <StatusBadge status={animal.status} />
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* Stat chips */}
+        <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <SummaryItem label="Weight" value={`${animal.weight} kg`} />
             <SummaryItem label="Gender" value={animal.gender} />
             <SummaryItem label="Location" value={animal.location} />
@@ -312,6 +473,92 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
             </div>
           )}
 
+          {tab === 'ai' && (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.25 7.5 18 8.25l-.25-.75a2.25 2.25 0 0 0-1.5-1.5L15.5 5.75l.75-.25a2.25 2.25 0 0 0 1.5-1.5L18 3.25l.25.75a2.25 2.25 0 0 0 1.5 1.5l.75.25-.75.25a2.25 2.25 0 0 0-1.5 1.5Z" />
+                      </svg>
+                      AI Price Advisor
+                    </div>
+                    <p className="text-sm font-semibold text-slate-600">Recommended selling range</p>
+                    <p className="mt-1 text-3xl font-black tracking-tight text-emerald-800">
+                      {formatRM(priceAdvisor.low)} - {formatRM(priceAdvisor.high)}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-slate-500">
+                      Mid estimate: <span className="font-bold text-slate-700">{formatRM(priceAdvisor.recommended)}</span>
+                      {' '}based on {animal.weight}kg live weight
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white px-4 py-3 text-right ring-1 ring-emerald-100">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Confidence</p>
+                    <p className="mt-1 text-lg font-black text-emerald-700">{priceAdvisor.confidence}</p>
+                    <p className="text-[11px] font-semibold text-slate-400">
+                      {priceAdvisor.peerCount >= 3 ? `${priceAdvisor.peerCount} local comps` : 'fallback model'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Current Price</p>
+                  <p className="mt-1 text-xl font-black text-slate-900">
+                    {priceAdvisor.current > 0 ? formatRM(priceAdvisor.current) : 'Not set'}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-slate-400">
+                    {priceAdvisor.currentRate > 0 ? `RM ${priceAdvisor.currentRate.toFixed(2)}/kg` : 'Add price to compare'}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">AI Verdict</p>
+                  <p className={`mt-1 text-xl font-black ${
+                    priceAdvisor.verdict === 'Above recommendation' ? 'text-amber-700' :
+                    priceAdvisor.verdict === 'Below recommendation' ? 'text-blue-700' : 'text-emerald-700'
+                  }`}>
+                    {priceAdvisor.verdict}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-slate-400">
+                    {priceAdvisor.current > 0 ? `${priceAdvisor.delta > 0 ? '+' : ''}${priceAdvisor.delta.toFixed(0)}% vs AI mid` : 'No comparison yet'}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Market Rate Used</p>
+                  <p className="mt-1 text-xl font-black text-slate-900">RM {priceAdvisor.marketRate.toFixed(2)}/kg</p>
+                  <p className="mt-1 text-xs font-medium text-slate-400 capitalize">{animal.type} pricing baseline</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Why This Price</p>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-500">
+                    {animal.breed} / {animal.gender}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {priceAdvisor.factors.length === 0 ? (
+                    <p className="text-sm text-slate-500">Not enough premium or risk signals. Estimate mainly follows weight and type baseline.</p>
+                  ) : priceAdvisor.factors.map((factor) => (
+                    <div key={factor} className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <p className="text-sm font-medium text-slate-700">{factor}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-xs font-semibold leading-relaxed text-amber-800">
+                  AI estimate is advisory only. Confirm final price with live market demand, buyer negotiation, and physical inspection.
+                </p>
+              </div>
+            </div>
+          )}
+
           {tab === 'logs' && (
             <div>
               {loadingExtra ? <ModalSpinner /> : conditionLogs.length === 0 ? (
@@ -348,6 +595,35 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
                       )}
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'timeline' && (
+            <div>
+              {loadingTimeline ? <ModalSpinner /> : timelineEvents.length === 0 ? (
+                <ModalEmpty label="No timeline events yet" />
+              ) : (
+                <div className="relative pl-6">
+                  <div className="absolute left-[7px] top-1 bottom-1 w-px bg-slate-200" />
+                  <div className="space-y-5">
+                    {timelineEvents.map((ev, i) => (
+                      <div key={i} className="relative">
+                        <div className={`absolute -left-6 top-1 h-3 w-3 rounded-full ring-4 ring-slate-50 ${ev.color}`} />
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{ev.type}</span>
+                            <span className="text-xs text-slate-400">
+                              {ev.date.toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm font-semibold text-slate-800">{ev.title}</p>
+                          {ev.subtitle && <p className="mt-0.5 text-xs text-slate-500">{ev.subtitle}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -415,6 +691,7 @@ export default function AnimalProfileModal({ animal, onClose, onEdit }: Props) {
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

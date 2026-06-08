@@ -71,6 +71,7 @@ export default function BreedingPage() {
   const [livestock, setLivestock] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [animalTypeFilter, setAnimalTypeFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => { loadData(); }, []);
@@ -85,7 +86,14 @@ export default function BreedingPage() {
   };
 
   const display = records.length > 0 ? records : DUMMY_RECORDS;
-  const filtered = filter === 'all' ? display : display.filter((r) => r.status === filter);
+  const filtered = display.filter((r) => {
+    if (filter !== 'all' && r.status !== filter) return false;
+    if (animalTypeFilter !== 'all') {
+      const mother = livestock.find((l) => l.id === r.motherId || l.animalId === r.motherId || l.tagId === r.motherId);
+      if (!mother || mother.type !== animalTypeFilter) return false;
+    }
+    return true;
+  });
 
   const stats = {
     total: display.length,
@@ -124,6 +132,22 @@ export default function BreedingPage() {
         <StatCard label="Pregnant" value={stats.pregnant} tone="amber" iconSrc="/Breeding/Pregnant.png" />
         <StatCard label="Delivered" value={stats.delivered} tone="emerald" iconSrc="/Breeding/Delivered.png" />
         <StatCard label="Failed" value={stats.failed} tone="red" iconSrc="/Breeding/Failed.png" />
+      </div>
+
+      {/* Animal type filter */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-500">Jenis:</span>
+        <div className="flex rounded-xl border border-slate-200 bg-white overflow-hidden">
+          {(['all', 'cow', 'goat'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setAnimalTypeFilter(t)}
+              className={`px-4 py-2 text-sm font-medium transition ${animalTypeFilter === t ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+            >
+              {t === 'all' ? 'All' : t === 'cow' ? '🐄 Cow' : '🐐 Goat'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tabs + Cards */}

@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import NextImage from 'next/image';
-import { livestockService } from '@/services/firestore.service';
+import { livestockService, savedService } from '@/services/firestore.service';
 import { kandangService } from '@/services/farm.service';
 import { getFirebaseDb, getFirebaseStorage } from '@/lib/firebase';
 import type { Livestock } from '@/types/livestock.types';
@@ -19,6 +19,7 @@ function LivestockPageInner() {
   const [filteredLivestock, setFilteredLivestock] = useState<Livestock[]>([]);
   const [kandangs, setKandangs] = useState<Kandang[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saveCounts, setSaveCounts] = useState<Record<string, number>>({});
   const [filter, setFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,6 +62,8 @@ function LivestockPageInner() {
       setLivestock(livestockData);
       setFilteredLivestock(livestockData);
       setKandangs(kandangData);
+      // Load save counts in background — non-blocking
+      savedService.getSaveCounts(livestockData.map((a) => a.id)).then(setSaveCounts);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -359,9 +362,19 @@ function LivestockPageInner() {
                     </svg>
                     {animal.location}
                   </span>
-                  <span className="text-emerald-600 text-[11px] font-semibold group-hover:translate-x-0.5 transition-transform shrink-0">
-                    Details →
-                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {(saveCounts[animal.id] ?? 0) > 0 && (
+                      <span className="flex items-center gap-0.5 text-[11px] font-semibold text-rose-500">
+                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {saveCounts[animal.id]}
+                      </span>
+                    )}
+                    <span className="text-emerald-600 text-[11px] font-semibold group-hover:translate-x-0.5 transition-transform">
+                      Details →
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -408,6 +421,7 @@ function LivestockPageInner() {
       {selectedAnimal && (
         <AnimalProfileModal
           animal={selectedAnimal}
+          peers={livestock}
           onClose={() => setSelectedAnimal(null)}
           onEdit={() => {
             setEditingAnimal(selectedAnimal);

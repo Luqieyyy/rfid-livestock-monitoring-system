@@ -31,6 +31,8 @@ export const getUserProfile = async (uid: string): Promise<AuthUser | null> => {
         displayName: data.displayName,
         role: data.role,
         photoURL: data.photoURL,
+        phoneNumber: data.phoneNumber || data.phone || null,
+        location: data.location || null,
       };
     }
     return null;
@@ -77,6 +79,8 @@ export const authService = {
         displayName: user.displayName,
         role: expectedRole,
         photoURL: user.photoURL,
+        phoneNumber: null,
+        location: null,
       };
     }
 
@@ -114,6 +118,8 @@ export const authService = {
       displayName,
       role,
       photoURL: user.photoURL,
+      phoneNumber: null,
+      location: null,
     };
   },
 
@@ -143,6 +149,8 @@ export const authService = {
       displayName: user.displayName,
       role: 'buyer',
       photoURL: user.photoURL,
+      phoneNumber: null,
+      location: null,
     };
   },
 
