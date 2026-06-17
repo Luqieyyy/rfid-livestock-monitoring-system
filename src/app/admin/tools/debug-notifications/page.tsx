@@ -110,7 +110,7 @@ export default function DebugNotificationsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Debug Notifications</h1>
         </div>
         <p className="text-gray-500 text-sm">
-          Trigger push notifications to the Farmer App for prototype demo. Notifications appear instantly on the farmer's phone.
+          Trigger push notifications to the Farmer App for prototype demo. Notifications appear instantly on the farmer&apos;s phone.
         </p>
       </div>
 
