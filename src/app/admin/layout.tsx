@@ -44,8 +44,9 @@ const navigation = [
     iconSrc: null,
     type: 'group',
     children: [
-      { name: 'Tools & Migration', href: '/admin/tools',            iconSrc: null },
-      { name: 'IoT Wiring Arch',   href: '/admin/tools/iot-wiring', iconSrc: '/icon/conditionlogs.png' },
+      { name: 'Tools & Migration',    href: '/admin/tools',                        iconSrc: null },
+      { name: 'IoT Wiring Arch',      href: '/admin/tools/iot-wiring',             iconSrc: '/icon/conditionlogs.png' },
+      { name: 'Debug Notifications',  href: '/admin/tools/debug-notifications',    iconSrc: null },
     ],
   },
 ];
@@ -73,6 +74,13 @@ function StaffOrToolIcon({ name, active }: { name: string; active: boolean }) {
       <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" />
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6M9 8h6M9 16h4" />
+      </svg>
+    );
+  }
+  if (name === 'Debug Notifications') {
+    return (
+      <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
     );
   }
@@ -260,8 +268,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/sales':         { section: 'Finance',            label: 'Sales & Offers' },
     '/admin/staff':         { section: 'Settings',           label: 'User Management' },
     '/admin/reports/monthly': { section: 'Reports', label: 'Monthly Farm Report' },
-    '/admin/tools':             { section: 'Settings', label: 'Tools & Migration' },
-    '/admin/tools/iot-wiring':  { section: 'Admin Tools', label: 'IoT Wiring Architecture' },
+    '/admin/tools':                          { section: 'Settings',    label: 'Tools & Migration' },
+    '/admin/tools/iot-wiring':              { section: 'Admin Tools', label: 'IoT Wiring Architecture' },
+    '/admin/tools/debug-notifications':     { section: 'Admin Tools', label: 'Debug Notifications' },
     '/admin/profile':           { section: 'Settings', label: 'Profile & Security' },
   };
   const currentPage = pageMap[pathname] ?? { section: 'Admin', label: 'FarmSense' };

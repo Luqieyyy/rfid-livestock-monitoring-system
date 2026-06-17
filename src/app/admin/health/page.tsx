@@ -323,10 +323,10 @@ function HealthCard({ record, livestock, onOpen }: { record: HealthRecord; lives
               <img
                 src={animal.photoUrl}
                 alt={displayId}
-                className="h-11 w-11 rounded-xl object-cover border border-slate-200 group-hover:ring-2 group-hover:ring-emerald-400 transition"
+                className="h-16 w-16 rounded-xl object-cover border border-slate-200 group-hover:ring-2 group-hover:ring-emerald-400 transition"
               />
             ) : (
-              <div className={`h-11 w-11 rounded-xl flex items-center justify-center text-xs font-bold text-white ${cfg.dot} group-hover:brightness-110 transition`}>
+              <div className={`h-16 w-16 rounded-xl flex items-center justify-center text-xs font-bold text-white ${cfg.dot} group-hover:brightness-110 transition`}>
                 {displayId.slice(-2)}
               </div>
             )}
